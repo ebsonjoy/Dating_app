@@ -1,0 +1,129 @@
+.sign-in-container {
+    display: flex;
+    height: 100vh;
+    background-color: #f9f8ea; /* Completely yellow background */
+    color: #333;
+}
+
+.sign-in-left-side {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.sign-in-sign-up-button {
+    background-color: #000000; /* Green background */
+    color: white; /* White text */
+    border: none; /* No border */
+    padding: 10px 20px; /* Some padding */
+    text-align: center; /* Centered text */
+    text-decoration: none; /* No underline */
+    display: inline-block; /* Get the block property */
+    font-size: 16px; /* Text size */
+    margin-top: 20px; /* Space above the button */
+    cursor: pointer; /* Pointer cursor on hover */
+    border-radius: 5px; /* Rounded corners */
+    transition: background-color 0.3s ease; /* Smooth transition */
+}
+
+.sign-in-sign-up-button:hover {
+    background-color: #232319; /* Darker green on hover */
+}
+
+.sign-in-right-side {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.sign-in-form-box {
+    background-color: #fff;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.2); /* Dark shadow */
+    width: 100%;
+    max-width: 400px;
+}
+
+.sign-in-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.sign-in-input-group {
+    margin-bottom: 15px;
+}
+
+.sign-in-input {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    color: floralwhite;
+}
+
+.sign-in-submit-button {
+    width: 100%;
+    padding: 15px; /* Increased size */
+    background-color: #090909;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1rem; /* Larger text */
+    margin-bottom: 10px;
+}
+
+.sign-in-forgot-password {
+    text-align: center;
+    display: block;
+    margin: 10px 0;
+    color: #007bff;
+    text-decoration: none;
+}
+
+.sign-in-or-divider {
+    text-align: center;
+    margin: 20px 0;
+    font-size: 14px;
+    color: #777;
+}
+
+.sign-in-google-sign-in {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sign-in-google-sign-in span {
+    font-size: 1rem;
+    color: #555;
+}
+
+.sign-in-google-button {
+    padding: 8px 12px;
+    background-color: #db4437; /* Google red color */
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.sign-in-creative-text {
+    font-size: 2.5rem;
+    font-weight: bold;
+    text-align: center;
+}
+
+.sign-in-description {
+    font-size: 1.2rem;
+    text-align: center;
+    margin-top: 20px;
+    padding: 0 20px;
+}

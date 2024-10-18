@@ -1,0 +1,214 @@
+import { apiSlice } from "./apiSlice";
+const USERS_URL = "/api/users";
+interface LoginData {
+  email: string;
+  password: string;
+}
+
+interface forgotPasswordData {
+  email : string
+}
+interface resetPasswordData{
+  password:string;
+}
+
+interface RegisterData {
+  name: string;
+  email: string;
+  mobileNumber: string;
+  password: string;
+  dateOfBirth: string;
+}
+
+interface RegisterResponse {
+  _id: string;
+  name: string;
+  email: string;
+  mobileNumber: string;
+  dateOfBirth: string;
+  otp: string;
+}
+
+interface UpdateUserData {
+  name?: string;
+  email?: string;
+}
+interface Otp{
+  otp:string;
+  emailId:string;
+}
+interface ResendOtpData {
+  emailId: string;
+}
+
+interface MyFormData {
+  
+  gender: string;
+  lookingFor: string;
+  profilePhotos: string[];
+  relationship: string;
+  interests: string[];
+  occupation: string;
+  education: string;
+  bio: string;
+  smoking: string;
+  drinking: string;
+  place: string;
+  caste: string;
+
+}
+
+interface UserProfile {
+  userId: string; 
+  name: string | undefined;
+  age: number | null;
+  gender: string;
+  lookingFor: string;
+  profilePhotos: string[];
+  relationship: string;
+  interests: string[];
+  occupation: string;
+  education: string;
+  bio: string;
+  smoking: boolean;
+  drinking: boolean;
+  place: string;
+}
+
+interface IUser {
+  _id: string;
+  name: string;
+  email: string;
+  dateOfBirth: string;
+  mobileNumber: string;
+  otp: string;
+  otpExpiresAt: string;
+  createdAt: string;
+  updatedAt: string;
+  status: boolean;
+  isPremium: boolean;
+  matches: number;
+}
+
+interface IUserInfo {
+  _id: string;
+  userId: string;
+  gender: string;
+  lookingFor: string;
+  profilePhotos: string[];
+  relationship: string;
+  interests: string[];
+  occupation: string;
+  education: string;
+  bio: string;
+  smoking: string;
+  drinking: string;
+  place: string;
+  caste: string;
+}
+
+// Define the response type for the user profile
+interface IUserProfileResponse {
+  user: IUser;
+  userInfo: IUserInfo;
+}
+
+
+
+export const usersApiSlice = apiSlice.injectEndpoints({
+  endpoints: (builder) => ({
+    login: builder.mutation<{ token: string }, LoginData>({
+      query: (data) => ({
+        url: `${USERS_URL}/auth`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+    forgotPasswordRequesting: builder.mutation<void, forgotPasswordData>({
+      query: (data) => ({
+        url: `${USERS_URL}/password-reset-request`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+    resetPassword: builder.mutation<void, { data: resetPasswordData; token: string }>({
+      query: ({data,token}) => ({
+        url: `${USERS_URL}/reset-password/${token}`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+    register: builder.mutation<RegisterResponse, RegisterData>({
+      query: (data) => ({
+        url: `${USERS_URL}/register`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+    logout: builder.mutation<void, void>({
+      query: () => ({
+        url: `${USERS_URL}/logoutUser`,
+        method: "POST",
+      }),
+    }),
+
+    updateUser: builder.mutation<RegisterResponse, UpdateUserData>({
+      query: (data) => ({
+        url: `${USERS_URL}/profile`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
+    
+    verifyOtp: builder.mutation<void, Otp>({
+      query: (data) => ({
+        url: `${USERS_URL}/verifyOtp`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+    resendOtp: builder.mutation<void, ResendOtpData>({
+      query: (data) => ({
+        url: `${USERS_URL}/resendOtp`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+    createUserInfo: builder.mutation<void, MyFormData>({      
+      query: (data) => ({
+        url: `${USERS_URL}/userInfoSignUp`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+    getUsersProfiles: builder.query<UserProfile[], string>({  
+      query: (userId) => `${USERS_URL}/getHomeUsersProfiles/${userId}`,
+    }),
+
+    getUserProfile: builder.query<IUserProfileResponse, string>({
+      query: (userId) => `${USERS_URL}/getUserProfile/${userId}`,
+    }),
+    updateUserProfile: builder.mutation<IUserProfileResponse, { data: FormData, userId: string }>({
+      query: ({ data, userId }) => ({
+        url: `${USERS_URL}/updateUserProfile/${userId}`,
+        method: 'PUT',
+        body: data, 
+      }),
+    }),
+  }),
+});
+
+export const {
+  useLoginMutation,
+  useLogoutMutation,
+  useRegisterMutation,
+  useUpdateUserMutation,
+  useVerifyOtpMutation,
+  useResendOtpMutation,
+  useCreateUserInfoMutation,
+  useGetUsersProfilesQuery,
+  useForgotPasswordRequestingMutation,
+  useResetPasswordMutation,
+  useGetUserProfileQuery,
+  useUpdateUserProfileMutation
+} = usersApiSlice;

@@ -1,0 +1,21 @@
+/* src/layouts/AdminLayout.css */
+.admin-layout {
+    display: flex;
+    min-height: 100vh;
+  }
+  
+  .fixed-navbar {
+    position: fixed;
+    background-color: #1f2937; /* Dark gray */
+    width: 256px; /* Width of your navbar */
+    height: 100%;
+  }
+  
+  .main-content {
+    margin-left: 256px; /* Equal to the width of the navbar */
+    overflow: auto;
+    background-color: #f3f4f6; /* Light gray */
+    padding: 24px; /* 1.5rem */
+    flex-grow: 1;
+  }
+  

@@ -1,0 +1,162 @@
+/* * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Arial', sans-serif;
+    overflow-x: hidden;
+  } */
+  
+  /* Navbar Styling */
+  .landingPage__navbar {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    padding: 15px 50px;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+  }
+  
+  .landingPage__logo {
+    font-size: 32px;
+    color: #ff6b6b;
+    font-weight: bold;
+  }
+  
+  .landingPage__nav-links {
+    list-style: none;
+    display: flex;
+    gap: 30px;
+  }
+  
+  .landingPage__nav-links li a {
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+    padding: 8px 15px;
+    transition: background 0.3s, color 0.3s;
+    border-radius: 5px;
+  }
+  
+  .landingPage__nav-links li a:hover {
+    background-color: #ff6b6b;
+    color: white;
+  }
+  
+  /* First Section with Background Image */
+  .landingPage__section {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .landingPage__section-hero {
+    background-size: cover;
+    background-position: center;
+    color: white;
+    padding: 0 20px;
+  }
+  
+  .landingPage__hero-text h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+  }
+  
+  .landingPage__hero-text p {
+    font-size: 24px;
+    margin-bottom: 30px;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.7);
+  }
+  
+  .landingPage__cta-btn {
+    padding: 12px 25px;
+    background-color: #ff6b6b;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 18px;
+    transition: background 0.3s;
+  }
+  
+  .landingPage__cta-btn:hover {
+    background-color: #ff4b4b;
+  }
+  
+  /* Plain Background Section */
+  .landingPage__section-info {
+    background-color: #f4f4f4;
+    padding: 80px 20px;
+    text-align: center;
+  }
+  
+  .landingPage__info-content h2 {
+    font-size: 36px;
+    margin-bottom: 20px;
+    color: #333;
+  }
+  
+  .landingPage__info-content p {
+    font-size: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+    color: #555;
+  }
+  
+  /* Third Section with Background Image */
+  .landingPage__section-feature {
+    background-size: cover;
+    background-position: center;
+    color: white;
+    padding: 100px 20px;
+    text-align: center;
+  }
+  
+  .landingPage__feature-text h2 {
+    font-size: 36px;
+    margin-bottom: 20px;
+  }
+  
+  .landingPage__feature-text p {
+    font-size: 20px;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .landingPage__navbar {
+      padding: 15px 20px;
+    }
+  
+    .landingPage__logo {
+      font-size: 26px;
+    }
+  
+    .landingPage__nav-links {
+      gap: 15px;
+    }
+  
+    .landingPage__hero-text h1 {
+      font-size: 36px;
+    }
+  
+    .landingPage__hero-text p {
+      font-size: 18px;
+    }
+  
+    .landingPage__info-content h2 {
+      font-size: 28px;
+    }
+  
+    .landingPage__feature-text h2 {
+      font-size: 28px;
+    }
+  }
+  
