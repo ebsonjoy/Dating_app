@@ -185,21 +185,49 @@ const getUserProfile = asyncHandler(async (req, res) => {
   }
 });
 
-
-const updateUserProfile = asyncHandler(async(req,res)=>{
-  const userId = req.params.userId
-  const userData = req.body.userData; 
-  const userInfoData = req.body.userInfoData;
+const updatedPersonalInfo = asyncHandler(async(req,res)=>{
+  const {userId} = req.params
+  const userPeronalData = req.body
+  console.log(userId)
+  console.log(userPeronalData);
+  
+  
   try{
-    const profilePhotos = (req.files as Express.Multer.File[]) || [];
-    userInfoData.profilePhotos = profilePhotos.map((file) => file.filename)
-    const updatedProfile= await UserService.updateProfile(userId, userData, userInfoData)
-    res.json(updatedProfile);
-  } catch (error) {
+    const updatedPersonalInfo = await UserService.updateUserPersonalInfo(userId,userPeronalData)
+    res.json(updatedPersonalInfo)
+  }catch(error){
     console.log(error);
     res.status(500).json({ message: "Failed to update profile" });
   }
 })
+
+const updateUserDatingInfo = asyncHandler(async(req,res)=>{
+  const userId = req.params.userId
+  const userDatingData = req.body
+  try{
+    const updateUserDatingInfo = await UserService.updateUserDatingInfo(userId,userDatingData)
+    res.json(updateUserDatingInfo)
+  }catch(error){
+    console.log(error);
+    res.status(500).json({ message: "Failed to update profile" });
+  }
+})
+
+
+// const updateUserProfile = asyncHandler(async(req,res)=>{
+//   const userId = req.params.userId
+//   const userData = req.body.userData; 
+//   const userInfoData = req.body.userInfoData;
+//   try{
+//     const profilePhotos = (req.files as Express.Multer.File[]) || [];
+//     userInfoData.profilePhotos = profilePhotos.map((file) => file.filename)
+//     const updatedProfile= await UserService.updateProfile(userId, userData, userInfoData)
+//     res.json(updatedProfile);
+//   } catch (error) {
+//     console.log(error);
+//     res.status(500).json({ message: "Failed to update profile" });
+//   }
+// })
 
 export {
   authUser,
@@ -212,5 +240,6 @@ export {
   requestPasswordReset,
   resetPassword,
   getUserProfile,
-  updateUserProfile
+  updatedPersonalInfo,
+  updateUserDatingInfo,
 };

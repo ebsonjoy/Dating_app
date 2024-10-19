@@ -12,7 +12,6 @@ const Navbar: React.FC = () => {
   const { userInfo } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch()
   const navigate = useNavigate()
-  console.log(userInfo.name);
   const logoutHandler = async ()=>{
     
 

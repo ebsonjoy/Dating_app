@@ -151,18 +151,36 @@ async getMatchedUsers(userId: string): Promise<IUserProfile[]> {
 // Get User Profile
 
 async getUserProfile(userId: string): Promise<{ user: IUser | null; userInfo: IUserInfo | null }> {
-  const user = await UserRepository.findUserById(userId);
+  const user = await UserRepository.findUserProfileById(userId);
   const userInfo = await UserInfoRepository.findUserInfoByUserId(userId);
   return { user, userInfo };
 }
 
+// update User Personal info
+async updateUserPersonalInfo(userId:string,userPeronalData:IUser): Promise<IUser>{
+  const updatedPersonalInfo = await UserInfoRepository.findUserPersonalInfo(userId,userPeronalData)
+  if(!updatedPersonalInfo){
+    throw new Error('Failed to update user personal Data');
+  }
+  return updatedPersonalInfo
+}
+// update User Dating info
+
+async updateUserDatingInfo(userId:string,userDatingData:IUserInfo):Promise<IUserInfo>{
+  const updatedUserDatingInfo = await UserInfoRepository.findUserDatingInfo(userId,userDatingData)
+  if(!updatedUserDatingInfo){
+    throw new Error('Failed to update user dating Data');
+  }
+  return updatedUserDatingInfo
+}
+
 // update User Profile
 
-async updateProfile(userId: string, userData: Partial<IUser>, userInfoData: Partial<IUserInfo>): Promise<{ user: IUser | null; userInfo: IUserInfo | null }> {
-  const updatedUser = await UserRepository.updateUser(userId, userData);
-  const updatedUserInfo = await UserInfoRepository.updateUserInfo(userId, userInfoData);
-  return { user: updatedUser, userInfo: updatedUserInfo };
-}
+// async updateProfile(userId: string, userData: Partial<IUser>, userInfoData: Partial<IUserInfo>): Promise<{ user: IUser | null; userInfo: IUserInfo | null }> {
+//   const updatedUser = await UserRepository.updateUser(userId, userData);
+//   const updatedUserInfo = await UserInfoRepository.updateUserInfo(userId, userInfoData);
+//   return { user: updatedUser, userInfo: updatedUserInfo };
+// }
 
 
 }

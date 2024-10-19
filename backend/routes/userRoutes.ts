@@ -10,11 +10,13 @@ import {
   requestPasswordReset,
   resetPassword,
   getUserProfile,
-  updateUserProfile,
+  updatedPersonalInfo,
+  updateUserDatingInfo,
 } from "../controller/userController";
 import { multerUploadUserProfile } from "../config/multerConfig";
 import { protect } from "../middleware/AuthMiddleware";
-
+import multer from "multer";
+const upload = multer();
 const router = express.Router();
 
 // Public Routes
@@ -34,6 +36,12 @@ router.post(
 router.get("/getHomeUsersProfiles/:userId", protect, getHomeUsersProfiles);
 
 router.get("/getUserProfile/:userId", getUserProfile);
-router.put('/updateUserProfile/:userId', multerUploadUserProfile.array("profilePhotos", 4),updateUserProfile);
+
+
+router.put("/updatePersonalInfo/:userId",upload.none(),updatedPersonalInfo)
+
+router.put("/updateDatingInfo/:userId",updateUserDatingInfo)
+
+// router.put('/updateUserProfile/:userId', multerUploadUserProfile.array("profilePhotos", 4),updateUserProfile);
 
 export default router;

@@ -1,9 +1,13 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "../../components/user/Navbar";
 import { useGetUserProfileQuery } from "../../slices/apiUserSlice";
-import { RootState } from '../../store'; 
+import { RootState } from "../../store";
 import { useSelector } from "react-redux";
-import {useUpdateUserProfileMutation} from "../../slices/apiUserSlice"
+import { useUpdateUserPersonalInfoMutation } from "../../slices/apiUserSlice";
+import { useUpdateUserDatingInfoMutation } from "../../slices/apiUserSlice";
+import { toast } from "react-toastify";
+const PROFILE_IMAGE_DIR_PATH = "http://localhost:5000/UserProfileImages/";
+
 interface UserProfile {
   name: string;
   email: string;
@@ -28,35 +32,103 @@ interface DatingInfo {
 }
 
 const ProfilePage: React.FC = () => {
-  const [updateUserProfile] = useUpdateUserProfileMutation();
-  const { userInfo } = useSelector((state: RootState) => state.auth); 
+  const { userInfo } = useSelector((state: RootState) => state.auth);
   const userId = userInfo?._id;
   const { data: userProfile, isLoading } = useGetUserProfileQuery(userId);
+  const [updateUserDatingInfo] = useUpdateUserDatingInfoMutation();
+  const [updateUserPersonalInfo] = useUpdateUserPersonalInfoMutation();
 
-console.log(userProfile)
+  //Personal Info
+  const [name, setFirstName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [mobileNumber, setMobileNumber] = useState<string>("");
+  const [dateOfBirth, setDateOfBirth] = useState<string>("");
+
+  //Dating info
+
+  const [gender, setGender] = useState<string>('');
+  const [lookingFor, setLookingFor] = useState<string>('');
+  const [relationship, setRelationship] = useState<string>('');
+  const [interests, setInterests] = useState<string[]>([]);
+  const [place, setPlace] = useState<string>('');
+  const [caste, setCaste] = useState<string>('');
+  const [occupation, setOccupation] = useState<string>('');
+  const [education, setEducation] = useState<string>('');
+  const [bio, setBio] = useState<string>('');
+  const [smoking, setSmoking] = useState<string>('');
+  const [drinking, setDrinking] = useState<string>('');
+  const [profilePhotos, setProfilePhotos] = useState<File[]>([]);
+
+  
 
 
-const availableInterests = [
-  'Gym', 'Movies', 'Reading', 'Music', 'Photography', 'Sports',
-  'Travel', 'Cooking', 'Yoga', 'Blogging', 'Dancing', 'Gaming'
-];
-const handleInterestClick = (interest: string) => {
-  if (datingInfo.interests.includes(interest)) {
-    setDatingInfo({
-      ...datingInfo,
-      interests: datingInfo.interests.filter(i => i !== interest),
-    });
-  } else if (datingInfo.interests.length < 5) {
-    setDatingInfo({
-      ...datingInfo,
-      interests: [...datingInfo.interests, interest],
-    });
-  }
-};
 
-const [showModal, setShowModal] = useState(false);
+  const handlePersonalSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (editPersonal) {
+      const formData = new FormData();
+      formData.append("name", name);
+      formData.append("email", email);
+      formData.append("mobileNumber", mobileNumber);
+      formData.append("dateOfBirth", dateOfBirth);
+
+      try {
+        const res = await updateUserPersonalInfo({
+          userId,
+          data: formData,
+        }).unwrap();
+
+        toast.success("Profile Updated Successfully");
+        setEditPersonal(false);
+      } catch (error) {
+        console.log(error);
+
+        toast.error("Failed to update profile");
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (userProfile) {
+      setFirstName(userProfile.user.name || "");
+      setEmail(userProfile.user.email || "");
+      setMobileNumber(userProfile.user.mobileNumber || "");
+      setDateOfBirth(userProfile.user.dateOfBirth || "");
+    }
+  }, [userProfile]);
+
+  const availableInterests = [
+    "Gym",
+    "Movies",
+    "Reading",
+    "Music",
+    "Photography",
+    "Sports",
+    "Travel",
+    "Cooking",
+    "Yoga",
+    "Blogging",
+    "Dancing",
+    "Gaming",
+  ];
+  const handleInterestClick = (interest: string) => {
+    if (datingInfo.interests.includes(interest)) {
+      setDatingInfo({
+        ...datingInfo,
+        interests: datingInfo.interests.filter((i) => i !== interest),
+      });
+    } else if (datingInfo.interests.length < 5) {
+      setDatingInfo({
+        ...datingInfo,
+        interests: [...datingInfo.interests, interest],
+      });
+    }
+  };
+
+  const [showModal, setShowModal] = useState(false);
   const [personalInfo, setPersonalInfo] = useState<UserProfile>({
-    name: 'john',
+    name: "john",
     email: "john.doe@example.com",
     mobileNumber: "123-456-7890",
     // dateOfBirth:14/08/2000
@@ -65,7 +137,7 @@ const [showModal, setShowModal] = useState(false);
 
   const [datingInfo, setDatingInfo] = useState<DatingInfo>({
     gender: "Male",
-    lookingfor:'Female',
+    lookingfor: "Female",
     relationship: "Long-term relationship",
     interests: ["Gym", "Traveling", "Movies"],
     smokingHabit: "No",
@@ -117,19 +189,33 @@ const [showModal, setShowModal] = useState(false);
     // Add logic to save updated dating info
   };
 
+  const handleDatingSubmit = () => {
+    // setEditDating(false);
+    // Add logic to save updated dating info
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-100 p-6">
       <Navbar />
-      {/* Personal Information Section */}
-      <section className="w-full bg-white shadow-md p-4 mt-10 rounded-lg mx-auto max-w-4xl">
+
+      {/* Personal Information Form */}
+      <form
+        onSubmit={handlePersonalSubmit} // Attach form submission handler here
+        className="w-full bg-white shadow-md p-4 mt-10 rounded-lg mx-auto max-w-4xl"
+      >
         <h2 className="text-xl font-semibold mb-4">Personal Information</h2>
+
         <div className="flex flex-col items-center space-y-4">
+          {/* Profile Image */}
           <img
-            src={personalInfo.profileImage}
+            src={
+              PROFILE_IMAGE_DIR_PATH + userProfile?.userInfo.profilePhotos[0]
+            }
             alt="Profile"
             className="w-32 h-32 rounded-full object-cover"
           />
-          
+
+          {/* Personal Information Fields */}
           <div className="space-y-2 w-full">
             <div className="grid grid-cols-2 gap-2 items-center">
               <label className="font-medium">Name:</label>
@@ -137,12 +223,12 @@ const [showModal, setShowModal] = useState(false);
                 <input
                   type="text"
                   name="name"
-                  value={personalInfo.name}
-                  onChange={handlePersonalInfoChange}
+                  value={name} // Bind input to state
+                  onChange={(e) => setFirstName(e.target.value)}
                   className="border border-gray-300 rounded-md p-1 text-white"
                 />
               ) : (
-                <span>{personalInfo.name}</span>
+                <span>{userProfile?.user?.name}</span>
               )}
             </div>
 
@@ -152,12 +238,12 @@ const [showModal, setShowModal] = useState(false);
                 <input
                   type="email"
                   name="email"
-                  value={personalInfo.email}
-                  onChange={handlePersonalInfoChange}
+                  value={email} // Bind input to state
+                  onChange={(e) => setEmail(e.target.value)}
                   className="border border-gray-300 rounded-md p-1 text-white"
                 />
               ) : (
-                <span>{personalInfo.email}</span>
+                <span>{userProfile?.user?.email}</span>
               )}
             </div>
 
@@ -167,36 +253,71 @@ const [showModal, setShowModal] = useState(false);
                 <input
                   type="text"
                   name="phone"
-                  value={personalInfo.mobileNumber}
-                  onChange={handlePersonalInfoChange}
+                  value={mobileNumber} // Bind input to state
+                  onChange={(e) => setMobileNumber(e.target.value)}
                   className="border border-gray-300 rounded-md p-1 text-white"
                 />
               ) : (
-                <span>{personalInfo.mobileNumber}</span>
+                <span>{userProfile?.user?.mobileNumber}</span>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-2 items-center">
+              {/* Date of Birth Field */}
+              <label className="font-medium">Date of Birth:</label>
+              {editPersonal ? (
+                <input
+                  type="date" // Use date input type for Date of Birth
+                  name="dateOfBirth"
+                  value={dateOfBirth} // Bind input to state
+                  onChange={(e) => setDateOfBirth(e.target.value)} // Change handler
+                  className="border border-gray-300 rounded-md p-1 text-white"
+                />
+              ) : (
+                <span>{userProfile?.user?.dateOfBirth}</span> // Display Date of Birth when not editing
               )}
             </div>
 
-            <div className="flex justify-between mt-4">
+            {/* Save and Update buttons */}
+            <div className="flex justify-between mt-4 w-full">
+              {/* Toggle Edit Mode Button */}
               <button
+                type="button"
                 className="bg-blue-500 text-white px-3 py-1 rounded-md"
                 onClick={() => setEditPersonal(!editPersonal)}
               >
-                {editPersonal ? "Save" : "Update"}
+                {editPersonal ? "Cancel" : "Update"}
               </button>
-              <button className="bg-red-500 text-white px-3 py-1 rounded-md">
-                Change Password
-              </button>
+
+              {/* Save Button inside the form */}
+              {editPersonal && (
+                <button
+                  type="submit" // Set this to submit the form
+                  className="bg-green-500 text-white px-3 py-1 rounded-md"
+                >
+                  Save
+                </button>
+              )}
             </div>
+
+            {/* Change Password Button */}
+            <button
+              type="button"
+              className="bg-red-500 text-white px-3 py-1 rounded-md mt-4"
+            >
+              Change Password
+            </button>
           </div>
         </div>
-      </section>
+      </form>
 
-      {/* Dating Information Section */}
-      <section className="w-full bg-white shadow-md p-4 mt-6 rounded-lg mx-auto max-w-4xl">
+      {/* Dating Information Form */}
+      <form
+        onSubmit={handleDatingSubmit}
+        className="w-full bg-white shadow-md p-4 mt-6 rounded-lg mx-auto max-w-4xl"
+      >
         <h2 className="text-xl font-semibold mb-4">Dating Information</h2>
         <div className="space-y-2">
-
-        <div className="grid grid-cols-2 gap-2 items-center">
+          <div className="grid grid-cols-2 gap-2 items-center">
             <label className="font-medium">Gender:</label>
             {editDating ? (
               <select
@@ -233,7 +354,7 @@ const [showModal, setShowModal] = useState(false);
                     lookingfor: e.target.value,
                   })
                 }
-                className="border border-gray-300 rounded-md p-1 text-white" 
+                className="border border-gray-300 rounded-md p-1 text-white"
               >
                 <option value="">Select Type</option>
                 <option value="Male">Male</option>
@@ -244,71 +365,59 @@ const [showModal, setShowModal] = useState(false);
             )}
           </div>
 
+          {/* Interests Section with Modal */}
           <div className="grid grid-cols-2 gap-2 items-center">
-            <label className="font-medium">Relationship Interest:</label>
+            <label className="font-medium">Interests:</label>
             {editDating ? (
-              <select
-                id="relationship"
-                name="relationship"
-                value={datingInfo.relationship}
-                onChange={(e) =>
-                  setDatingInfo({
-                    ...datingInfo,
-                    relationship: e.target.value,
-                  })
-                }
-                className="border border-gray-300 rounded-md p-1 text-white" 
-              >
-                <option value="">Select Type</option>
-                <option value="Long-term relationship">Long-Term</option>
-                <option value="Short-term relationship">Short-Term</option>
-              </select>
+              <input
+                type="text"
+                name="interests"
+                value={datingInfo.interests.join(", ")}
+                readOnly
+                onClick={() => setShowModal(true)} // Open modal on click
+                className="border border-gray-300 rounded-md p-1 text-white"
+              />
             ) : (
-              <span>{datingInfo.relationship}</span>
+              <span>{datingInfo.interests.join(", ")}</span>
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-2 items-center">
-  <label className="font-medium">Interests:</label>
-  {editDating ? (
-    <input
-      type="text"
-      name="interests"
-      value={datingInfo.interests.join(", ")}
-      readOnly
-      onClick={() => setShowModal(true)}  // Open modal on click
-      className="border border-gray-300 rounded-md p-1 text-white"
-    />
-  ) : (
-    <span>{datingInfo.interests.join(", ")}</span>
-  )}
-</div>
+          {showModal && (
+            <div className="modal-overlay">
+              <div className="modal-content">
+                <h3>Select Interests (Up to 5)</h3>
+                <div className="interests-box">
+                  {availableInterests.map((interest) => (
+                    <button
+                      key={interest}
+                      type="button"
+                      className={`interest-button ${
+                        datingInfo.interests.includes(interest)
+                          ? "selected"
+                          : ""
+                      }`}
+                      onClick={() => handleInterestClick(interest)}
+                      disabled={
+                        datingInfo.interests.length >= 5 &&
+                        !datingInfo.interests.includes(interest)
+                      }
+                    >
+                      {interest}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="close-modal"
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          )}
 
-{showModal && (
-  <div className="modal-overlay">
-    <div className="modal-content">
-      <h3>Select Interests (Up to 5)</h3>
-      <div className="interests-box">
-        {availableInterests.map((interest) => (
-          <button
-            key={interest}
-            type="button"
-            className={`interest-button ${datingInfo.interests.includes(interest) ? 'selected' : ''}`}
-            onClick={() => handleInterestClick(interest)}
-            disabled={datingInfo.interests.length >= 5 && !datingInfo.interests.includes(interest)}
-          >
-            {interest}
-          </button>
-        ))}
-      </div>
-      <button type="button" onClick={() => setShowModal(false)} className="close-modal">
-        Save
-      </button>
-    </div>
-  </div>
-)}
-
-
+          {/* Smoking, Drinking, and Other Details */}
           <div className="grid grid-cols-2 gap-2 items-center">
             <label className="font-medium">Smoking Habit:</label>
             {editDating ? (
@@ -332,104 +441,7 @@ const [showModal, setShowModal] = useState(false);
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-2 items-center">
-            <label className="font-medium">Drinking Habit:</label>
-            {editDating ? (
-              <select
-                name="drinkingHabit"
-                value={datingInfo.drinkingHabit}
-                onChange={(e) =>
-                  setDatingInfo({
-                    ...datingInfo,
-                    drinkingHabit: e.target.value,
-                  })
-                }
-                className="border border-gray-300 rounded-md p-1 text-white"
-              >
-                <option value="">Select Drinking Habit</option>
-                <option value="Yes">Yes</option>
-                <option value="No">No</option>
-              </select>
-            ) : (
-              <span>{datingInfo.drinkingHabit}</span>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 items-center">
-            <label className="font-medium">Occupation:</label>
-            {editDating ? (
-              <input
-                type="text"
-                name="occupation"
-                value={datingInfo.occupation}
-                onChange={handleDatingInfoChange}
-                className="border border-gray-300 rounded-md p-1 text-white"
-              />
-            ) : (
-              <span>{datingInfo.occupation}</span>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 items-center">
-            <label className="font-medium">Bio:</label>
-            {editDating ? (
-              <input
-                type="text"
-                name="bio"
-                value={datingInfo.bio}
-                onChange={handleDatingInfoChange}
-                className="border border-gray-300 rounded-md p-1 text-white"
-              />
-            ) : (
-              <span>{datingInfo.bio}</span>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 items-center">
-            <label className="font-medium">education:</label>
-            {editDating ? (
-              <input
-                type="text"
-                name="education"
-                value={datingInfo.education}
-                onChange={handleDatingInfoChange}
-                className="border border-gray-300 rounded-md p-1 text-white"
-              />
-            ) : (
-              <span>{datingInfo.education}</span>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 items-center">
-            <label className="font-medium">place:</label>
-            {editDating ? (
-              <input
-                type="text"
-                name="place"
-                value={datingInfo.place}
-                onChange={handleDatingInfoChange}
-                className="border border-gray-300 rounded-md p-1 text-white"
-              />
-            ) : (
-              <span>{datingInfo.place}</span>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 items-center">
-            <label className="font-medium">caste:</label>
-            {editDating ? (
-              <input
-                type="text"
-                name="place"
-                value={datingInfo.caste}
-                onChange={handleDatingInfoChange}
-                className="border border-gray-300 rounded-md p-1 text-white"
-              />
-            ) : (
-              <span>{datingInfo.caste}</span>
-            )}
-          </div>
-          {/* Images Section */}
+          {/* Image Upload Section */}
           <div className="grid grid-cols-4 gap-2 mt-4">
             {datingInfo.images.map((image, index) => (
               <div key={index} className="relative">
@@ -456,6 +468,7 @@ const [showModal, setShowModal] = useState(false);
 
           <div className="flex justify-between mt-4">
             <button
+              type="button"
               className="bg-blue-500 text-white px-3 py-1 rounded-md"
               onClick={() => setEditDating(!editDating)}
             >
@@ -463,7 +476,7 @@ const [showModal, setShowModal] = useState(false);
             </button>
           </div>
         </div>
-      </section>
+      </form>
     </div>
   );
 };

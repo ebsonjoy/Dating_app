@@ -60,6 +60,10 @@ class UserRepository {
         return await User.findById(userId).select('name dateOfBirth');
     }
 
+    async findUserProfileById(userId:string):Promise<IUser | null>{
+        return await User.findById(userId).select('name email mobileNumber dateOfBirth')
+    }
+
 
     async updateUser(userId: string, userData: Partial<IUser>): Promise<IUser | null> {
         return await User.findByIdAndUpdate(userId, userData, { new: true });

@@ -113,6 +113,10 @@ interface IUserProfileResponse {
   userInfo: IUserInfo;
 }
 
+interface UpdateUserPersonalInfoArgs {
+  userId: string; 
+  data: RegisterResponse; 
+}
 
 
 export const usersApiSlice = apiSlice.injectEndpoints({
@@ -188,13 +192,32 @@ export const usersApiSlice = apiSlice.injectEndpoints({
     getUserProfile: builder.query<IUserProfileResponse, string>({
       query: (userId) => `${USERS_URL}/getUserProfile/${userId}`,
     }),
-    updateUserProfile: builder.mutation<IUserProfileResponse, { data: FormData, userId: string }>({
-      query: ({ data, userId }) => ({
-        url: `${USERS_URL}/updateUserProfile/${userId}`,
+
+    updateUserPersonalInfo: builder.mutation<RegisterResponse,UpdateUserPersonalInfoArgs>({
+      query: ({ userId,data }) => ({
+        url: `${USERS_URL}/updatePersonalInfo/${userId}`,
         method: 'PUT',
         body: data, 
       }),
     }),
+
+    updateUserDatingInfo: builder.mutation<MyFormData,{data:MyFormData,userId:string}>({
+      query: ({ data, userId }) => ({
+        url: `${USERS_URL}/updateDatingInfo/${userId}`,
+        method: 'PUT',
+        body: data, 
+      }),
+    }),
+
+
+
+    // updateUserProfile: builder.mutation<IUserProfileResponse, { data: FormData, userId: string }>({
+    //   query: ({ data, userId }) => ({
+    //     url: `${USERS_URL}/updateUserProfile/${userId}`,
+    //     method: 'PUT',
+    //     body: data, 
+    //   }),
+    // }),
   }),
 });
 
@@ -210,5 +233,6 @@ export const {
   useForgotPasswordRequestingMutation,
   useResetPasswordMutation,
   useGetUserProfileQuery,
-  useUpdateUserProfileMutation
+  useUpdateUserPersonalInfoMutation,
+  useUpdateUserDatingInfoMutation,
 } = usersApiSlice;
