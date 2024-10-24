@@ -6,6 +6,7 @@ const notFound = (req: Request, res: Response, next: NextFunction): void => {
     next(error);
 };
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const errorHandler = (err: any, req: Request, res: Response, next: NextFunction): void => {
     let statusCode = res.statusCode === 200 ? 500 : res.statusCode;
     let message = err.message;

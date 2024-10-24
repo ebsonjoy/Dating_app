@@ -6,6 +6,10 @@ class PlanService {
     return PlanRepository.getPlans();
   }
 
+  async fetchUserPlans(): Promise<IPlan[] | null> {
+    return PlanRepository.getUserPlans();
+  }
+
   async fetchPlanById(planId: string): Promise<IPlan> {
     const plan = await PlanRepository.getPlanById(planId);
     if (!plan) {
@@ -25,6 +29,16 @@ class PlanService {
     throw new Error('Failed to update plan');
   }
   return updatedPlan;
+  }
+
+  async togglePlanStatus(planId: string, newStatus: boolean){
+    try{
+      const updatePlan = await PlanRepository.updatePlanStatus(planId,newStatus)
+      return updatePlan;
+    } catch (error) {
+      console.log(error);
+      throw new Error('Failed to toggle user status');
+    }
   }
 }
 

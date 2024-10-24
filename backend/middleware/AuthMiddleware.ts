@@ -9,8 +9,6 @@ interface AuthenticatedRequest extends Request {
 
 const protect = asyncHandler(async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const  token = req.cookies.jwt;
-
-
   if (token) {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload;

@@ -61,7 +61,7 @@ const Home: React.FC = () => {
     setImageIndex(0);
   };
 
-  // Ensure to handle cases when currentUser might be undefined
+  
   const userDetailByImageIndex = currentUser
     ? [
         { label: '', value: `${currentUser.name || 'Unknown'}, ${currentUser.age || 'N/A'}` },
@@ -100,7 +100,7 @@ const Home: React.FC = () => {
                 ))}
               </div>
 
-              {/* Left Box: Profile Image */}
+        
               <div className="vr-dating-profile-image-box">
                 <img
                   src={PROFILE_IMAGE_DIR_PATH + currentUser.profilePhotos[imageIndex]}

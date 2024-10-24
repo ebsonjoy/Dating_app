@@ -8,6 +8,11 @@ class PlanRepository{
     async getPlans(): Promise<IPlan[]>{
         return Plan.find()
     }
+
+    async getUserPlans(): Promise<IPlan[]>{
+        return Plan.find({ status: true });
+    }
+
 // Get a single plan by ID
     async getPlanById(planId:string): Promise<IPlan| null>{
         const plan = Plan.findById(planId)
@@ -27,6 +32,20 @@ class PlanRepository{
     async editPlan(planId:string,updateData:UpdateQuery<IPlan>):Promise<IPlan | null>{
         return Plan.findByIdAndUpdate(planId, updateData, { new: true });
     }
+
+    
+  async updatePlanStatus(planId: string, newStatus: boolean){
+    try{
+      const updatedPlan = await Plan.findByIdAndUpdate( planId,{status:newStatus},{new:true})
+      if (!updatedPlan) {
+        throw new Error('User not found');
+      }
+      return updatedPlan;
+    } catch (error) {
+      console.log(error);
+      throw new Error('Error updating user status');
+    }
+  }
 
 }
 

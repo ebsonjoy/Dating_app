@@ -107,7 +107,7 @@ interface IUserInfo {
   caste: string;
 }
 
-// Define the response type for the user profile
+
 interface IUserProfileResponse {
   user: IUser;
   userInfo: IUserInfo;
@@ -118,7 +118,48 @@ interface UpdateUserPersonalInfoArgs {
   data: RegisterResponse; 
 }
 
+interface PlansData{
+  _id: string;
+  planName: string;
+  duration: string;
+  offerPercentage: number;
+  actualPrice: number;
+  offerPrice: number;
+  offerName: string;
+  status:boolean;
+}
+interface paymentData{
+  isPremium: boolean;
+  planId:string;
+  expiryDate:Date;
+  planStartingDate:Date;
+}
 
+interface updateData {
+  
+  gender: string;
+  lookingFor: string;
+  profilePhotos: string[];
+  relationship: string;
+  interests: string[];
+  occupation: string;
+  education: string;
+  bio: string;
+  smoking: string;
+  drinking: string;
+  place: string;
+  caste: string;
+
+}
+
+// interface IUserSubscriptionResponse {
+//   userId: string;
+//   name: string;
+//   email: string;
+//   planStartingDate: Date; 
+//     planExpiryDate: Date;
+//   subscription: PlansData; 
+// }
 export const usersApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation<{ token: string }, LoginData>({
@@ -201,7 +242,7 @@ export const usersApiSlice = apiSlice.injectEndpoints({
       }),
     }),
 
-    updateUserDatingInfo: builder.mutation<MyFormData,{data:MyFormData,userId:string}>({
+    updateUserDatingInfo: builder.mutation<updateData,{data:updateData,userId:string}>({
       query: ({ data, userId }) => ({
         url: `${USERS_URL}/updateDatingInfo/${userId}`,
         method: 'PUT',
@@ -209,14 +250,26 @@ export const usersApiSlice = apiSlice.injectEndpoints({
       }),
     }),
 
+    // plans
 
+    getUserPlans:builder.query<PlansData,void>({
+      query:()=>`${USERS_URL}/getUserPlans`,
+    }),
 
-    // updateUserProfile: builder.mutation<IUserProfileResponse, { data: FormData, userId: string }>({
-    //   query: ({ data, userId }) => ({
-    //     url: `${USERS_URL}/updateUserProfile/${userId}`,
-    //     method: 'PUT',
-    //     body: data, 
-    //   }),
+    //payment
+
+    updateUserSubscription: builder.mutation<void,{data:paymentData,userId:string}>({
+      query: ({ data, userId }) => ({
+        url: `${USERS_URL}/updateUserSubscription/${userId}`,
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json', // Add this line
+      },
+      body: JSON.stringify(data),
+      }),
+    }),
+    // getUserPlanDetails: builder.query<IUserSubscriptionResponse[], string>({  
+    //   query: (userId) => `${USERS_URL}/getUserPlanDetails/${userId}`,
     // }),
   }),
 });
@@ -235,4 +288,6 @@ export const {
   useGetUserProfileQuery,
   useUpdateUserPersonalInfoMutation,
   useUpdateUserDatingInfoMutation,
+  useGetUserPlansQuery,
+  useUpdateUserSubscriptionMutation,
 } = usersApiSlice;

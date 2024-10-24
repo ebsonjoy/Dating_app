@@ -32,12 +32,16 @@ interface UpdateStatusData{
   newStatus:boolean;
 }
 
+interface UpdatePlanStatusData{
+  planId:string;
+  newStatus:boolean;
+}
+
 interface PlansData{
   _id: string;
   planName: string;
   duration: string;
   offerPercentage: number;
-  upto: number;
   actualPrice: number;
   offerPrice: number;
   offerName: string;
@@ -95,6 +99,14 @@ export const adminApiSlice = apiSlice.injectEndpoints({
 
     //plans
 
+    updatePlanStatus: builder.mutation<void, UpdatePlanStatusData>({
+      query: ({ planId, newStatus }) => ({
+        url: `${ADMIN_URL}/updatePlanStatus/${planId}`,
+        method: "PUT",
+        body: {newStatus }, 
+      }),
+    }),
+
     getPlans:builder.query<PlansData,void>({
       query:()=>`${ADMIN_URL}/getAllPlans`,
     }),
@@ -130,4 +142,5 @@ export const {
   useAddPlanMutation,
   useGetOnePlanQuery,
   useUpdatePlanMutation,
+  useUpdatePlanStatusMutation,
 } = adminApiSlice;

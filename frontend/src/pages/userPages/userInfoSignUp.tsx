@@ -24,7 +24,6 @@ const UserInformation: React.FC = () => {
 
   const { userInfo } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
-
   useEffect(() => {
     if (userInfo) {
       navigate('/');

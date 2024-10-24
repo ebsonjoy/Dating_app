@@ -3,8 +3,10 @@ import { Request, Response } from 'express';
 import AdminService from '../services/adminService';
 import generateAdminToken from '../utils/generateAdminToken'; 
 
+
+class AdminController{
 // Admin Authentication (Login)
-const authAdmin = asyncHandler(async (req: Request, res: Response) => {
+ authAdmin = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
   const admin = await AdminService.authenticateAdmin(email, password);
   if (admin) {
@@ -20,7 +22,7 @@ const authAdmin = asyncHandler(async (req: Request, res: Response) => {
 });
 
 // Admin Registration (Create new admin)
- const registerAdmin = asyncHandler(async (req: Request, res: Response) => {
+  registerAdmin = asyncHandler(async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   try {
@@ -36,7 +38,7 @@ const authAdmin = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 // logout admin
- const logoutAdmin = asyncHandler(async (req: Request, res: Response) => {
+  logoutAdmin = asyncHandler(async (req: Request, res: Response) => {
   res.cookie("jwt", "", {
       httpOnly: true,
       expires: new Date(0), 
@@ -46,7 +48,7 @@ const authAdmin = asyncHandler(async (req: Request, res: Response) => {
 
 
 
-const getAllUsers = asyncHandler(async(req,res)=>{
+ getAllUsers = asyncHandler(async(req,res)=>{
   try{
     const users = await AdminService.getAllUsers()
     res.status(200).json(users)
@@ -58,17 +60,22 @@ const getAllUsers = asyncHandler(async(req,res)=>{
 })
 
 
-const updateUserStatus = asyncHandler(async (req: Request, res: Response) => {
+ updateUserStatus = asyncHandler(async (req: Request, res: Response) => {
   const { userId } = req.params;
   const { newStatus } = req.body;  
   try {
     const updatedUser = await AdminService.toggleUserStatus(userId, newStatus);
-    // You do not need to return res, just send the response.
+    
     res.status(200).json({ message: 'User status updated', user: updatedUser });
   } catch (error) {
     console.log(error);
-    // Again, no need to return, just send the response
+    
     res.status(500).json({ message: 'Error updating user status' });
   }
 });
-export {authAdmin,registerAdmin,logoutAdmin,getAllUsers,updateUserStatus}
+
+}
+
+export default new AdminController();
+
+// export {authAdmin,registerAdmin,logoutAdmin,getAllUsers,updateUserStatus}

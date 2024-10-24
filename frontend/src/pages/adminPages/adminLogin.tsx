@@ -7,19 +7,19 @@ import { toast } from "react-toastify";
 import { AppDispatch } from "../../store";
 import { RootState } from '../../store'; 
 
-
 const AdminLogin: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [loginAdmin, { isLoading, isError }] = useLoginAdminMutation(); 
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const {adminInfo} = useSelector((state:RootState)=>state.adminAuth);
-  useEffect(()=>{
-    if(adminInfo){
-        navigate('/admin/Dashboard');
+  const { adminInfo } = useSelector((state: RootState) => state.adminAuth);
+//responsive
+  useEffect(() => {
+    if (adminInfo) {
+      navigate('/admin/Dashboard');
     }
-},[navigate, adminInfo])
+  }, [navigate, adminInfo]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -31,32 +31,27 @@ const AdminLogin: React.FC = () => {
 
     try {
       const adminInfo = await loginAdmin({ email, password }).unwrap(); 
-      console.log(adminInfo);
-      
-      dispatch(setAdminCredentials({...adminInfo})); 
+      dispatch(setAdminCredentials({ ...adminInfo })); 
       navigate('/admin/Dashboard'); 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err:any) {
+    } catch (err: any) {
       console.error('Failed to login:', err);
       toast.error(err?.data?.message || err.error);
     }
   };
 
- 
-
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-800 relative">
-      {/* Website Name and Admin Mark in the Top Left */}
+    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-800 relative px-4">
+      {/* Branding Section */}
       <div className="absolute top-0 left-0 flex items-center p-6">
-        <h1 className="text-3xl font-bold text-white mr-2">VR_Dating</h1>
-        <span className="bg-green-500 text-white text-sm font-semibold px-3 py-1 rounded-full">
+        <h1 className="text-xl sm:text-3xl font-bold text-white mr-2">VR_Dating</h1>
+        <span className="bg-green-500 text-white text-xs sm:text-sm font-semibold px-3 py-1 rounded-full">
           Admin
         </span>
       </div>
 
-      {/* Admin Login Form */}
-      <div className="w-full max-w-sm bg-white p-8 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-semibold text-center mb-6">Admin Login</h2>
+      {/* Login Form */}
+      <div className="w-full max-w-xs sm:max-w-sm md:max-w-md bg-white p-6 sm:p-8 rounded-lg shadow-lg">
+        <h2 className="text-xl sm:text-2xl font-semibold text-center mb-6">Admin Login</h2>
 
         <form onSubmit={handleSubmit}>
           {/* Email Input */}

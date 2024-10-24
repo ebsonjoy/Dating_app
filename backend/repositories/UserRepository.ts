@@ -1,6 +1,8 @@
+import { UpdateQuery } from 'mongoose';
 import User from '../models/User';
 import { IUser } from '../models/User';
 import UserInfo, { IUserInfo } from '../models/UserInfo';  
+import { ISubscriptionDetails } from '../types/userTypes';
 
 class UserRepository {
     async findUserByEmail(email: string): Promise<IUser | null> {
@@ -69,6 +71,45 @@ class UserRepository {
         return await User.findByIdAndUpdate(userId, userData, { new: true });
       }
     
+      // payment Updation
+      async updateUserSubscription(userId:string,subscriptionDetails:ISubscriptionDetails):Promise<IUser | null>{
+        return await User.findByIdAndUpdate(userId,{$set:subscriptionDetails} as UpdateQuery<IUser>,{new : true})
+      }
+
+      async findUserPlanDetals(userId:string):Promise<IUser | null>{
+        return await User.findById(userId).select('isPremium planId planExpiryDate planStartingDate' )
+      }
+
+
+      // User info repo
+
+    async findUserInfoByUserId(userId: string): Promise<IUserInfo | null> {
+        return await UserInfo.findOne({ userId });
+    }
+
+    async findMatchedUsers(filters: {
+        userId: string;
+        gender: string;
+        relationship: string;
+        place: string;
+    }): Promise<IUserInfo[]> {
+        return await UserInfo.find({
+            userId: { $ne: filters.userId },
+            gender: filters.gender,
+            relationship: filters.relationship,
+            place: filters.place,
+        });
+    }
+
+
+    async findUserPersonalInfo(userId:string, userPeronalData:UpdateQuery<IUser>):Promise<IUser | null>{
+      return User.findByIdAndUpdate(userId,userPeronalData,{new:true});
+  }
+
+  async findUserDatingInfo(userId:string, userDatingData:UpdateQuery<IUserInfo>):Promise<IUserInfo | null>{
+      return UserInfo.findByIdAndUpdate(userId,userDatingData,{new:true});
+  }
+
 
 }
 

@@ -4,7 +4,6 @@ export interface IPlan extends Document {
   planName: string;
   duration: string;
   offerPercentage: number;
-  upto: number;
   actualPrice: number;
   offerPrice: number;
   offerName: string;
@@ -16,11 +15,13 @@ const PlanSchema = new mongoose.Schema<IPlan>(
     planName: { type: String, required: true },
     duration: { type: String, required: true },
     offerPercentage: { type: Number, required: true },
-    upto: { type: Number, required: true },
     actualPrice: { type: Number, required: true },
     offerPrice: { type: Number, required: true },
     offerName: { type: String, required: true },
-    status:{type:Boolean,default:true,}
+    status:{
+      type:Boolean,
+      default:true,
+  },
   },
   { timestamps: true }
 );

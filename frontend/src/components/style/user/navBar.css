@@ -77,3 +77,33 @@
     margin-left: auto; /* Pushes the logout button to the right */
   }
   
+  .vr-dating-dropdown {
+    position: relative; /* Allow absolute positioning of the dropdown */
+  }
+  
+  .vr-dating-dropdown-content {
+    display: none; /* Hidden by default */
+    position: absolute; /* Position dropdown content */
+    top: 100%; /* Position it below the parent */
+    left: 0; /* Align it to the left */
+    background-color: white; /* Background color for dropdown */
+    border: 1px solid #ccc; /* Optional border */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    z-index: 10; /* Ensure dropdown is above other content */
+  }
+  
+  .vr-dating-menu-item:hover .vr-dating-dropdown-content {
+    display: block; /* Show dropdown on hover */
+  }
+  
+  .vr-dating-dropdown-content li {
+    padding: 10px 20px; /* Padding for dropdown items */
+    cursor: pointer; /* Pointer cursor for dropdown items */
+    font-size: 16px; /* Font size for dropdown items */
+  }
+  
+  .vr-dating-dropdown-content li:hover {
+    background-color: #f4f4f4; /* Highlight effect on hover */
+  }
+  

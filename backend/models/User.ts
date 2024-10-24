@@ -1,4 +1,4 @@
-import mongoose, { Document } from 'mongoose';
+import mongoose, {Schema, Document } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
 export interface IUser extends Document {
@@ -14,6 +14,9 @@ export interface IUser extends Document {
     dateOfBirth: string;
     otp: string;
     isPremium:boolean;
+    planId: mongoose.Types.ObjectId;
+    planExpiryDate: Date | null;
+    planStartingDate: Date | null;
     status:boolean;
     matches:number;
     otpExpiresAt:Date;
@@ -40,6 +43,19 @@ const userSchema = new mongoose.Schema<IUser>(
         isPremium:{
             type:Boolean,
             default:false,
+        },
+        planId: {
+            type: Schema.Types.ObjectId,
+            ref: 'Plan',
+            required: false, 
+        },
+        planExpiryDate: {
+            type: Date,
+            required: false, 
+        },
+        planStartingDate: {
+            type: Date,
+            required: false, 
         },
         status:{
             type:Boolean,

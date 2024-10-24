@@ -3,49 +3,32 @@ import Navbar from "../../components/user/Navbar";
 import { useGetUserProfileQuery } from "../../slices/apiUserSlice";
 import { RootState } from "../../store";
 import { useSelector } from "react-redux";
+import { AppDispatch } from "../../store";
+import { setCredentials } from "../../slices/authSlice";
+import { useDispatch } from "react-redux";
 import { useUpdateUserPersonalInfoMutation } from "../../slices/apiUserSlice";
 import { useUpdateUserDatingInfoMutation } from "../../slices/apiUserSlice";
 import { toast } from "react-toastify";
 const PROFILE_IMAGE_DIR_PATH = "http://localhost:5000/UserProfileImages/";
+import { useNavigate } from 'react-router-dom';
 
-interface UserProfile {
-  name: string;
-  email: string;
-  mobileNumber: string;
-  profileImage: string;
-  //   dateOfBirth:Date
-}
-
-interface DatingInfo {
-  gender: string;
-  lookingfor: string;
-  relationship: string;
-  interests: string[];
-  smokingHabit: string;
-  drinkingHabit: string;
-  images: string[];
-  occupation: string;
-  bio: string;
-  education: string;
-  place: string;
-  caste: string;
-}
 
 const ProfilePage: React.FC = () => {
+  const dispatch = useDispatch<AppDispatch>();
+
   const { userInfo } = useSelector((state: RootState) => state.auth);
   const userId = userInfo?._id;
-  const { data: userProfile, isLoading } = useGetUserProfileQuery(userId);
-  const [updateUserDatingInfo] = useUpdateUserDatingInfoMutation();
-  const [updateUserPersonalInfo] = useUpdateUserPersonalInfoMutation();
-
+  const { data: userProfile, isLoading,refetch } = useGetUserProfileQuery(userId);
+  const navigate = useNavigate(); 
   //Personal Info
+  const [updateUserPersonalInfo] = useUpdateUserPersonalInfoMutation();
   const [name, setFirstName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [mobileNumber, setMobileNumber] = useState<string>("");
   const [dateOfBirth, setDateOfBirth] = useState<string>("");
 
   //Dating info
-
+  const [updateUserDatingInfo] = useUpdateUserDatingInfoMutation();
   const [gender, setGender] = useState<string>('');
   const [lookingFor, setLookingFor] = useState<string>('');
   const [relationship, setRelationship] = useState<string>('');
@@ -58,9 +41,8 @@ const ProfilePage: React.FC = () => {
   const [smoking, setSmoking] = useState<string>('');
   const [drinking, setDrinking] = useState<string>('');
   const [profilePhotos, setProfilePhotos] = useState<File[]>([]);
-
-  
-
+  const [showModal, setShowModal] = useState(false);
+const [imgIndex, setImgIndex] = useState<number[]>([])
 
 
   const handlePersonalSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -78,8 +60,9 @@ const ProfilePage: React.FC = () => {
           userId,
           data: formData,
         }).unwrap();
-
+      dispatch(setCredentials({ ...res }));
         toast.success("Profile Updated Successfully");
+        refetch()
         setEditPersonal(false);
       } catch (error) {
         console.log(error);
@@ -89,12 +72,31 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+ 
+
   useEffect(() => {
     if (userProfile) {
+      //personal data
       setFirstName(userProfile.user.name || "");
       setEmail(userProfile.user.email || "");
       setMobileNumber(userProfile.user.mobileNumber || "");
       setDateOfBirth(userProfile.user.dateOfBirth || "");
+      // Dating data
+      setGender(userProfile.userInfo.gender || '')
+      setLookingFor(userProfile.userInfo.lookingFor || '')
+      setRelationship(userProfile.userInfo.relationship || '')
+      setInterests(userProfile.userInfo.interests || '')
+      setPlace(userProfile.userInfo.place || '')
+      setCaste(userProfile.userInfo.caste || '')
+      setOccupation(userProfile.userInfo.occupation || '')
+      setEducation(userProfile.userInfo.education || '')
+      setBio(userProfile.userInfo.bio || '')
+      setSmoking(userProfile.userInfo.smoking || '')
+      setDrinking(userProfile.userInfo.drinking || '')
+      
+      if (userProfile?.userInfo?.profilePhotos) {
+        setProfilePhotos(userProfile.userInfo.profilePhotos); 
+    }
     }
   }, [userProfile]);
 
@@ -113,89 +115,66 @@ const ProfilePage: React.FC = () => {
     "Gaming",
   ];
   const handleInterestClick = (interest: string) => {
-    if (datingInfo.interests.includes(interest)) {
-      setDatingInfo({
-        ...datingInfo,
-        interests: datingInfo.interests.filter((i) => i !== interest),
-      });
-    } else if (datingInfo.interests.length < 5) {
-      setDatingInfo({
-        ...datingInfo,
-        interests: [...datingInfo.interests, interest],
-      });
+    if (interests.includes(interest)) {
+      setInterests( interests.filter((i) => i !== interest));
+    } else if (interests.length < 5) {
+      setInterests( [...interests, interest]);
     }
   };
-
-  const [showModal, setShowModal] = useState(false);
-  const [personalInfo, setPersonalInfo] = useState<UserProfile>({
-    name: "john",
-    email: "john.doe@example.com",
-    mobileNumber: "123-456-7890",
-    // dateOfBirth:14/08/2000
-    profileImage: "https://via.placeholder.com/150", // Placeholder profile image
-  });
-
-  const [datingInfo, setDatingInfo] = useState<DatingInfo>({
-    gender: "Male",
-    lookingfor: "Female",
-    relationship: "Long-term relationship",
-    interests: ["Gym", "Traveling", "Movies"],
-    smokingHabit: "No",
-    drinkingHabit: "Yes",
-    occupation: "Engineer",
-    bio: "Love traveling and exploring new cultures.",
-    education: "Degree",
-    place: "Kochi",
-    caste: "Hindu",
-    images: [
-      "https://via.placeholder.com/100",
-      "https://via.placeholder.com/100",
-      "https://via.placeholder.com/100",
-      "https://via.placeholder.com/100",
-    ],
-  });
-
+  
   const [editPersonal, setEditPersonal] = useState(false);
   const [editDating, setEditDating] = useState(false);
-
-  const handlePersonalInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPersonalInfo({ ...personalInfo, [e.target.name]: e.target.value });
+  const handleImageChange = (index: number, newImage: File) => {
+    console.log(index);
+    console.log(newImage);
+  
+    const updatedPhotos = [...profilePhotos];
+    console.log(updatedPhotos)
+    updatedPhotos[index] = newImage;
+    setProfilePhotos(updatedPhotos);
+    setImgIndex(prevIndex => [...prevIndex, index])
   };
 
-  const handleDatingInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setDatingInfo({ ...datingInfo, [e.target.name]: e.target.value });
-  };
+  const handleDatingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-  const handleImageChange = (index: number, newImage: string) => {
-    const updatedImages = [...datingInfo.images];
-    updatedImages[index] = newImage;
-    setDatingInfo({ ...datingInfo, images: updatedImages });
-  };
-
-  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const newImageURL = URL.createObjectURL(e.target.files[0]);
-      setPersonalInfo({ ...personalInfo, profileImage: newImageURL });
+    const formData = new FormData();
+    formData.append("gender", gender);
+    formData.append("lookingFor", lookingFor);
+    formData.append("relationship", relationship);
+    formData.append("interests", interests.join(", "));
+    formData.append("place", place);
+    formData.append("caste", caste);
+    formData.append("occupation", occupation);
+    formData.append("education", education);
+    formData.append("bio", bio);
+    formData.append("smoking", smoking);
+    formData.append("drinking", drinking);
+    formData.append('imgIndex', imgIndex.join(','));
+    profilePhotos.forEach((photo) => {
+      if (photo instanceof File) {
+        formData.append('profilePhotos', photo);
+        console.log(photo);
+        
+      }
+    });
+    formData.forEach((value, key) => {
+      console.log(`${key}: ${value}`);
+    });
+    try {
+      await updateUserDatingInfo({ userId, data: formData }).unwrap();
+      toast.success("Dating Info Updated Successfully");
+      setEditDating(false);
+       refetch();
+    } catch (error) {
+      console.error("Error during submission:", error);
+      toast.error("Failed to update dating info");
     }
   };
 
-  const handleUpdatePersonalInfo = () => {
-    setEditPersonal(false);
-    // Add logic to save updated personal info
-  };
-
-  const handleUpdateDatingInfo = () => {
-    setEditDating(false);
-    // Add logic to save updated dating info
-  };
-
-  const handleDatingSubmit = () => {
-    // setEditDating(false);
-    // Add logic to save updated dating info
-  };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-100 p-6">
+    <div className="min-h-screen flex flex-col bg-gray-100">
       <Navbar />
 
       {/* Personal Information Form */}
@@ -300,12 +279,15 @@ const ProfilePage: React.FC = () => {
             </div>
 
             {/* Change Password Button */}
-            <button
-              type="button"
-              className="bg-red-500 text-white px-3 py-1 rounded-md mt-4"
-            >
-              Change Password
-            </button>
+            <div className="flex justify-end mt-4 w-full">
+        <button
+        onClick={() => navigate('/forgotPasswordRequesting')}
+          type="button"
+          className="bg-red-500 text-white px-3 py-1 rounded-md"
+        >
+          Change Password
+        </button>
+      </div>
           </div>
         </div>
       </form>
@@ -323,12 +305,9 @@ const ProfilePage: React.FC = () => {
               <select
                 id="gender"
                 name="gender"
-                value={datingInfo.gender}
+                value={gender}
                 onChange={(e) =>
-                  setDatingInfo({
-                    ...datingInfo,
-                    gender: e.target.value,
-                  })
+                setGender(e.target.value)
                 }
                 className="border border-gray-300 rounded-md p-1 text-white"
               >
@@ -337,7 +316,7 @@ const ProfilePage: React.FC = () => {
                 <option value="Female">Female</option>
               </select>
             ) : (
-              <span>{datingInfo.gender}</span>
+              <span>{userProfile?.userInfo.gender}</span>
             )}
           </div>
 
@@ -347,12 +326,9 @@ const ProfilePage: React.FC = () => {
               <select
                 id="relationship"
                 name="relationship"
-                value={datingInfo.lookingfor}
+                value={lookingFor}
                 onChange={(e) =>
-                  setDatingInfo({
-                    ...datingInfo,
-                    lookingfor: e.target.value,
-                  })
+                  setLookingFor(e.target.value)
                 }
                 className="border border-gray-300 rounded-md p-1 text-white"
               >
@@ -361,7 +337,7 @@ const ProfilePage: React.FC = () => {
                 <option value="Female">Female</option>
               </select>
             ) : (
-              <span>{datingInfo.lookingfor}</span>
+              <span>{userProfile?.userInfo.lookingFor}</span>
             )}
           </div>
 
@@ -372,13 +348,13 @@ const ProfilePage: React.FC = () => {
               <input
                 type="text"
                 name="interests"
-                value={datingInfo.interests.join(", ")}
+                value={interests.join(", ")}
                 readOnly
                 onClick={() => setShowModal(true)} // Open modal on click
                 className="border border-gray-300 rounded-md p-1 text-white"
               />
             ) : (
-              <span>{datingInfo.interests.join(", ")}</span>
+              <span>{userProfile?.userInfo.interests.join(", ")}</span>
             )}
           </div>
 
@@ -392,14 +368,14 @@ const ProfilePage: React.FC = () => {
                       key={interest}
                       type="button"
                       className={`interest-button ${
-                        datingInfo.interests.includes(interest)
+                        interests.includes(interest)
                           ? "selected"
                           : ""
                       }`}
                       onClick={() => handleInterestClick(interest)}
                       disabled={
-                        datingInfo.interests.length >= 5 &&
-                        !datingInfo.interests.includes(interest)
+                        interests.length >= 5 &&
+                        !interests.includes(interest)
                       }
                     >
                       {interest}
@@ -423,12 +399,8 @@ const ProfilePage: React.FC = () => {
             {editDating ? (
               <select
                 name="smokingHabit"
-                value={datingInfo.smokingHabit}
-                onChange={(e) =>
-                  setDatingInfo({
-                    ...datingInfo,
-                    smokingHabit: e.target.value,
-                  })
+                value={smoking}
+                onChange={(e) => setSmoking(e.target.value)
                 }
                 className="border border-gray-300 rounded-md p-1 text-white"
               >
@@ -437,26 +409,137 @@ const ProfilePage: React.FC = () => {
                 <option value="No">No</option>
               </select>
             ) : (
-              <span>{datingInfo.smokingHabit}</span>
+              <span>{userProfile?.userInfo.smoking}</span>
             )}
           </div>
 
+          <div className="grid grid-cols-2 gap-2 items-center">
+            <label className="font-medium">Drinking Habit:</label>
+            {editDating ? (
+              <select
+                name="smokingHabit"
+                value={drinking}
+                onChange={(e) => setDrinking(e.target.value)
+                }
+                className="border border-gray-300 rounded-md p-1 text-white"
+              >
+                <option value="">Select Driking Habit</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            ) : (
+              <span>{userProfile?.userInfo.drinking}</span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 items-center">
+            <label className="font-medium">Relationship:</label>
+            {editDating ? (
+              <select
+                name="smokingHabit"
+                value={relationship}
+                onChange={(e) => setRelationship(e.target.value)
+                }
+                className="border border-gray-300 rounded-md p-1 text-white"
+              >
+                <option value="">Select Relationship</option>
+                <option value="Yes">Yes</option>
+                <option value="No">No</option>
+              </select>
+            ) : (
+              <span>{userProfile?.userInfo.relationship}</span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 items-center">
+              <label className="font-medium">Education:</label>
+              {editDating ? (
+                <input
+                  type="text"
+                  name="phone"
+                  value={education} // Bind input to state
+                  onChange={(e) => setEducation(e.target.value)}
+                  className="border border-gray-300 rounded-md p-1 text-white"
+                />
+              ) : (
+                <span>{userProfile?.userInfo.education}</span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 items-center">
+              <label className="font-medium">Occupation:</label>
+              {editDating ? (
+                <input
+                  type="text"
+                  name="phone"
+                  value={occupation} // Bind input to state
+                  onChange={(e) => setOccupation(e.target.value)}
+                  className="border border-gray-300 rounded-md p-1 text-white"
+                />
+              ) : (
+                <span>{userProfile?.userInfo.occupation}</span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 items-center">
+              <label className="font-medium">Bio:</label>
+              {editDating ? (
+                <input
+                  type="text"
+                  name="phone"
+                  value={bio} // Bind input to state
+                  onChange={(e) => setBio(e.target.value)}
+                  className="border border-gray-300 rounded-md p-1 text-white"
+                />
+              ) : (
+                <span>{userProfile?.userInfo.bio}</span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 items-center">
+              <label className="font-medium">Place:</label>
+              {editDating ? (
+                <input
+                  type="text"
+                  name="phone"
+                  value={place} // Bind input to state
+                  onChange={(e) => setPlace(e.target.value)}
+                  className="border border-gray-300 rounded-md p-1 text-white"
+                />
+              ) : (
+                <span>{userProfile?.userInfo.place}</span>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-2 items-center">
+              <label className="font-medium">Religion:</label>
+              {editDating ? (
+                <input
+                  type="text"
+                  name="phone"
+                  value={caste} // Bind input to state
+                  onChange={(e) => setCaste(e.target.value)}
+                  className="border border-gray-300 rounded-md p-1 text-white"
+                />
+              ) : (
+                <span>{userProfile?.userInfo.caste}</span>
+              )}
+            </div>
+
+
           {/* Image Upload Section */}
           <div className="grid grid-cols-4 gap-2 mt-4">
-            {datingInfo.images.map((image, index) => (
+            {userProfile?.userInfo.profilePhotos.map((image:string, index:number) => (
               <div key={index} className="relative">
                 <img
-                  src={image}
+                  src={PROFILE_IMAGE_DIR_PATH+image}
                   alt={`Dating Image ${index + 1}`}
-                  className="w-full h-24 object-cover rounded-lg"
+                  className="w-full h-30 object-cover rounded-lg"
                 />
-                <input
+                <input                  
                   type="file"
                   onChange={(e) => {
                     if (e.target.files && e.target.files[0]) {
-                      const newImageURL = URL.createObjectURL(
-                        e.target.files[0]
-                      );
+                      const newImageURL =  e.target.files[0]
                       handleImageChange(index, newImageURL);
                     }
                   }}
@@ -466,15 +549,26 @@ const ProfilePage: React.FC = () => {
             ))}
           </div>
 
-          <div className="flex justify-between mt-4">
-            <button
-              type="button"
-              className="bg-blue-500 text-white px-3 py-1 rounded-md"
-              onClick={() => setEditDating(!editDating)}
-            >
-              {editDating ? "Save" : "Update"}
-            </button>
-          </div>
+          <div className="flex justify-between mt-4 w-full">
+              {/* Toggle Edit Mode Button */}
+              <button
+                type="button"
+                className="bg-blue-500 text-white px-3 py-1 rounded-md"
+                onClick={() => setEditDating(!editDating)}
+              >
+                {editDating ? "Cancel" : "Update"}
+              </button>
+
+              {/* Save Button inside the form */}
+              {editDating && (
+                <button
+                  type="submit" // Set this to submit the form
+                  className="bg-green-500 text-white px-3 py-1 rounded-md"
+                >
+                  Save
+                </button>
+              )}
+            </div>
         </div>
       </form>
     </div>

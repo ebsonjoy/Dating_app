@@ -6,30 +6,24 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../store'; 
 import { useGetAllUsersQuery } from '../../slices/adminApiSlice';
 import {useUpdateUserStatusMutation} from '../../slices/adminApiSlice';
-
-
-
-interface User{
-  _id:string;
-  name:string;
-  email:string;
-  mobileNumber:string;
-  isPremium:boolean;
-  status:boolean;
-  matches:number;
+//responsive
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  mobileNumber: string;
+  isPremium: boolean;
+  status: boolean;
+  matches: number;
 }
-const UsersList: React.FC = () => {
 
-  const { data: usersList, error, isLoading,refetch } = useGetAllUsersQuery();
-console.log(usersList);
-const [updateUserStatus] = useUpdateUserStatusMutation()
+const UsersList: React.FC = () => {
+  const { data: usersList, error, isLoading, refetch } = useGetAllUsersQuery();
+  const [updateUserStatus] = useUpdateUserStatusMutation();
   const navigate = useNavigate();
   const { adminInfo } = useSelector((state: RootState) => state.adminAuth);
 
-  // Pagination limit
-  const usersPerPage = 5
-
-  // State for search, filters, and pagination
+  const usersPerPage = 5;
   const [search, setSearch] = useState('');
   const [nameSort, setNameSort] = useState('ascending');
   const [premiumFilter, setPremiumFilter] = useState<'all' | 'premium' | 'free'>('all');
@@ -41,13 +35,11 @@ const [updateUserStatus] = useUpdateUserStatusMutation()
     }
   }, [navigate, adminInfo]);
 
-  // Filter and sort users
   const filteredUsers = usersList
     ?.filter((user: User) => user.name.toLowerCase().includes(search.toLowerCase()) || user.email.toLowerCase().includes(search.toLowerCase()))
     .filter((user: User) => premiumFilter === 'all' || (premiumFilter === 'premium' ? user.isPremium : !user.isPremium))
     .sort((a: User, b: User) => (nameSort === 'ascending' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name))) || [];
 
-  // Pagination logic
   const indexOfLastUser = currentPage * usersPerPage;
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
   const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
@@ -76,44 +68,29 @@ const [updateUserStatus] = useUpdateUserStatusMutation()
     setPremiumFilter('all');
   };
 
-
   const handleStatusToggle = async (userId: string, currentStatus: boolean) => {
-
-    console.log(userId);
-    console.log(currentStatus)
-    
     try {
       const newStatus = !currentStatus;
-      console.log(newStatus)
       const res = await updateUserStatus({ userId, newStatus });
       if (res) {
-        refetch()
-        console.log('User status updated successfully.');
+        refetch();
       }
     } catch (err) {
       console.error('Failed to update user status:', err);
     }
   };
-  
-
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error loading users</div>;
 
   return (
-    <div className="flex h-screen">
-      {/* Reusable Navbar */}
+    <div className="flex flex-col md:flex-row h-screen">
       <Navbar />
-
-      {/* Main Content */}
       <div className="flex-1 flex flex-col">
         <Header title="Users" />
-
-        <div className="flex-1 p-3">
-          {/* Filter and Search Section */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex space-x-4">
-              {/* Filter by Name */}
+        <div className="flex-1 p-3 bg-gray-100">
+          <div className="flex flex-col md:flex-row items-center justify-between mb-6">
+            <div className="flex space-x-4 mb-4 md:mb-0">
               <div>
                 <label className="mr-2 text-gray-700">Filter by Name:</label>
                 <select
@@ -125,8 +102,6 @@ const [updateUserStatus] = useUpdateUserStatusMutation()
                   <option value="descending">Descending</option>
                 </select>
               </div>
-
-              {/* Filter by Premium */}
               <div>
                 <label className="mr-2 text-gray-700">Premium:</label>
                 <select
@@ -139,8 +114,6 @@ const [updateUserStatus] = useUpdateUserStatusMutation()
                   <option value="free">Free</option>
                 </select>
               </div>
-
-              {/* Reset Filters */}
               <button
                 onClick={resetFilters}
                 className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-colors"
@@ -148,22 +121,20 @@ const [updateUserStatus] = useUpdateUserStatusMutation()
                 Reset Filters
               </button>
             </div>
-
-            {/* Search Bar */}
-            <div>
+            <div className="w-full md:w-auto">
               <input
                 type="text"
                 placeholder="Search by name or email"
                 value={search}
                 onChange={handleSearchChange}
-                className="px-3 py-2 border rounded-md w-72 focus:outline-none focus:border-blue-500 text-white bg-gray-800"
+                className="px-3 py-2 border rounded-md w-full md:w-72 focus:outline-none focus:border-blue-500 text-white"
               />
             </div>
           </div>
 
-          {/* Users Table */}
+          {/* Table for larger screens, Card layout for smaller screens */}
           <div className="overflow-x-auto">
-            <table className="w-full table-auto bg-white shadow-md rounded-md">
+            <table className="hidden md:table w-full table-auto bg-white shadow-md rounded-md">
               <thead>
                 <tr className="bg-gray-800 text-white">
                   <th className="py-3 px-4 text-left">ID</th>
@@ -177,7 +148,7 @@ const [updateUserStatus] = useUpdateUserStatusMutation()
                 </tr>
               </thead>
               <tbody>
-                {currentUsers.map((user: User,index) => (
+                {currentUsers.map((user: User, index) => (
                   <tr key={user._id} className="border-b hover:bg-gray-100">
                     <td className="py-3 px-4">{((currentPage - 1) * usersPerPage + (index + 1)).toString().padStart(4, '0')}</td>
                     <td className="py-3 px-4">{user.name}</td>
@@ -188,51 +159,67 @@ const [updateUserStatus] = useUpdateUserStatusMutation()
                     <td className="py-3 px-4">{user.status ? 'Active' : 'Blocked'}</td>
                     <td className="py-3 px-4">
                       <button
-                        className={`px-4 py-2 text-white rounded-md ${
-                          user.status ? 'bg-red-500' : 'bg-green-500'
-                        } hover:opacity-80 transition-opacity`}
+                        className={`px-4 py-2 text-white rounded-md ${user.status ? 'bg-red-500' : 'bg-green-500'} hover:opacity-80 transition-opacity`}
                         onClick={() => handleStatusToggle(user._id, user.status)}
                       >
-                        {user.status ?'Block' : 'Unblock'}
+                        {user.status ? 'Block' : 'Unblock'}
                       </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+
+            {/* Card layout for smaller screens */}
+            <div className="block md:hidden">
+              {currentUsers.map((user: User, index) => (
+                <div key={user._id} className="bg-white shadow-md rounded-md mb-4 p-4">
+                  <div className="mb-2">
+                    <strong>ID: </strong>{((currentPage - 1) * usersPerPage + (index + 1)).toString().padStart(4, '0')}
+                  </div>
+                  <div className="mb-2">
+                    <strong>Name: </strong>{user.name}
+                  </div>
+                  <div className="mb-2">
+                    <strong>Email: </strong>{user.email}
+                  </div>
+                  <div className="mb-2">
+                    <strong>Phone: </strong>{user.mobileNumber}
+                  </div>
+                  <div className="mb-2">
+                    <strong>Premium: </strong>{user.isPremium ? 'Premium' : 'Free'}
+                  </div>
+                  <div className="mb-2">
+                    <strong>Matches: </strong>{user.matches}
+                  </div>
+                  <div className="mb-2">
+                    <strong>Status: </strong>{user.status ? 'Active' : 'Blocked'}
+                  </div>
+                  <div>
+                    <button
+                      className={`px-4 py-2 text-white rounded-md ${user.status ? 'bg-red-500' : 'bg-green-500'} hover:opacity-80 transition-opacity`}
+                      onClick={() => handleStatusToggle(user._id, user.status)}
+                    >
+                      {user.status ? 'Block' : 'Unblock'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Pagination */}
-          <div className="mt-6 flex justify-between">
-            <div className="flex">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          <div className="flex justify-center mt-4">
+            <div className="space-x-2">
+              {Array.from({ length: totalPages }, (_, index) => (
                 <button
-                  key={page}
-                  onClick={() => handlePageChange(page)}
-                  className={`px-2 py-1 mx-0.5 rounded-md ${
-                    currentPage === page ? 'bg-blue-500 text-white' : 'bg-gray-200'
-                  } hover:bg-blue-400 transition-colors`}
+                  key={index}
+                  className={`px-3 py-1 rounded-md border ${currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-white text-black'} hover:bg-blue-500 hover:text-white transition-colors`}
+                  onClick={() => handlePageChange(index + 1)}
                 >
-                  {page}
+                  {index + 1}
                 </button>
               ))}
-            </div>
-            {/* Left and Right Buttons for Pagination */}
-            <div className="flex space-x-2">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-2 py-1 rounded-md bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
-              >
-                &#9664;
-              </button>
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="px-2 py-1 rounded-md bg-gray-200 hover:bg-gray-300 disabled:opacity-50"
-              >
-               &#9654;
-              </button>
             </div>
           </div>
         </div>

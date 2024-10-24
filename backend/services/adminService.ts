@@ -4,25 +4,36 @@ import { IAdmin } from '../models/AdminModel';
 
 class AdminService {
   async authenticateAdmin(email: string, password: string): Promise<IAdmin | null> {
-    const admin = await AdminRepository.findAdminByEmail(email);
+    try{
+      const admin = await AdminRepository.findAdminByEmail(email);
 
-    if (admin && (await admin.matchPassword(password))) {
-      return admin;
+      if (admin && (await admin.matchPassword(password))) {
+        return admin;
+      }
+      return null;
+    }catch(error){
+      console.log(error);
+      throw new Error('Failed to register admin');
     }
-    return null;
+  
   }
 
   async registerAdmin(email: string, password: string): Promise<IAdmin> {
     const existingAdmin = await AdminRepository.findAdminByEmail(email);
-    
-    if (existingAdmin) {
-      throw new Error('Admin already exists');
+    try{
+      if (existingAdmin) {
+        throw new Error('Admin already exists');
+      }
+  
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+  
+      return await AdminRepository.createAdmin(email, hashedPassword);
+    }catch(error){
+      console.log(error);
+    throw new Error('Failed to register admin');
     }
-
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    return await AdminRepository.createAdmin(email, hashedPassword);
+    
   }
 
 

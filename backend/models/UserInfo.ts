@@ -1,8 +1,8 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-// Interface (IUserInfo)
+
 export interface IUserInfo extends Document {
-  userId: mongoose.Types.ObjectId; // the User model
+  userId: mongoose.Types.ObjectId; 
   gender: string;
   lookingFor: string;
   profilePhotos: string[]; 
@@ -17,7 +17,7 @@ export interface IUserInfo extends Document {
   caste:string;
 }
 
-// Schema and Model
+
 const userInfoSchema: Schema<IUserInfo> = new Schema({
   userId: {
     type: Schema.Types.ObjectId,

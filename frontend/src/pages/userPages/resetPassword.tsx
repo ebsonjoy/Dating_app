@@ -9,13 +9,13 @@ const ResetPassword: React.FC = () => {
     const [password, setPassword] = useState<string>('');
     const [confirmPassword, setConfirmPassword] = useState<string>('');
     const [error, setError] = useState<string>('');
-    const { token } = useParams<{ token: string }>(); // Get token from URL
+    const { token } = useParams<{ token: string }>(); 
     const navigate = useNavigate();
     const [resetPassword] = useResetPasswordMutation();
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
-        // Validate passwords
+     
         if (!password || !confirmPassword) {
             setError('Please fill in all fields.');
             return;
@@ -35,7 +35,7 @@ const ResetPassword: React.FC = () => {
             toast.success("Password reset successful!");
             setTimeout(() => {
                 navigate('/login');
-              }, 3000); // Redirect after 3 seconds
+              }, 3000); 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (error: any) {
                 toast.error('Error resetting password.');
@@ -44,18 +44,14 @@ const ResetPassword: React.FC = () => {
             }
         
 
-        // Clear error if valid
+        
         setError('');
 
-        // Simulate API call to reset password with token
+        
         console.log('Token:', token);
         console.log('Password successfully updated!');
 
-        // You would call your API here, passing the token and new password
-        // Example:
-        // axios.post('/api/reset-password', { token, password })
-        //      .then(response => { /* handle success */ })
-        //      .catch(error => { /* handle error */ });
+       
     };
 
     return (

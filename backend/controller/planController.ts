@@ -3,7 +3,9 @@ import  { IPlan } from "../models/PlanModel";
 import asyncHandler from 'express-async-handler';
 import PlanService from "../services/planService";
 
-const getPlans = asyncHandler(async(req,res)=>{
+
+class PlanController {
+ getPlans = asyncHandler(async(req,res)=>{
     try{
     const plans = await PlanService.fetchPlans()
     res.status(200).json(plans);
@@ -13,7 +15,17 @@ const getPlans = asyncHandler(async(req,res)=>{
   }
 })
 
-const getPlan = asyncHandler(async(req,res)=>{
+ getUserPlans = asyncHandler(async(req,res)=>{
+  try{
+  const plans = await PlanService.fetchUserPlans()
+  res.status(200).json(plans);
+} catch (error) {
+  console.log(error)
+  res.status(500).json({ message: 'Failed to retrieve plans' });
+}
+})
+
+ getPlan = asyncHandler(async(req,res)=>{
     const {planId} = req.params
     try{
         const plan = await PlanService.fetchPlanById(planId);
@@ -24,7 +36,7 @@ const getPlan = asyncHandler(async(req,res)=>{
   }
 })
 
-const createPlan = asyncHandler(async(req,res)=>{
+ createPlan = asyncHandler(async(req,res)=>{
     const planData: IPlan = req.body;
     try {
       const newPlan = await PlanService.addNewPlan(planData);
@@ -35,7 +47,7 @@ const createPlan = asyncHandler(async(req,res)=>{
     }
 })
 
-const updatePlan = asyncHandler(async(req,res)=>{
+ updatePlan = asyncHandler(async(req,res)=>{
     const  {planId} = req.params;
     const planData: IPlan = req.body;
     try {
@@ -46,12 +58,23 @@ const updatePlan = asyncHandler(async(req,res)=>{
       res.status(404).json({ message: error.message });
     }
 })
+ updatePlanStatus = asyncHandler(async (req,res) => {
+  const { planId } = req.params;
+  const { newStatus } = req.body;  
+  console.log(planId);
+  console.log(newStatus);
+  try {
+    const updatedPlan = await PlanService.togglePlanStatus(planId, newStatus);
 
+    res.status(200).json({ message: 'User status updated', plan: updatedPlan });
+  } catch (error) {
+    console.log(error);
+   
+    res.status(500).json({ message: 'Error updating user status' });
+  }
+});
 
-export {
-    getPlans,
-    getPlan,
-    createPlan,
-    updatePlan
 
 }
+
+export default new PlanController();

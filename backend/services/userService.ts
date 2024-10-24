@@ -1,13 +1,16 @@
-import UserRepository from "../repositories/UserRepository";
+import UserRepository from "../repositories/userRepository";
 import { IUser } from "../models/User";
 import { IUserInfo } from "../models/UserInfo";
 import { generateOTP, sendOTP } from "../utils/userOtp";
-import IUserProfile from "../interface/IUserProfile"
+import IUserProfile from "../interfaces/IUserProfile"
 import { calculateAge } from "../utils/calculateAge";
-import UserInfoRepository from "../repositories/userInfoRepository";
+// import UserInfoRepository from "../repositories/userInfoRepository";
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import { sendResetEmail } from "../utils/resetGmail";
+import { ISubscriptionDetails } from "../types/userTypes";
+// import { IPlan } from "../models/PlanModel";
+// import planRepository from "../repositories/planRepository";
 
 
 class UserService {
@@ -109,14 +112,14 @@ class UserService {
 
 
 async getMatchedUsers(userId: string): Promise<IUserProfile[]> {
-  const loggedInUserInfo = await UserInfoRepository.findUserInfoByUserId(userId);
+  const loggedInUserInfo = await UserRepository.findUserInfoByUserId(userId);
   if (!loggedInUserInfo) {
       return [];
   }
 
   const { lookingFor, relationship, place } = loggedInUserInfo;
 
-  const matchedUserInfos = await UserInfoRepository.findMatchedUsers({
+  const matchedUserInfos = await UserRepository.findMatchedUsers({
       userId,
       gender: lookingFor,
       relationship,
@@ -152,13 +155,13 @@ async getMatchedUsers(userId: string): Promise<IUserProfile[]> {
 
 async getUserProfile(userId: string): Promise<{ user: IUser | null; userInfo: IUserInfo | null }> {
   const user = await UserRepository.findUserProfileById(userId);
-  const userInfo = await UserInfoRepository.findUserInfoByUserId(userId);
+  const userInfo = await UserRepository.findUserInfoByUserId(userId);
   return { user, userInfo };
 }
 
 // update User Personal info
 async updateUserPersonalInfo(userId:string,userPeronalData:IUser): Promise<IUser>{
-  const updatedPersonalInfo = await UserInfoRepository.findUserPersonalInfo(userId,userPeronalData)
+  const updatedPersonalInfo = await UserRepository.findUserPersonalInfo(userId,userPeronalData)
   if(!updatedPersonalInfo){
     throw new Error('Failed to update user personal Data');
   }
@@ -167,20 +170,32 @@ async updateUserPersonalInfo(userId:string,userPeronalData:IUser): Promise<IUser
 // update User Dating info
 
 async updateUserDatingInfo(userId:string,userDatingData:IUserInfo):Promise<IUserInfo>{
-  const updatedUserDatingInfo = await UserInfoRepository.findUserDatingInfo(userId,userDatingData)
+  const updatedUserDatingInfo = await UserRepository.findUserDatingInfo(userId,userDatingData)
   if(!updatedUserDatingInfo){
     throw new Error('Failed to update user dating Data');
   }
   return updatedUserDatingInfo
 }
 
-// update User Profile
 
-// async updateProfile(userId: string, userData: Partial<IUser>, userInfoData: Partial<IUserInfo>): Promise<{ user: IUser | null; userInfo: IUserInfo | null }> {
-//   const updatedUser = await UserRepository.updateUser(userId, userData);
-//   const updatedUserInfo = await UserInfoRepository.updateUserInfo(userId, userInfoData);
-//   return { user: updatedUser, userInfo: updatedUserInfo };
+
+// PaymentUpdation
+
+async updateUserSubscription(userId:string,subscriptionDetails:ISubscriptionDetails): Promise<IUser>{
+  const updatedUser = await UserRepository.updateUserSubscription(userId,subscriptionDetails)
+  if(!updatedUser){
+    throw new Error('Failed to update user subscription');
+  }
+  return updatedUser;
+}
+
+// async getUserPlanDetails(userId:string,planId:string):Promise<{userDatails : IUser | null; planDetails:IPlan | null}>{
+//   const userDetails = await UserRepository.findUserPlanDetals(userId)
+//   const planDetails = await planRepository.getPlanById(planId)
+//   return {userDetails ,planDetails}
 // }
+
+
 
 
 }

@@ -3,10 +3,10 @@ import expressAsyncHandler from 'express-async-handler';
 import { Request, Response, NextFunction } from 'express';
 import { IAdmin } from '../models/AdminModel';
 
-// Define a type for the decoded token (customize it based on your JWT structure)
+
 interface AdminPayload {
     user?: IAdmin | null;
-  // Add any other fields that might be in the token payload
+ 
 }
 
 interface AuthenticatedAdminRequest extends Request {

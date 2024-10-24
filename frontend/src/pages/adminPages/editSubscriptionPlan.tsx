@@ -5,29 +5,24 @@ import { useParams } from 'react-router-dom';
 import { useGetOnePlanQuery, useUpdatePlanMutation } from '../../slices/adminApiSlice';
 import { toast } from 'react-toastify'; 
 import { useNavigate } from 'react-router-dom';
-
+// responsive
 const EditPlan: React.FC = () => {
-  const { planId } = useParams<{ planId: string }>(); // planId from URL params
+  const { planId } = useParams<{ planId: string }>(); 
   const navigate = useNavigate();
 
-  // Fetch plan data using planId
   const { data: plan, isLoading } = useGetOnePlanQuery(planId);
 
-  // Update mutation
   const [updatePlan] = useUpdatePlanMutation();
 
-  // Form state to store the plan data
   const [formData, setFormData] = useState({
     planName: '',
     duration: '',
     actualPrice: '',
     offerPercentage: '',
     offerPrice: '',
-    upto: '',
     offerName: '',
   });
 
-  // Populate the form with plan data once it is fetched
   useEffect(() => {
     if (plan) {
       setFormData({
@@ -36,13 +31,11 @@ const EditPlan: React.FC = () => {
         actualPrice: plan.actualPrice || '',
         offerPercentage: plan.offerPercentage || '',
         offerPrice: plan.offerPrice || '',
-        upto: plan.upto || '',
         offerName: plan.offerName || '',
       });
     }
   }, [plan]);
 
-  // Handle form field changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
@@ -50,18 +43,13 @@ const EditPlan: React.FC = () => {
     });
   };
 
-  // Handle form submission to update the plan
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
-      // Call the updatePlan mutation with the planId and updated formData
       await updatePlan({ planId, data: formData });
-      console.log('Plan updated successfully');
       toast.success('Plan updated successfully');
-      navigate('/admin/subscriptionPlans')
-      // Optionally, redirect or display success message
-
+      navigate('/admin/subscriptionPlans');
     } catch (error) {
       console.error('Error updating plan:', error);
     }
@@ -72,12 +60,12 @@ const EditPlan: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen">
+    <div className="flex flex-col lg:flex-row h-screen">
       <Navbar />
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-y-auto">
         <Header title="Edit Plan" />
         <div className="flex-1 p-5">
-          <div className="bg-gray-800 p-8 rounded-md shadow-md">
+          <div className="bg-gray-800 p-6 sm:p-8 rounded-md shadow-md max-w-3xl mx-auto w-full">
             <form onSubmit={handleSubmit}>
               {/* Plan Name */}
               <div className="mb-4">
@@ -151,20 +139,6 @@ const EditPlan: React.FC = () => {
                   />
                 </div>
 
-                {/* Upto */}
-                <div>
-                  <label className="block text-white text-sm font-medium mb-2" htmlFor="upto">
-                    Upto
-                  </label>
-                  <input
-                    type="text"
-                    name="upto"
-                    value={formData.upto}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none"
-                  />
-                </div>
-
                 {/* Offer Name */}
                 <div>
                   <label className="block text-white text-sm font-medium mb-2" htmlFor="offerName">
@@ -184,7 +158,7 @@ const EditPlan: React.FC = () => {
               <div className="mt-6 text-right">
                 <button
                   type="submit"
-                  className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+                  className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors w-full sm:w-auto"
                 >
                   Update Plan
                 </button>
