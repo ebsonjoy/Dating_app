@@ -1,7 +1,8 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 import asyncHandler from "express-async-handler";
 import { Request, Response, NextFunction } from "express";
-import User, { IUser } from "../models/User";
+import User from "../models/User";
+import { IUser } from '../types/user.types';
 
 interface AuthenticatedRequest extends Request {
   user?: IUser | null;

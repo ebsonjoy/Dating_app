@@ -1,26 +1,42 @@
 import express from 'express';
-// import { authAdmin, registerAdmin,logoutAdmin,getAllUsers,updateUserStatus } from '../controller/adminController';
-// import { getPlan,getPlans,createPlan,updatePlan,updatePlanStatus } from '../controller/planController';
 import { protect } from '../middleware/adminAuthMiddleware';
-import adminController from '../controller/adminController';
-import planController from '../controller/planController';
+import { container } from '../config/container';
+import { AdminController } from '../controller/admin/AdminController';
+import { PlanController } from '../controller/plan/PlanController';
+
 
 const router = express.Router();
 
-//  admin login
-router.post('/login', adminController.authAdmin);
-router.post('/logoutAdmin',adminController.logoutAdmin)
-router.post('/create', adminController.registerAdmin);
-router.get('/getAllUsers',protect,adminController.getAllUsers)
-router.put('/updateUserStatus/:userId',adminController.updateUserStatus)
+const adminControllerr = container.get<AdminController>('AdminController')
+const planController = container.get<PlanController>('PlanController');
 
-// plans 
-
-router.get('/getAllPlans',planController.getPlans);
-router.get('/getOnePlan/:planId',planController.getPlan)
+// container admin
+router.get('/getAllUsers',protect,adminControllerr.getAllUsers)
+router.post('/login',adminControllerr.login)
+router.put('/updateUserStatus/:userId',adminControllerr.updateUserStatus)
+router.post('/logoutAdmin',adminControllerr.logout)
+router.post('/create',adminControllerr.register)
+//contaner Plan
+router.get('/getAllPlans',planController.getPlans)
+router.get('/getOnePlan/:planId',planController.getOnePlan)
 router.post('/createNewPlan',planController.createPlan)
 router.put('/updatePlan/:planId',planController.updatePlan)
 router.put('/updatePlanStatus/:planId',planController.updatePlanStatus)
+
+
+//  admin login
+// router.post('/login', adminController.authAdmin);
+// router.post('/logoutAdmin',adminController.logoutAdmin)
+// router.post('/create', adminController.registerAdmin);
+// router.get('/getAllUsers',protect,adminController.getAllUsers)
+// router.put('/updateUserStatus/:userId',adminController.updateUserStatus)
+
+// plans 
+// router.get('/getAllPlans',planController.getPlans);
+// router.get('/getOnePlan/:planId',planController.getPlan)
+// router.post('/createNewPlan',planController.createPlan)
+// router.put('/updatePlan/:planId',planController.updatePlan)
+// router.put('/updatePlanStatus/:planId',planController.updatePlanStatus)
 
 
 export default router;

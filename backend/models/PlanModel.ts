@@ -1,16 +1,8 @@
-import mongoose, { Document } from "mongoose";
+// PlanModel.ts
+import mongoose from "mongoose";
+import { IPlanDocument } from '../types/plan.types'
 
-export interface IPlan extends Document {
-  planName: string;
-  duration: string;
-  offerPercentage: number;
-  actualPrice: number;
-  offerPrice: number;
-  offerName: string;
-  status:boolean;
-}
-
-const PlanSchema = new mongoose.Schema<IPlan>(
+const PlanSchema = new mongoose.Schema<IPlanDocument>(
   {
     planName: { type: String, required: true },
     duration: { type: String, required: true },
@@ -18,13 +10,10 @@ const PlanSchema = new mongoose.Schema<IPlan>(
     actualPrice: { type: Number, required: true },
     offerPrice: { type: Number, required: true },
     offerName: { type: String, required: true },
-    status:{
-      type:Boolean,
-      default:true,
-  },
+    status: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
 
-const Plan = mongoose.model<IPlan>("Plan", PlanSchema);
+const Plan = mongoose.model<IPlanDocument>("Plan", PlanSchema);
 export default Plan;

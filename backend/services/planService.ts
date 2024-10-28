@@ -1,45 +1,46 @@
-import PlanRepository from "../repositories/planRepository";
-import { IPlan } from "../models/PlanModel";
+// import PlanRepository from "../repositories/planRepository";
+// // import { IPlan } from "../models/PlanModel";
+// import { IPlanDocument } from "../types/plan.types";
 
-class PlanService {
-  async fetchPlans(): Promise<IPlan[] | null> {
-    return PlanRepository.getPlans();
-  }
+// class PlanService {
+//   async fetchPlans(): Promise<IPlanDocument[] | null> {
+//     return PlanRepository.getPlans();
+//   }
 
-  async fetchUserPlans(): Promise<IPlan[] | null> {
-    return PlanRepository.getUserPlans();
-  }
+//   async fetchUserPlans(): Promise<IPlanDocument[] | null> {
+//     return PlanRepository.getUserPlans();
+//   }
 
-  async fetchPlanById(planId: string): Promise<IPlan> {
-    const plan = await PlanRepository.getPlanById(planId);
-    if (!plan) {
-      throw new Error("Plan not found");
-    }
-    return plan;
-  }
-  async addNewPlan(planData:IPlan): Promise<IPlan>{
-    return PlanRepository.addPlan(planData)
-  }
+//   async fetchPlanById(planId: string): Promise<IPlanDocument> {
+//     const plan = await PlanRepository.getPlanById(planId);
+//     if (!plan) {
+//       throw new Error("Plan not found");
+//     }
+//     return plan;
+//   }
+//   async addNewPlan(planData:IPlanDocument): Promise<IPlanDocument>{
+//     return PlanRepository.addPlan(planData)
+//   }
 
-  // Edit an existing plan
+//   // Edit an existing plan
 
-  async editPlan(planId:string,planData:IPlan): Promise<IPlan>{
-    const updatedPlan = await PlanRepository.editPlan(planId, planData);
-  if (!updatedPlan) {
-    throw new Error('Failed to update plan');
-  }
-  return updatedPlan;
-  }
+//   async editPlan(planId:string,planData:IPlanDocument): Promise<IPlanDocument>{
+//     const updatedPlan = await PlanRepository.editPlan(planId, planData);
+//   if (!updatedPlan) {
+//     throw new Error('Failed to update plan');
+//   }
+//   return updatedPlan;
+//   }
 
-  async togglePlanStatus(planId: string, newStatus: boolean){
-    try{
-      const updatePlan = await PlanRepository.updatePlanStatus(planId,newStatus)
-      return updatePlan;
-    } catch (error) {
-      console.log(error);
-      throw new Error('Failed to toggle user status');
-    }
-  }
-}
+//   async togglePlanStatus(planId: string, newStatus: boolean){
+//     try{
+//       const updatePlan = await PlanRepository.updatePlanStatus(planId,newStatus)
+//       return updatePlan;
+//     } catch (error) {
+//       console.log(error);
+//       throw new Error('Failed to toggle user status');
+//     }
+//   }
+// }
 
-export default new PlanService();
+// export default new PlanService();

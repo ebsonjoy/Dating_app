@@ -19,6 +19,7 @@ const UserInformation: React.FC = () => {
   const [smoking, setSmoking] = useState<string>('');
   const [drinking, setDrinking] = useState<string>('');
   const [profilePhotos, setProfilePhotos] = useState<File[]>([]);
+  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -41,6 +42,42 @@ const UserInformation: React.FC = () => {
       navigate('/register');
     }
   }, []);
+
+  const handleLocation = () => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+        fetchLocationName(position.coords.latitude, position.coords.longitude)
+      },
+      (error) => {
+        console.error('Error fetching location:', error);
+        toast.error("Unable to fetch location. Please enable location services.");
+      }
+    );
+  };
+  
+  const fetchLocationName = async (latitude: number, longitude: number) => {
+    try {
+      const response = await fetch(
+        `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=d271ae71e593422e9b3539cd29e1f8eb`
+      );
+      const data = await response.json();
+      const city = data.results[0].components.city || data.results[0].components.town || data.results[0].components.village;
+  
+      if (city) {
+        setPlace(city); // Set only the city name
+      } else {
+        toast.error("Unable to determine city name from location.");
+      }
+    } catch (error) {
+      console.error("Error fetching location name:", error);
+      toast.error("Failed to retrieve location name.");
+    }
+  };
+  
 
   const availableInterests = [
     'Gym', 'Movies', 'Reading', 'Music', 'Photography', 'Sports',
@@ -71,7 +108,7 @@ const UserInformation: React.FC = () => {
     if (!lookingFor) newErrors.lookingFor = "Looking for is required.";
     if (!relationship) newErrors.relationship = "Relationship type is required.";
     if (interests.length === 0) newErrors.interests = "At least one interest must be selected.";
-    if (!place) newErrors.place = "Place is required.";
+    if (!location) newErrors.location = "Please enable location.";
   
     // Validate occupation to allow only text
     if (!occupation) {
@@ -131,7 +168,13 @@ const UserInformation: React.FC = () => {
     MyFormData.append('bio', bio);
     MyFormData.append('smoking', smoking);
     MyFormData.append('drinking', drinking);
-    MyFormData.append('place', place);
+    MyFormData.append('place',place)
+    if (location) {
+      MyFormData.append('location', JSON.stringify({ type: 'Point', coordinates: [location.longitude, location.latitude] }));
+    } else {
+      toast.error("Location is required.");
+      return;
+    }
     MyFormData.append('caste', caste);
 
     try {
@@ -218,9 +261,9 @@ const UserInformation: React.FC = () => {
           )}
 
           <div className="input-group">
-            <label htmlFor="place">Place:</label>
-            <input type="text" id="place" value={place} onChange={(e) => setPlace(e.target.value.trim())} />
-            {errors.place && <span className="error-message">{errors.place}</span>}
+            <label htmlFor="location">location:</label>
+            <input type="text" id="location" value={place} onClick={handleLocation}readOnly />
+            {errors.location && <span className="error-message">{errors.location}</span>}
           </div>
 
           <div className="input-group">

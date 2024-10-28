@@ -504,7 +504,7 @@ const [imgIndex, setImgIndex] = useState<number[]>([])
                   name="phone"
                   value={place} // Bind input to state
                   onChange={(e) => setPlace(e.target.value)}
-                  className="border border-gray-300 rounded-md p-1 text-white"
+                  className="border border-gray-300 rounded-md p-1 text-white" readOnly
                 />
               ) : (
                 <span>{userProfile?.userInfo.place}</span>

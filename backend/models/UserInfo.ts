@@ -1,28 +1,12 @@
-import mongoose, { Schema, Document } from 'mongoose';
 
-
-export interface IUserInfo extends Document {
-  userId: mongoose.Types.ObjectId; 
-  gender: string;
-  lookingFor: string;
-  profilePhotos: string[]; 
-  relationship: string;
-  interests: string[];
-  occupation: string;
-  education: string;
-  bio: string;
-  smoking: string;
-  drinking: string;
-  place:string;
-  caste:string;
-}
-
+import mongoose, { Schema } from 'mongoose';
+import { IUserInfo } from '../types/userInfo.types';
 
 const userInfoSchema: Schema<IUserInfo> = new Schema({
   userId: {
     type: Schema.Types.ObjectId,
     required: true,
-    ref: 'User', 
+    ref: 'User',
   },
   gender: {
     type: String,
@@ -33,7 +17,7 @@ const userInfoSchema: Schema<IUserInfo> = new Schema({
     required: true,
   },
   profilePhotos: {
-    type: [String], 
+    type: [String],
     required: true,
   },
   relationship: {
@@ -41,7 +25,7 @@ const userInfoSchema: Schema<IUserInfo> = new Schema({
     required: true,
   },
   interests: {
-    type: [String], 
+    type: [String],
     required: true,
   },
   occupation: {
@@ -72,8 +56,20 @@ const userInfoSchema: Schema<IUserInfo> = new Schema({
     type: String,
     required: true,
   },
+  location: {
+    type: {
+      type: String,
+      enum: ['Point'], 
+      required: true,
+    },
+    coordinates: {
+      type: [Number],
+      required: true,
+    },
+  },
 });
 
+userInfoSchema.index({ location: '2dsphere' });
 const UserInfo = mongoose.model<IUserInfo>('UserInfo', userInfoSchema);
 
 export default UserInfo;

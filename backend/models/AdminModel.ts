@@ -1,33 +1,29 @@
-import mongoose, { Document } from 'mongoose';
+// admin.model.ts
+
+import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
+import { IAdmin } from '../types/admin.types'
 
-export interface IAdmin extends Document {
-  _id:mongoose.Types.ObjectId;
-  email: string;
-  password: string;
-  matchPassword: (enteredPassword: string) => Promise<boolean>;
-}
-
-const adminSchema = new mongoose.Schema <IAdmin>(
+const adminSchema = new mongoose.Schema<IAdmin>(
   {
-  email: {
-    type: String,
-    required: true,
-    unique: true,
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
   },
-  password: {
-    type: String,
-    required: true,
-  },
-}, 
-{
-  timestamps: true,
-}
+  {
+    timestamps: true,
+  }
 );
 
 adminSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
-      return next();
+    return next();
   }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);

@@ -53,7 +53,10 @@ interface MyFormData {
   bio: string;
   smoking: string;
   drinking: string;
-  place: string;
+  location: {
+    latitude: number;
+    longitude: number;
+  };
   caste: string;
 
 }

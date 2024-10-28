@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import expressAsyncHandler from 'express-async-handler';
 import { Request, Response, NextFunction } from 'express';
-import { IAdmin } from '../models/AdminModel';
+import { IAdmin } from '../types/admin.types'
 
 
 interface AdminPayload {

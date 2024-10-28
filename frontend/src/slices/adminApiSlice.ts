@@ -1,7 +1,7 @@
 import { apiSlice } from "./apiSlice";
 
 const ADMIN_URL = "/api/admin";
-
+// const PLAN_URL = "/api/plans"
 interface AdminLoginData {
   email: string;
   password: string;

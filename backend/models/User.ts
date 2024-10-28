@@ -1,29 +1,8 @@
-import mongoose, {Schema, Document } from 'mongoose';
-import bcrypt from 'bcryptjs';
+// user.model.ts
 
-export interface IUser extends Document {
-    _id: mongoose.Types.ObjectId;
-    name: string;
-    email: string;
-    password: string;
-    resetPassword: {
-        token: string | null;
-        expDate: Date | null;
-        lastResetDate: Date | null;
-      };
-    dateOfBirth: string;
-    otp: string;
-    isPremium:boolean;
-    planId: mongoose.Types.ObjectId;
-    planExpiryDate: Date | null;
-    planStartingDate: Date | null;
-    status:boolean;
-    matches:number;
-    otpExpiresAt:Date;
-    mobileNumber:string;
-    
-    matchPassword: (enteredPassword: string) => Promise<boolean>;
-}
+import mongoose, { Schema } from 'mongoose';
+import bcrypt from 'bcryptjs';
+import { IUser } from '../types/user.types';
 
 const userSchema = new mongoose.Schema<IUser>(
     {
@@ -40,44 +19,44 @@ const userSchema = new mongoose.Schema<IUser>(
             type: String,
             required: true,
         },
-        isPremium:{
-            type:Boolean,
-            default:false,
+        isPremium: {
+            type: Boolean,
+            default: false,
         },
         planId: {
             type: Schema.Types.ObjectId,
             ref: 'Plan',
-            required: false, 
+            required: false,
         },
         planExpiryDate: {
             type: Date,
-            required: false, 
+            required: false,
         },
         planStartingDate: {
             type: Date,
-            required: false, 
+            required: false,
         },
-        status:{
-            type:Boolean,
-            default:true,
+        status: {
+            type: Boolean,
+            default: true,
         },
-        matches:{
-            type:Number,
-            default:0,
+        matches: {
+            type: Number,
+            default: 0,
         },
         resetPassword: {
             token: { type: String, default: null },
             expDate: { type: Date, default: null },
             lastResetDate: { type: Date, default: null },
-          },
-        dateOfBirth:{
-            type:String,
         },
-        mobileNumber:{
-            type:String,
+        dateOfBirth: {
+            type: String,
+        },
+        mobileNumber: {
+            type: String,
         },
         otp: { type: String },
-        otpExpiresAt:{type:Date}
+        otpExpiresAt: { type: Date }
     },
     {
         timestamps: true,
