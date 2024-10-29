@@ -1,4 +1,3 @@
-
 import mongoose, { Document,ObjectId } from 'mongoose';
 
 export interface IUser extends Document {
@@ -14,7 +13,6 @@ export interface IUser extends Document {
     dateOfBirth: string;
     otp: string;
     isPremium: boolean;
-    // planId:string,
     planId: mongoose.Types.ObjectId;
     planExpiryDate: Date | null;
     planStartingDate: Date | null;

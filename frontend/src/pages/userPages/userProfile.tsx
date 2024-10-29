@@ -43,6 +43,7 @@ const ProfilePage: React.FC = () => {
   const [profilePhotos, setProfilePhotos] = useState<File[]>([]);
   const [showModal, setShowModal] = useState(false);
 const [imgIndex, setImgIndex] = useState<number[]>([])
+const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
 
   const handlePersonalSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -135,8 +136,70 @@ const [imgIndex, setImgIndex] = useState<number[]>([])
     setImgIndex(prevIndex => [...prevIndex, index])
   };
 
+  
+  const validateFields = () => {
+    const newErrors: { [key: string]: string } = {};
+  
+    if (!gender.trim()) newErrors.gender = "Gender is required.";
+    if (!lookingFor.trim()) newErrors.lookingFor = "Looking for is required.";
+    if (!relationship.trim()) newErrors.relationship = "Relationship type is required.";
+    if (interests.length === 0) newErrors.interests = "At least one interest must be selected.";
+    if (!location) newErrors.location = "Please enable location.";
+  
+    // Validate occupation to allow only text
+    if (!occupation.trim()) {
+      newErrors.occupation = "Occupation is required.";
+    } else if (!/^[a-zA-Z\s]+$/.test(occupation)) {
+      newErrors.occupation = "Occupation must only contain letters.";
+    }
+  
+    // Validate education to allow only text
+    if (!education.trim()) {
+      newErrors.education = "Education is required.";
+    } else if (!/^[a-zA-Z\s]+$/.test(education)) {
+      newErrors.education = "Education must only contain letters.";
+    }
+  
+    // Validate bio to allow only text
+    if (!bio.trim()) {
+      newErrors.bio = "Bio is required.";
+    } else if (!/^[a-zA-Z\s.,!?']+$/.test(bio)) {
+      newErrors.bio = "Bio must only contain letters and basic punctuation.";
+    }
+
+    if (!caste.trim()) {
+      newErrors.caste = "caste is required.";
+    } else if (!/^[a-zA-Z\s.,!?']+$/.test(caste)) {
+      newErrors.caste = "caste must only contain letters and basic punctuation.";
+    }
+  
+    if (!smoking.trim()) newErrors.smoking = "Smoking habit is required.";
+    if (!drinking.trim()) newErrors.drinking = "Drinking habit is required.";
+  
+    // Validate profile photos
+    if (profilePhotos.length === 0) {
+      newErrors.profilePhotos = "profile photo must be uploaded.";
+    } else if (profilePhotos.length !== 4) {
+      newErrors.profilePhotos = "Exactly four profile photos must be uploaded.";
+    }
+  
+    setErrors(newErrors);
+    Object.keys(newErrors).forEach((field) => {
+      setTimeout(() => {
+        setErrors((prevErrors) => {
+          const updatedErrors = { ...prevErrors };
+          delete updatedErrors[field];
+          return updatedErrors;
+        });
+      }, 4000);
+    });
+    return Object.keys(newErrors).length === 0;
+  };
+  
+
   const handleDatingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!validateFields()) return;
 
     const formData = new FormData();
     formData.append("gender", gender);
@@ -302,6 +365,7 @@ const [imgIndex, setImgIndex] = useState<number[]>([])
           <div className="grid grid-cols-2 gap-2 items-center">
             <label className="font-medium">Gender:</label>
             {editDating ? (
+              <>
               <select
                 id="gender"
                 name="gender"
@@ -315,6 +379,8 @@ const [imgIndex, setImgIndex] = useState<number[]>([])
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
               </select>
+              {errors.gender && <span className="error-message">{errors.gender}</span>}
+              </>
             ) : (
               <span>{userProfile?.userInfo.gender}</span>
             )}
@@ -323,6 +389,7 @@ const [imgIndex, setImgIndex] = useState<number[]>([])
           <div className="grid grid-cols-2 gap-2 items-center">
             <label className="font-medium">Looking For:</label>
             {editDating ? (
+              <>
               <select
                 id="relationship"
                 name="relationship"
@@ -336,6 +403,10 @@ const [imgIndex, setImgIndex] = useState<number[]>([])
                 <option value="Male">Male</option>
                 <option value="Female">Female</option>
               </select>
+              {errors.lookingFor && (
+        <span className="text-red-500 text-sm">{errors.lookingFor}</span>
+      )}
+              </>
             ) : (
               <span>{userProfile?.userInfo.lookingFor}</span>
             )}
@@ -454,6 +525,7 @@ const [imgIndex, setImgIndex] = useState<number[]>([])
           <div className="grid grid-cols-2 gap-2 items-center">
               <label className="font-medium">Education:</label>
               {editDating ? (
+                <>
                 <input
                   type="text"
                   name="phone"
@@ -461,6 +533,8 @@ const [imgIndex, setImgIndex] = useState<number[]>([])
                   onChange={(e) => setEducation(e.target.value)}
                   className="border border-gray-300 rounded-md p-1 text-white"
                 />
+            {errors.education && <span className="error-message">{errors.education}</span>}
+                </>
               ) : (
                 <span>{userProfile?.userInfo.education}</span>
               )}
@@ -469,6 +543,7 @@ const [imgIndex, setImgIndex] = useState<number[]>([])
             <div className="grid grid-cols-2 gap-2 items-center">
               <label className="font-medium">Occupation:</label>
               {editDating ? (
+                <>
                 <input
                   type="text"
                   name="phone"
@@ -476,6 +551,8 @@ const [imgIndex, setImgIndex] = useState<number[]>([])
                   onChange={(e) => setOccupation(e.target.value)}
                   className="border border-gray-300 rounded-md p-1 text-white"
                 />
+            {errors.occupation && <span className="error-message">{errors.occupation}</span>}
+                </>
               ) : (
                 <span>{userProfile?.userInfo.occupation}</span>
               )}
@@ -484,6 +561,7 @@ const [imgIndex, setImgIndex] = useState<number[]>([])
             <div className="grid grid-cols-2 gap-2 items-center">
               <label className="font-medium">Bio:</label>
               {editDating ? (
+                <>
                 <input
                   type="text"
                   name="phone"
@@ -491,6 +569,8 @@ const [imgIndex, setImgIndex] = useState<number[]>([])
                   onChange={(e) => setBio(e.target.value)}
                   className="border border-gray-300 rounded-md p-1 text-white"
                 />
+            {errors.bio && <span className="error-message">{errors.bio}</span>}
+                </>
               ) : (
                 <span>{userProfile?.userInfo.bio}</span>
               )}
@@ -513,6 +593,7 @@ const [imgIndex, setImgIndex] = useState<number[]>([])
             <div className="grid grid-cols-2 gap-2 items-center">
               <label className="font-medium">Religion:</label>
               {editDating ? (
+                <>
                 <input
                   type="text"
                   name="phone"
@@ -520,6 +601,8 @@ const [imgIndex, setImgIndex] = useState<number[]>([])
                   onChange={(e) => setCaste(e.target.value)}
                   className="border border-gray-300 rounded-md p-1 text-white"
                 />
+            {errors.caste && <span className="error-message">{errors.caste}</span>}
+                </>
               ) : (
                 <span>{userProfile?.userInfo.caste}</span>
               )}

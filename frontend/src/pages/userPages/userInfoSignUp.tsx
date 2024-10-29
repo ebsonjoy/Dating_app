@@ -22,6 +22,7 @@ const UserInformation: React.FC = () => {
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  
 
   const { userInfo } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
@@ -104,35 +105,41 @@ const UserInformation: React.FC = () => {
   const validateFields = () => {
     const newErrors: { [key: string]: string } = {};
   
-    if (!gender) newErrors.gender = "Gender is required.";
-    if (!lookingFor) newErrors.lookingFor = "Looking for is required.";
-    if (!relationship) newErrors.relationship = "Relationship type is required.";
+    if (!gender.trim()) newErrors.gender = "Gender is required.";
+    if (!lookingFor.trim()) newErrors.lookingFor = "Looking for is required.";
+    if (!relationship.trim()) newErrors.relationship = "Relationship type is required.";
     if (interests.length === 0) newErrors.interests = "At least one interest must be selected.";
     if (!location) newErrors.location = "Please enable location.";
   
     // Validate occupation to allow only text
-    if (!occupation) {
+    if (!occupation.trim()) {
       newErrors.occupation = "Occupation is required.";
     } else if (!/^[a-zA-Z\s]+$/.test(occupation)) {
       newErrors.occupation = "Occupation must only contain letters.";
     }
   
     // Validate education to allow only text
-    if (!education) {
+    if (!education.trim()) {
       newErrors.education = "Education is required.";
     } else if (!/^[a-zA-Z\s]+$/.test(education)) {
       newErrors.education = "Education must only contain letters.";
     }
   
     // Validate bio to allow only text
-    if (!bio) {
+    if (!bio.trim()) {
       newErrors.bio = "Bio is required.";
     } else if (!/^[a-zA-Z\s.,!?']+$/.test(bio)) {
       newErrors.bio = "Bio must only contain letters and basic punctuation.";
     }
+
+    if (!caste.trim()) {
+      newErrors.caste = "caste is required.";
+    } else if (!/^[a-zA-Z\s.,!?']+$/.test(caste)) {
+      newErrors.caste = "caste must only contain letters and basic punctuation.";
+    }
   
-    if (!smoking) newErrors.smoking = "Smoking habit is required.";
-    if (!drinking) newErrors.drinking = "Drinking habit is required.";
+    if (!smoking.trim()) newErrors.smoking = "Smoking habit is required.";
+    if (!drinking.trim()) newErrors.drinking = "Drinking habit is required.";
   
     // Validate profile photos
     if (profilePhotos.length === 0) {
@@ -142,8 +149,18 @@ const UserInformation: React.FC = () => {
     }
   
     setErrors(newErrors);
+    Object.keys(newErrors).forEach((field) => {
+      setTimeout(() => {
+        setErrors((prevErrors) => {
+          const updatedErrors = { ...prevErrors };
+          delete updatedErrors[field];
+          return updatedErrors;
+        });
+      }, 4000);
+    });
     return Object.keys(newErrors).length === 0;
   };
+  
   
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -268,20 +285,22 @@ const UserInformation: React.FC = () => {
 
           <div className="input-group">
             <label htmlFor="caste">Caste:</label>
-            <input type="text" id="caste" value={caste} onChange={(e) => setCaste(e.target.value.trim())} />
+            <input type="text" id="caste" value={caste} onChange={(e) => setCaste(e.target.value)} />
+            {errors.caste && <span className="error-message">{errors.caste}</span>}
+
           </div>
         </div>
 
         <div className="form-box right-box">
           <div className="input-group">
             <label htmlFor="occupation">Occupation:</label>
-            <input type="text" id="occupation" value={occupation} onChange={(e) => setOccupation(e.target.value.trim())} />
+            <input type="text" id="occupation" value={occupation} onChange={(e) => setOccupation(e.target.value)} />
             {errors.occupation && <span className="error-message">{errors.occupation}</span>}
           </div>
 
           <div className="input-group">
             <label htmlFor="education">Education:</label>
-            <input type="text" id="education" value={education} onChange={(e) => setEducation(e.target.value.trim())} />
+            <input type="text" id="education" value={education} onChange={(e) => setEducation(e.target.value)} />
             {errors.education && <span className="error-message">{errors.education}</span>}
           </div>
 

@@ -6,7 +6,7 @@ export interface ISubscriptionDetails {
   }
 
 
-  // interface for the UserInfo
+
   export interface UserInfoUpdate {
   gender: string;
   lookingFor: string;

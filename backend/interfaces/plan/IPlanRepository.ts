@@ -1,7 +1,4 @@
 import { IPlanDocument } from "../../types/plan.types";
-// import { IRepository } from "../base/IBaseRepository";
-
-
 export interface IPlanRepository {
   getAll(): Promise<IPlanDocument[]>;
   getById(id: string): Promise<IPlanDocument | null>;

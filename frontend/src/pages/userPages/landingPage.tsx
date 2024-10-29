@@ -17,10 +17,8 @@ const App: React.FC = () => {
           <li>
             <a href="#about" className="text-white hover:bg-red-400 transition-colors px-3 py-2 rounded">About</a>
           </li>
-          <li>
-            <Link to="/login">
-              <a href="#login" className="text-white hover:bg-red-400 transition-colors px-3 py-2 rounded">Login</a>
-            </Link>
+           <li>
+            <Link to="/login" className="text-white hover:bg-red-400 transition-colors px-3 py-2 rounded">Login</Link>
           </li>
         </ul>
       </nav>
@@ -30,9 +28,7 @@ const App: React.FC = () => {
         <div className="text-white px-4">
           <h1 className="text-4xl md:text-5xl font-bold mb-6 drop-shadow-lg">Discover Meaningful Connections</h1>
           <p className="text-lg md:text-2xl mb-6 drop-shadow-lg">Join the best online dating platform today.</p>
-          <Link to="/login">
-            <a className="bg-red-400 hover:bg-red-500 transition-colors px-6 py-3 text-lg text-white rounded">Get Started</a>
-          </Link>
+          <Link to="/login" className="bg-red-400 hover:bg-red-500 transition-colors px-6 py-3 text-lg text-white rounded">Get Started</Link>
         </div>
       </section>
 

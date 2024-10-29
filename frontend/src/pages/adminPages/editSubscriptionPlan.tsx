@@ -14,6 +14,8 @@ const EditPlan: React.FC = () => {
 
   const [updatePlan] = useUpdatePlanMutation();
 
+  
+
   const [formData, setFormData] = useState({
     planName: '',
     duration: '',
@@ -50,8 +52,15 @@ const EditPlan: React.FC = () => {
       await updatePlan({ planId, data: formData });
       toast.success('Plan updated successfully');
       navigate('/admin/subscriptionPlans');
-    } catch (error) {
-      console.error('Error updating plan:', error);
+    } catch (error:any) {
+      console.error('Failed to add plan:', error);
+      if (error?.data?.errors && Array.isArray(error.data.errors)) {
+        error.data.errors.forEach((errMsg: string) => {
+            toast.error(errMsg, { duration: 4000 }); // Each error displays for 4 seconds
+        });
+    } else {
+        toast.error('Failed to add plan. Please try again.');
+    }
     }
   };
 

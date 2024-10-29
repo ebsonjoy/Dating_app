@@ -86,7 +86,7 @@ const AddPlan: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!validateFields()) return;
+        // if (!validateFields()) return;
 
         try {
             const response = await addPlan(planDetails).unwrap();
@@ -104,9 +104,16 @@ const AddPlan: React.FC = () => {
             });
             navigate('/admin/subscriptionPlans');
 
-        } catch (error) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error:any) {
             console.error('Failed to add plan:', error);
-            toast.error('Failed to add plan. Please try again.');
+            if (error?.data?.errors && Array.isArray(error.data.errors)) {
+                error.data.errors.forEach((errMsg: string) => {
+                    toast.error(errMsg, { duration: 4000 }); // Each error displays for 4 seconds
+                });
+            } else {
+                toast.error('Failed to add plan. Please try again.');
+            }
         }
     };
 

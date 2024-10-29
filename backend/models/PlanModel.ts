@@ -1,4 +1,3 @@
-// PlanModel.ts
 import mongoose from "mongoose";
 import { IPlanDocument } from '../types/plan.types'
 

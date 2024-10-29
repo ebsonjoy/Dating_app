@@ -17,6 +17,7 @@ interface RegisterData {
   email: string;
   mobileNumber: string;
   password: string;
+  confirmPassword:string;
   dateOfBirth: string;
 }
 

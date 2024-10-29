@@ -1,5 +1,3 @@
-// admin.model.ts
-
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import { IAdmin } from '../types/admin.types'

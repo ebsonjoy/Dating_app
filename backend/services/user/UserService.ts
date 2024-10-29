@@ -16,10 +16,6 @@ export class UserService implements IUserService {
     constructor(
         @inject('IUserRepository') private userRepository : IUserRepository
     ){}
-    // private userRepository: IUserRepository;
-    // constructor(userRepository: IUserRepository) {
-    //     this.userRepository = userRepository;
-    // }
     async authenticateUser(email: string, password: string): Promise<IUser | null> {
         try{
         const user = await this.userRepository.findByEmail(email);
@@ -34,79 +30,118 @@ export class UserService implements IUserService {
     }
 
     async registerUser(userData: IUser): Promise<IUser | null> {
-        const otp = generateOTP();
-        const otpExpiresAt = new Date(Date.now() + 1 * 60 * 1000);
-        const user = await this.userRepository.register({
-            ...userData,
-            otp,
-            otpExpiresAt
-        });
-
-        await sendOTP(userData.email, otp);
-        return user;
+        try {
+            const otp = generateOTP();
+            const otpExpiresAt = new Date(Date.now() + 1 * 60 * 1000);
+            const user = await this.userRepository.register({
+                ...userData,
+                otp,
+                otpExpiresAt
+            });
+    
+            await sendOTP(userData.email, otp);
+            return user;
+        } catch (error) {
+            console.log(error);
+            throw new Error('Failed to register user');
+        }
     }
+    
 
     async resendOTP(email: string): Promise<{ success: boolean; message: string }> {
-        const user = await this.userRepository.findByEmail(email);
-        if (!user) {
-            return { success: false, message: 'User not found' };
+        try {
+            const user = await this.userRepository.findByEmail(email);
+            if (!user) {
+                return { success: false, message: 'User not found' };
+            }
+    
+            const otp = generateOTP();
+            const otpExpiresAt = new Date(Date.now() + 1 * 60 * 1000);
+    
+            await this.userRepository.update(user._id.toString(), { otp, otpExpiresAt });
+            await sendOTP(email, otp);
+    
+            return { success: true, message: 'OTP sent successfully' };
+        } catch (error) {
+            console.log(error);
+            return { success: false, message: 'Failed to resend OTP' };
         }
-
-        const otp = generateOTP();
-        const otpExpiresAt = new Date(Date.now() + 1 * 60 * 1000);
-
-        await this.userRepository.update(user._id.toString(),{ otp, otpExpiresAt });
-        await sendOTP(email, otp);
-
-        return { success: true, message: 'OTP sent successfully' };
     }
+    
 
     async verifyOTP(email: string, otp: string): Promise<boolean> {
-        const user = await this.userRepository.findByEmail(email);
-        if (!user) {
-            throw new Error('User not found');
+        try {
+            const user = await this.userRepository.findByEmail(email);
+            if (!user) {
+                throw new Error('User not found');
+            }
+        
+            if (user.otp !== otp) {
+                throw new Error('Invalid OTP');
+            }
+        
+            if (new Date() > user.otpExpiresAt) {
+                throw new Error('OTP has expired');
+            }
+        
+            return true;
+        } catch (error) {
+            console.log(error);
+            throw new Error('Failed to verify OTP');
         }
-    
-        if (user.otp !== otp) {
-            throw new Error('Invalid OTP');
-        }
-    
-        if (new Date() > user.otpExpiresAt) {
-            throw new Error('OTP has expired');
-        }
-    
-        return true;
     }
-
+    
     async requestPasswordReset(email: string): Promise<void> {
-        const user = await this.userRepository.findByEmail(email);
-        if (!user) throw new Error('User Not Found');
-    
-        const resetToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET as string, { expiresIn: '1h' });
-        const expDate = new Date(Date.now() + 3600000); 
-        await this.userRepository.update(user._id.toString(), { resetPassword: { token: resetToken, expDate,lastResetDate:new Date() } });
-    
-        const resetLink = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
-        await sendResetEmail(user.email, resetLink);
+        try {
+            const user = await this.userRepository.findByEmail(email);
+            if (!user) throw new Error('User Not Found');
+        
+            const resetToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET as string, { expiresIn: '1h' });
+            const expDate = new Date(Date.now() + 3600000); 
+            await this.userRepository.update(user._id.toString(), { resetPassword: { token: resetToken, expDate, lastResetDate: new Date() } });
+        
+            const resetLink = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+            await sendResetEmail(user.email, resetLink);
+        } catch (error) {
+            console.log(error);
+            throw new Error('Failed to request password reset');
+        }
     }
+    
     
     async resetPassword(token: string, newPassword: string): Promise<void> {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const decoded: any = jwt.verify(token, process.env.JWT_SECRET as string);
-        const user = await this.userRepository.findById(decoded.userId);
-        if(!user || user.resetPassword.token !== token)throw new Error('Invalid or expired token');
-        if (user.resetPassword.expDate && user.resetPassword.expDate < new Date()) {
-            throw new Error('Reset token expired');
-          }
-          const hashedPassword = await bcrypt.hash(newPassword, 10);
-          await this.userRepository.update(user._id.toString(),{password: hashedPassword,resetPassword:{...user.resetPassword,lastResetDate: new Date(),token: null,expDate: null}},)
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const decoded: any = jwt.verify(token, process.env.JWT_SECRET as string);
+            const user = await this.userRepository.findById(decoded.userId);
+            if (!user || user.resetPassword.token !== token) throw new Error('Invalid or expired token');
+            if (user.resetPassword.expDate && user.resetPassword.expDate < new Date()) {
+                throw new Error('Reset token expired');
+            }
+            const hashedPassword = await bcrypt.hash(newPassword, 10);
+            await this.userRepository.update(user._id.toString(), {
+                password: hashedPassword,
+                resetPassword: { ...user.resetPassword, lastResetDate: new Date(), token: null, expDate: null },
+            });
+        } catch (error) {
+            console.log(error);
+            throw new Error('Failed to reset password');
+        }
     }
+    
 
     async createUserInfo(userInfoData: IUserInfo): Promise<IUserInfo | null> {  
-        return await this.userRepository.createUserInfo(userInfoData)
+        try {
+            return await this.userRepository.createUserInfo(userInfoData);
+        } catch (error) {
+            console.log(error);
+            throw new Error('Failed to create user info');
+        }
     }
+    
 
     async getMatchedUsers(userId: string): Promise<IUserProfile[]> {
+         try {
         const loggedInUserInfo = await this.userRepository.findUserInfo(userId)
         if (!loggedInUserInfo) {
             return [];
@@ -140,34 +175,55 @@ export class UserService implements IUserService {
                   bio: userInfo.bio,
                   smoking: userInfo.smoking,
                   drinking: userInfo.drinking,
-                //   place: userInfo.place,
+                   place: userInfo.place,
                 } as unknown as IUserProfile ;
             })
         );
       
-        return matchedUsersWithDetails;
+        return matchedUsersWithDetails
+    } catch (error) {
+        console.log(error);
+        throw new Error('Failed to get matched users');
     }
-
-    async getUserProfile(userId: string): Promise<{ user: IUser | null; userInfo: IUserInfo | null; }>{
-        const user = await this.userRepository.findById(userId);
-        const userInfo = await this.userRepository.findUserInfo(userId)
-        return {user, userInfo}
     }
+    async getUserProfile(userId: string): Promise<{ user: IUser | null; userInfo: IUserInfo | null; }> {
+        try {
+            const user = await this.userRepository.findById(userId);
+            const userInfo = await this.userRepository.findUserInfo(userId);
+            return { user, userInfo };
+        } catch (error) {
+            console.log(error);
+            throw new Error('Failed to get user profile');
+        }
+    }
+    
 
     async updateUserPersonalInfo(userId: string, data: IUser): Promise<IUser | null> {
-        const updatedPersonalInfo = await this.userRepository.update(userId,data)
-        if(!updatedPersonalInfo){
+        try {
+            const updatedPersonalInfo = await this.userRepository.update(userId, data);
+            if (!updatedPersonalInfo) {
+                throw new Error('Failed to update user personal Data');
+            }
+            return updatedPersonalInfo;
+        } catch (error) {
+            console.log(error);
             throw new Error('Failed to update user personal Data');
-          }
-          return updatedPersonalInfo
+        }
     }
+    
 
     async updateUserSubscription(userId: string, subscriptionData: ISubscriptionDetails): Promise<IUser | null> {
-        return this.userRepository.update(userId, subscriptionData);
+        try {
+            return await this.userRepository.update(userId, subscriptionData);
+        } catch (error) {
+            console.log(error);
+            throw new Error('Failed to update user subscription');
+        }
     }
-
+    
 
     async updateUserDatingInfo(userId: string, data: UserInfoUpdate, uploadedPhotos: Express.Multer.File[]): Promise<IUserInfo | null> {
+        try {
         const currentUserInfo = await this.userRepository.findUserInfo(userId);
         if (!currentUserInfo) {
             throw new Error('User info not found');
@@ -196,6 +252,10 @@ export class UserService implements IUserService {
           };
   console.log(updatedData);
   return await this.userRepository.updateUserInfo(userId,updatedData)
+} catch (error) {
+    console.log(error);
+    throw new Error('Failed to update user dating info');
+}
 
 }
   

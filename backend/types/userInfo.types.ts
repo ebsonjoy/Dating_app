@@ -27,7 +27,6 @@ export interface IUserInfo extends Document {
 
 
 
- // interface for the UserInfo
  export interface UserInfoUpdate {
     gender: string;
     lookingFor: string;

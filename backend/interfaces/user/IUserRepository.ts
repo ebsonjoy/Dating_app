@@ -1,6 +1,5 @@
 import { IUser } from "../../types/user.types";
 import { IUserInfo } from "../../types/userInfo.types";
-// import { IUserProfile } from "../../types/user.types";
 import { UserInfoUpdate } from "../../types/userInfo.types";
 export interface IUserRepository {
     findByEmail(email: string): Promise<IUser | null>;

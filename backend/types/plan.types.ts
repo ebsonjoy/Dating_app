@@ -1,7 +1,6 @@
 import { Document } from 'mongoose';
 
 export interface IPlan{
-  // _id: Types.ObjectId;
   planName: string;
   duration: string;
   offerPercentage: number;
