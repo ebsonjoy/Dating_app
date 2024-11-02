@@ -10,6 +10,8 @@ import bcrypt from 'bcryptjs';
 import { calculateAge } from "../../utils/calculateAge";
 import { ISubscriptionDetails } from "../../types/user.types";
 import mongoose from "mongoose";
+import { IPlan } from "../../types/plan.types";
+import { deleteImageFromS3 } from "../../config/multer";
 
 @injectable()
 export class UserService implements IUserService {
@@ -196,7 +198,19 @@ export class UserService implements IUserService {
             throw new Error('Failed to get user profile');
         }
     }
-    
+
+    async getUserSubscriptionDetails(userId: string): Promise<{ subscription: IUser['subscription']; plan: IPlan | null } | null> {
+        const user = await this.userRepository.findUserPlanDetailsById(userId);
+        
+        if (!user || !user.subscription) {
+            return null;
+        }
+
+        const { subscription } = user;
+        const plan = subscription.planId as IPlan | null; 
+
+        return { subscription, plan };
+    }
 
     async updateUserPersonalInfo(userId: string, data: IUser): Promise<IUser | null> {
         try {
@@ -214,7 +228,16 @@ export class UserService implements IUserService {
 
     async updateUserSubscription(userId: string, subscriptionData: ISubscriptionDetails): Promise<IUser | null> {
         try {
-            return await this.userRepository.update(userId, subscriptionData);
+
+            const dataToUpdate: Partial<IUser> = {
+                subscription: {
+                    isPremium: subscriptionData.isPremium,
+                    planId: subscriptionData.planId ? new mongoose.Types.ObjectId(subscriptionData.planId) : null,
+                    planExpiryDate: subscriptionData.planExpiryDate,
+                    planStartingDate: subscriptionData.planStartingDate,
+                },
+            };
+            return await this.userRepository.update(userId, dataToUpdate);
         } catch (error) {
             console.log(error);
             throw new Error('Failed to update user subscription');
@@ -222,19 +245,20 @@ export class UserService implements IUserService {
     }
     
 
-    async updateUserDatingInfo(userId: string, data: UserInfoUpdate, uploadedPhotos: Express.Multer.File[]): Promise<IUserInfo | null> {
+    async updateUserDatingInfo(userId: string, data: UserInfoUpdate, uploadedPhotos: Express.MulterS3.File[]): Promise<IUserInfo | null> {
         try {
         const currentUserInfo = await this.userRepository.findUserInfo(userId);
         if (!currentUserInfo) {
             throw new Error('User info not found');
         }
-        const imgIndex = data.imgIndex && data.imgIndex.trim() !== '' ? data.imgIndex.split(',').map(Number) : [];
+        const imgIndex = data.imgIndex && data.imgIndex.trim() !== '' ? data.imgIndex.split(',').map(Number) : [];  
         if(imgIndex.length>0){
             imgIndex.forEach((index:number, i:number)=>{
-                currentUserInfo.profilePhotos[index] = uploadedPhotos[i].filename
+                deleteImageFromS3(currentUserInfo.profilePhotos[index])
+                currentUserInfo.profilePhotos[index] = uploadedPhotos[i].location
             })
         }
-
+        imgIndex.length = 0;
         const updatedData:UserInfoUpdate = {
             gender: data.gender,
             lookingFor: data.lookingFor,
@@ -250,15 +274,13 @@ export class UserService implements IUserService {
             caste: data.caste,
             profilePhotos: currentUserInfo.profilePhotos,
           };
-  console.log(updatedData);
   return await this.userRepository.updateUserInfo(userId,updatedData)
 } catch (error) {
     console.log(error);
     throw new Error('Failed to update user dating info');
 }
 
-}
-  
+}  
 }
 
 

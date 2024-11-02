@@ -42,8 +42,8 @@ const ProfilePage: React.FC = () => {
   const [drinking, setDrinking] = useState<string>('');
   const [profilePhotos, setProfilePhotos] = useState<File[]>([]);
   const [showModal, setShowModal] = useState(false);
-const [imgIndex, setImgIndex] = useState<number[]>([])
-const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [imgIndex, setImgIndex] = useState<number[]>([])
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
 
   const handlePersonalSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -214,6 +214,7 @@ const [errors, setErrors] = useState<{ [key: string]: string }>({});
     formData.append("smoking", smoking);
     formData.append("drinking", drinking);
     formData.append('imgIndex', imgIndex.join(','));
+ 
     profilePhotos.forEach((photo) => {
       if (photo instanceof File) {
         formData.append('profilePhotos', photo);
@@ -228,6 +229,7 @@ const [errors, setErrors] = useState<{ [key: string]: string }>({});
       await updateUserDatingInfo({ userId, data: formData }).unwrap();
       toast.success("Dating Info Updated Successfully");
       setEditDating(false);
+      setImgIndex([])
        refetch();
     } catch (error) {
       console.error("Error during submission:", error);
@@ -251,7 +253,7 @@ const [errors, setErrors] = useState<{ [key: string]: string }>({});
           {/* Profile Image */}
           <img
             src={
-              PROFILE_IMAGE_DIR_PATH + userProfile?.userInfo.profilePhotos[0]
+              userProfile?.userInfo.profilePhotos[0]
             }
             alt="Profile"
             className="w-32 h-32 rounded-full object-cover"
@@ -610,11 +612,11 @@ const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
 
           {/* Image Upload Section */}
-          <div className="grid grid-cols-4 gap-2 mt-4">
+           <div className="grid grid-cols-4 gap-2 mt-4">
             {userProfile?.userInfo.profilePhotos.map((image:string, index:number) => (
               <div key={index} className="relative">
                 <img
-                  src={PROFILE_IMAGE_DIR_PATH+image}
+                  src={image}
                   alt={`Dating Image ${index + 1}`}
                   className="w-full h-30 object-cover rounded-lg"
                 />
@@ -630,7 +632,7 @@ const [errors, setErrors] = useState<{ [key: string]: string }>({});
                 />
               </div>
             ))}
-          </div>
+          </div> 
 
           <div className="flex justify-between mt-4 w-full">
               {/* Toggle Edit Mode Button */}
@@ -654,6 +656,7 @@ const [errors, setErrors] = useState<{ [key: string]: string }>({});
             </div>
         </div>
       </form>
+      
     </div>
   );
 };

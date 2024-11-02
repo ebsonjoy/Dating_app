@@ -18,7 +18,7 @@ import ResetPassword from './pages/userPages/resetPassword';
 import ProfileScreen from './pages/userPages/userProfile';
 // import ProfileScreen from './pages/userPages/userProfile';
 import UserSubscription from './pages/userPages/userSubscription';
-// import UserPlanDetails from './pages/userPages/userPlanDetails'
+import UserPlanDetails from './pages/userPages/userPlanDetails'
 
 // Admin Routes
 
@@ -44,7 +44,7 @@ const router = createBrowserRouter(
       <Route path="/reset-password/:token" element={<ResetPassword />} />
       <Route path="/profile" element={<ProfileScreen/>} />
       <Route path="/userSubscription" element={<UserSubscription/>} />
-      {/* <Route path="/userPlanDetails" element={<UserPlanDetails/>} /> */}
+      <Route path="/userPlanDetails" element={<UserPlanDetails/>} />
 
 
 

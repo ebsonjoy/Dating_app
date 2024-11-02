@@ -12,10 +12,16 @@ export interface IUser extends Document {
     };
     dateOfBirth: string;
     otp: string;
-    isPremium: boolean;
-    planId: mongoose.Types.ObjectId;
-    planExpiryDate: Date | null;
-    planStartingDate: Date | null;
+    // isPremium: boolean;
+    // planId: mongoose.Types.ObjectId;
+    // planExpiryDate: Date | null;
+    // planStartingDate: Date | null;
+    subscription: {
+        isPremium: boolean;
+        planId: mongoose.Types.ObjectId | null;
+        planExpiryDate: Date | null;
+        planStartingDate: Date | null;
+    };
     status: boolean;
     matches: number;
     otpExpiresAt: Date;

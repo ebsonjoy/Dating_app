@@ -123,9 +123,9 @@ export class UserController {
             res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR }); 
         }
     });
-    
+  
     createUserInfo = asyncHandler(async (req: Request, res: Response) => {     
-        const profilePhotos = (req.files as Express.Multer.File[]) || [];
+        const profilePhotos = (req.files as Express.MulterS3.File[]) || [];
         if (typeof req.body.location === 'string') {
             req.body.location = JSON.parse(req.body.location);
         }
@@ -143,9 +143,8 @@ export class UserController {
         try {
         const userInfoData = { 
             ...req.body, 
-            profilePhotos: profilePhotos.map((file) => file.filename) 
+            profilePhotos: profilePhotos.map((file) => file.location)
         };
-    
         const newUserInfo = await this.userService.createUserInfo(userInfoData);
         res.status(HttpStatusCode.CREATED).json(newUserInfo)
     } catch (error) {
@@ -202,7 +201,21 @@ export class UserController {
         }
     });
     
-      
+    updateUserDatingInfo = asyncHandler(async (req: Request, res: Response) => {
+        const { userId } = req.params;
+        const uploadedPhotos = (req.files as Express.MulterS3.File[]) || [];
+
+        const data = req.body;
+    
+        try {
+            
+            const userInfo = await this.userService.updateUserDatingInfo(userId, data, uploadedPhotos);
+            res.status(HttpStatusCode.OK).json({ message: StatusMessage.SUCCESS, userInfo });
+        } catch (error) {
+            console.error(error);
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
+        }
+    });
 
     updateUserSubscription = asyncHandler(async (req: Request, res: Response) => {
         const { userId } = req.params;
@@ -224,18 +237,19 @@ export class UserController {
             res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
         }
     });
-    updateUserDatingInfo = asyncHandler(async (req: Request, res: Response) => {
+
+    userSubscriptionDetails = asyncHandler(async (req: Request, res: Response) => {
         const { userId } = req.params;
-        const uploadedPhotos = (req.files as Express.Multer.File[]) || [];
-        const data = req.body;
-    
         try {
-            const userInfo = await this.userService.updateUserDatingInfo(userId, data, uploadedPhotos);
-            res.status(HttpStatusCode.OK).json({ message: StatusMessage.SUCCESS, userInfo });
+            const details = await this.userService.getUserSubscriptionDetails(userId);
+            if (!details) {
+                 res.status(HttpStatusCode.NOT_FOUND).json({ message: "User or subscription details not found" });
+                 return
+            }
+            res.status(HttpStatusCode.OK).json(details);
         } catch (error) {
-            console.error(error);
-            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
+            console.error(`Error fetching subscription details: ${error}`);
+            res.status(500).json({ message: "Failed to retrieve user subscription details" });
         }
     });
-    
 }

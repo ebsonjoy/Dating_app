@@ -4,11 +4,11 @@ import { ValidationError } from 'joi';
 
 const signupSchema = Joi.object({
   name: Joi.string()
-    .pattern(/^[A-Za-z]+$/) // Only alphabets, no spaces or numbers allowed
+    .pattern(/^[A-Za-z]+(\s[A-Za-z]+)*$/) // Only alphabets, no spaces or numbers allowed
     .min(1)
     .required()
     .messages({
-      'string.pattern.base': 'Name should contain only alphabets without spaces.',
+      'string.pattern.base': 'Name should contain only alphabets.',
       'string.empty': 'Name is required.',
       'any.required': 'Name is required.'
     }),

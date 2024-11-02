@@ -19,6 +19,8 @@ interface User {
 
 const UsersList: React.FC = () => {
   const { data: usersList, error, isLoading, refetch } = useGetAllUsersQuery();
+  console.log(usersList);
+  
   const [updateUserStatus] = useUpdateUserStatusMutation();
   const navigate = useNavigate();
   const { adminInfo } = useSelector((state: RootState) => state.adminAuth);
@@ -37,7 +39,7 @@ const UsersList: React.FC = () => {
 
   const filteredUsers = usersList
     ?.filter((user: User) => user.name.toLowerCase().includes(search.toLowerCase()) || user.email.toLowerCase().includes(search.toLowerCase()))
-    .filter((user: User) => premiumFilter === 'all' || (premiumFilter === 'premium' ? user.isPremium : !user.isPremium))
+    .filter((user: User) => premiumFilter === 'all' || (premiumFilter === 'premium' ? user.subscription.isPremium : !user.subscription.isPremium))
     .sort((a: User, b: User) => (nameSort === 'ascending' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name))) || [];
 
   const indexOfLastUser = currentPage * usersPerPage;
@@ -154,7 +156,7 @@ const UsersList: React.FC = () => {
                     <td className="py-3 px-4">{user.name}</td>
                     <td className="py-3 px-4">{user.email}</td>
                     <td className="py-3 px-4">{user.mobileNumber}</td>
-                    <td className="py-3 px-4">{user.isPremium ? 'Premium' : 'Free'}</td>
+                    <td className="py-3 px-4">{user.subscription?.isPremium ? 'Premium' : 'Free'}</td>
                     <td className="py-3 px-4">{user.matches}</td>
                     <td className="py-3 px-4">{user.status ? 'Active' : 'Blocked'}</td>
                     <td className="py-3 px-4">

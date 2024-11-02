@@ -4,6 +4,7 @@ import { useGetUserPlansQuery } from '../../slices/apiUserSlice';
 import { useUpdateUserSubscriptionMutation } from '../../slices/apiUserSlice';
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
+import SkeletonLoader from '../../components/skeletonLoader';
 
 interface Subscription {
     _id: string; 
@@ -101,11 +102,13 @@ const SubscriptionPage: React.FC = () => {
         });
     };
 
-   
-
     if (isLoading || isUpdating) {
-        return <div>Loading...</div>; // Loading state
-    }
+        return <SkeletonLoader/>;
+      }
+
+    // if (isLoading || isUpdating) {
+    //     return <div>Loading...</div>; // Loading state
+    // }
 
     if (error) {
         return <div>Error fetching plans: {error.message}</div>; 

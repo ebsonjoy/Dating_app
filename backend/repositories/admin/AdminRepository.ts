@@ -35,7 +35,7 @@ export class AdminRepository implements IAdminRepository {
     try {
       return await this.userModel
         .find()
-        .select("name email mobileNumber isPremium matches status");
+        .select("name email mobileNumber subscription matches status");
     } catch (error) {
       console.error("Error fetching users:", error);
       throw new Error("Error fetching users");

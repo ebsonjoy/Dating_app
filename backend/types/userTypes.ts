@@ -1,9 +1,9 @@
 export interface ISubscriptionDetails {
-    isPremium: boolean;
-    planId: string;
-    planExpiryDate: Date;
-    planStartingDate:Date;
-  }
+  isPremium: boolean;
+  planId: string | null;
+  planExpiryDate: Date | null;
+  planStartingDate: Date | null;
+}
 
 
 

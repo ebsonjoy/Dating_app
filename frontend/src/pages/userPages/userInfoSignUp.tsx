@@ -201,6 +201,7 @@ const UserInformation: React.FC = () => {
       localStorage.removeItem('userId');
       navigate('/login');
     } catch (err) {
+      console.log(err)
       toast.error(err?.data?.message || "Failed to submit user information");
     }
   };

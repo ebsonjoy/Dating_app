@@ -17,22 +17,24 @@ const userSchema = new mongoose.Schema<IUser>(
             type: String,
             required: true,
         },
-        isPremium: {
-            type: Boolean,
-            default: false,
-        },
-        planId: {
-            type: Schema.Types.ObjectId,
-            ref: 'Plan',
-            required: false,
-        },
-        planExpiryDate: {
-            type: Date,
-            required: false,
-        },
-        planStartingDate: {
-            type: Date,
-            required: false,
+        subscription: {
+            isPremium: {
+                type: Boolean,
+                default: false,
+            },
+            planId: {
+                type: Schema.Types.ObjectId,
+                ref: 'Plan',
+                default: null,
+            },
+            planExpiryDate: {
+                type: Date,
+                default: null,
+            },
+            planStartingDate: {
+                type: Date,
+                default: null,
+            },
         },
         status: {
             type: Boolean,

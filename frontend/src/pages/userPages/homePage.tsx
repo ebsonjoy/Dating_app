@@ -7,12 +7,14 @@ import { useGetUsersProfilesQuery } from '../../slices/apiUserSlice';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store'; 
 import { useNavigate } from 'react-router-dom';
+import SkeletonLoader from '../../components/skeletonLoader';
 
-const PROFILE_IMAGE_DIR_PATH = 'http://localhost:5000/UserProfileImages/';
+// const PROFILE_IMAGE_DIR_PATH = 'http://localhost:5000/UserProfileImages/';
 const Home: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [imageIndex, setImageIndex] = useState(0);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState<boolean>(true);
 
   const { userInfo } = useSelector((state: RootState) => state.auth); 
   useEffect(() => {
@@ -24,6 +26,19 @@ const Home: React.FC = () => {
   const userId = userInfo?._id;
   const { data: users = [], isLoading, isError } = useGetUsersProfilesQuery(userId);
 
+
+  // if (isLoading) {
+  //   return <SkeletonLoader/>;
+  // }
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false); // End the loading state after 2 seconds
+    }, 1000); // Change to 1000 for 1 second delay
+
+    return () => clearTimeout(timer); // Clean up timer on component unmount
+  }, []);
+
   console.log(users);
 
   useEffect(() => {
@@ -32,8 +47,12 @@ const Home: React.FC = () => {
       setImageIndex(0); 
     }
   }, [users]);
+  if (loading) return <SkeletonLoader />; // Show loading state
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <SkeletonLoader />;
+
+  // if (isLoading) return <SkeletonLoader />;
+  // if (isLoading) return <div>Loading...</div>;
   if (isError) return <div>Error loading users</div>;
 
   const currentUser = users[currentIndex];
@@ -103,7 +122,7 @@ const Home: React.FC = () => {
         
               <div className="vr-dating-profile-image-box">
                 <img
-                  src={PROFILE_IMAGE_DIR_PATH + currentUser.profilePhotos[imageIndex]}
+                  src={currentUser.profilePhotos[imageIndex]}
                   alt={`User Profile ${imageIndex + 1}`}
                 />
               </div>

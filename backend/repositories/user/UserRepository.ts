@@ -5,6 +5,7 @@ import { IUserInfo, ILocation } from "../../types/userInfo.types";
 import User from "../../models/User";
 import UserInfo from "../../models/UserInfo";
 import mongoose from "mongoose";
+import { IPlan } from "../../types/plan.types";
 @injectable()
 export class UserRepository  implements IUserRepository {
     constructor(
@@ -104,6 +105,22 @@ export class UserRepository  implements IUserRepository {
         throw new Error('Failed to find matched users');
     }
     }
+
+    async findUserPlanDetailsById(userId: string): Promise<{ subscription: IUser['subscription']; plan: IPlan | null } | null> {
+        const user = await this.UserModel.findById(userId)
+            .select('subscription') 
+            .populate({
+                path: 'subscription.planId',
+                model: 'Plan',
+            });
+    
+        if (!user) return null;
+        const subscription = user.subscription;
+        const plan = user.subscription.planId as IPlan | null; 
+    
+        return { subscription, plan };
+    }
+    
 
 
 }

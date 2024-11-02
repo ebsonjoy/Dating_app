@@ -156,14 +156,19 @@ interface updateData {
 
 }
 
-// interface IUserSubscriptionResponse {
-//   userId: string;
-//   name: string;
-//   email: string;
-//   planStartingDate: Date; 
-//     planExpiryDate: Date;
-//   subscription: PlansData; 
-// }
+interface IUserSubscriptionResponse {
+  userId: string;
+  name: string;
+  email: string;
+  planStartingDate: Date; 
+  planExpiryDate: Date;
+  isPremium: boolean; // Adding isPremium
+  planId: PlansData;
+}
+interface IUserPlanDetails{
+  subscription: IUserSubscriptionResponse;
+  plan: PlansData;
+}
 export const usersApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation<{ token: string }, LoginData>({
@@ -272,9 +277,10 @@ export const usersApiSlice = apiSlice.injectEndpoints({
       body: JSON.stringify(data),
       }),
     }),
-    // getUserPlanDetails: builder.query<IUserSubscriptionResponse[], string>({  
-    //   query: (userId) => `${USERS_URL}/getUserPlanDetails/${userId}`,
-    // }),
+    //detials for subscription
+    getUserPlanDetails: builder.query<IUserPlanDetails, string>({  
+      query: (userId) => `${USERS_URL}/getUserPlanDetails/${userId}`,
+    }),
   }),
 });
 
@@ -294,4 +300,5 @@ export const {
   useUpdateUserDatingInfoMutation,
   useGetUserPlansQuery,
   useUpdateUserSubscriptionMutation,
+  useGetUserPlanDetailsQuery,
 } = usersApiSlice;

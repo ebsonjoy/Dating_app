@@ -3,7 +3,8 @@ import { container } from '../config/container';
 import { UserController } from "../controller/user/UserController";
 import { PlanController } from '../controller/plan/PlanController';
 import { protect } from "../middleware/AuthMiddleware";
-import { multerUploadUserProfile } from "../config/multerConfig";
+// import { multerUploadUserProfile } from "../config/multerConfig";
+import { multerUploadUserImg } from "../config/multer";
 import validateSignup from "../validation/userValidation";
 import multer from "multer";
 
@@ -22,14 +23,17 @@ router.post("/verifyOtp", userController.verifyOTP);
 router.post("/resendOtp", userController.resendOTP);
 router.post("/password-reset-request", userController.requestPasswordReset);
 router.post("/reset-password/:token", userController.resetPassword);
-router.post("/userInfoSignUp",multerUploadUserProfile.array("profilePhotos", 4),userController.createUserInfo);
+// router.post("/userInfoSignUp",multerUploadUserProfile.array("profilePhotos", 4),userController.createUserInfo);
+router.post("/userInfoSignUp",multerUploadUserImg.array("profilePhotos", 4),userController.createUserInfo);
+
 router.get("/getHomeUsersProfiles/:userId", protect, userController.getHomeUsersProfiles);
 router.get("/getUserProfile/:userId",protect, userController.getUserProfile);
 router.put("/updatePersonalInfo/:userId",validateSignup,upload.none(),userController.updatedPersonalInfo)
-router.put("/updateDatingInfo/:userId", multerUploadUserProfile.array("profilePhotos", 4), userController.updateUserDatingInfo);
+router.put("/updateDatingInfo/:userId", multerUploadUserImg.array("profilePhotos", 4), userController.updateUserDatingInfo);
 
 // Plan
 router.get('/getUserPlans',planController.getUserPlan)
 router.put('/updateUserSubscription/:userId',userController.updateUserSubscription)
+router.get('/getUserPlanDetails/:userId',userController.userSubscriptionDetails)
 
 export default router;
