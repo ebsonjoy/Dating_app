@@ -6,6 +6,7 @@ import { Provider } from 'react-redux';
 import App from './App';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './index.css';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 import HomeScreen from './pages/userPages/homePage';
 import LoginScreen from './pages/userPages/loginPage';
@@ -19,6 +20,12 @@ import ProfileScreen from './pages/userPages/userProfile';
 // import ProfileScreen from './pages/userPages/userProfile';
 import UserSubscription from './pages/userPages/userSubscription';
 import UserPlanDetails from './pages/userPages/userPlanDetails'
+import UserLikes from './pages/userPages/userLikes'
+// import Chat from './pages/chatPages/dummyChat'
+
+
+
+import ChatPage from './pages/chatTest/chatPage'
 
 // Admin Routes
 
@@ -45,6 +52,13 @@ const router = createBrowserRouter(
       <Route path="/profile" element={<ProfileScreen/>} />
       <Route path="/userSubscription" element={<UserSubscription/>} />
       <Route path="/userPlanDetails" element={<UserPlanDetails/>} />
+      <Route path="/userLikes" element={<UserLikes/>} />
+      {/* <Route path="/chat" element={<Chat/>} /> */}
+
+      <Route path="/chat"element={<ChatPage/>} />
+
+
+
 
 
 
@@ -76,11 +90,20 @@ const router = createBrowserRouter(
   )
 );
 
+// ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+//   <Provider store={store}>
+//     <React.StrictMode>
+//       <RouterProvider router={router} />
+//     </React.StrictMode>
+//   </Provider>
+// );
+
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <Provider store={store}>
-    <React.StrictMode>
-      <RouterProvider router={router} />
-    </React.StrictMode>
+    <GoogleOAuthProvider clientId="107022301338-q6fc28r4llhv23cen8mch1lhm15tvuu9.apps.googleusercontent.com">
+      <React.StrictMode>
+        <RouterProvider router={router} />
+      </React.StrictMode>
+    </GoogleOAuthProvider>
   </Provider>
 );
-

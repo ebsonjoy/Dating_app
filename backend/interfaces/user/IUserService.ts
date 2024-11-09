@@ -3,6 +3,8 @@ import { IUserInfo } from "../../types/userInfo.types";
 import { IUserProfile } from "../../types/user.types";
 import { ISubscriptionDetails } from "../../types/user.types";
 import { IPlan } from "../../types/plan.types";
+import { ILikeData,ILikeProfile } from "../../types/like.types";
+// import { IMatch } from "../../types/match.types";
 
 export interface IUserService {
     authenticateUser(email: string, password: string): Promise<IUser | null>;
@@ -18,4 +20,9 @@ export interface IUserService {
     updateUserSubscription(userId: string, subscriptionData: ISubscriptionDetails): Promise<IUser | null>;
     updateUserDatingInfo(userId: string, data: IUserInfo, files: Express.Multer.File[]): Promise<IUserInfo | null>;
     getUserSubscriptionDetails(userId: string): Promise<{ subscription: IUser['subscription']; plan: IPlan | null } | null>;
+    handleHomeLikes(likesIds: ILikeData): Promise<{ match: boolean; message: string } | null>
+    getSentLikesProfiles(userId: string): Promise<ILikeProfile[] | null>;
+    getReceivedLikesProfiles(userId: string): Promise<ILikeProfile[] | null>;
+    getmatchProfile(userId:string) : Promise<ILikeProfile[]>
+
 }

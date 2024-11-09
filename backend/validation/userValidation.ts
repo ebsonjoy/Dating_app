@@ -4,7 +4,7 @@ import { ValidationError } from 'joi';
 
 const signupSchema = Joi.object({
   name: Joi.string()
-    .pattern(/^[A-Za-z]+(\s[A-Za-z]+)*$/) // Only alphabets, no spaces or numbers allowed
+    .pattern(/^[A-Za-z]+(\s[A-Za-z]+)*$/)
     .min(1)
     .required()
     .messages({
@@ -22,7 +22,7 @@ const signupSchema = Joi.object({
     }),
 
     mobileNumber: Joi.string()
-    .pattern(/^(?!.*([0-9])\1{9})[1-9][0-9]{9}$/) // Only 10 digits, cannot start with 0, and cannot be all the same digit
+    .pattern(/^(?!.*([0-9])\1{9})[1-9][0-9]{9}$/) 
     .required()
     .messages({
       'string.pattern.base': 'Mobile number must be a 10-digit number, cannot start with 0, and cannot be all the same digit.',

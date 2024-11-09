@@ -12,6 +12,8 @@ import { ISubscriptionDetails } from "../../types/user.types";
 import mongoose from "mongoose";
 import { IPlan } from "../../types/plan.types";
 import { deleteImageFromS3 } from "../../config/multer";
+import { ILikeData, ILikeProfile } from "../../types/like.types";
+// import { IMatch } from "../../types/match.types";
 
 @injectable()
 export class UserService implements IUserService {
@@ -281,6 +283,108 @@ export class UserService implements IUserService {
 }
 
 }  
+async handleHomeLikes(likesIds: ILikeData): Promise<{ match: boolean; message: string } | null> {
+    const { likerId, likedUserId } = likesIds;
+
+    const existingLike = await this.userRepository.findExistingLike({ likerId, likedUserId });
+    if (existingLike) {
+        return { match: false, message: "You have already liked this profile." };
+    }
+
+    const reverseLike = await this.userRepository.findReverseLike({ likerId, likedUserId });
+    if (reverseLike) {
+        await this.userRepository.updateLikeStatus({ likerId, likedUserId }, "matched");
+        await this.userRepository.updateLikeStatus({ likerId: likedUserId, likedUserId: likerId }, "matched");
+        await this.userRepository.saveMatch({ user1Id: likerId.toString(), user2Id: likedUserId.toString(), matchDate: new Date() });
+        return { match: true, message: "You have a new match!" };
+
+    }else{
+        await this.userRepository.saveLike({ likerId, likedUserId });
+        return { match: false, message: "You liked the profile!" };
+    }
+  }
+
+
+  //..................................................
+
+  async getSentLikesProfiles(userId: string): Promise<ILikeProfile[]> {
+    const sentLikes = await this.userRepository.findSentLikes(userId);
+
+    const profiles = await Promise.all(
+      sentLikes.map(async (like) => {
+        const user = await this.userRepository.findById(like.likedUserId.toString());
+        const userInfo = await this.userRepository.findUserInfo(like.likedUserId.toString());
+
+        if (user && userInfo) {
+          return {
+            name: user.name,
+            age: user.dateOfBirth,
+            place: userInfo.place,
+            image: userInfo.profilePhotos,
+          };
+        }
+        return null;
+      })
+    );
+
+    return profiles.filter((profile) => profile !== null) as unknown as ILikeProfile[];
+  }
+
+
+  async getReceivedLikesProfiles(userId: string): Promise<ILikeProfile[]> {
+    const receivedLikes = await this.userRepository.findReceivedLikes(userId);
+
+    const profiles = await Promise.all(
+      receivedLikes.map(async (like) => {
+        const user = await this.userRepository.findById(like.likerId.toString());
+        const userInfo = await this.userRepository.findUserInfo(like.likerId.toString());
+
+        if (user && userInfo) {
+          return {
+            name: user.name,
+            age: user.dateOfBirth,
+            place: userInfo.place,
+            image: userInfo.profilePhotos,
+          };
+        }
+        return null;
+      })
+    );
+
+    return profiles.filter((profile) => profile !== null) as unknown as ILikeProfile[];
+  }
+
+
+
+  async getmatchProfile(userId:string) : Promise<ILikeProfile[]>{
+
+    const profiles = await this.userRepository.findMatchedProfileById(userId)
+
+    
+    const matchedProfiles = await Promise.all(
+
+        profiles.map(async (match) => {
+            const id = match.user1Id.toString() == userId ? match.user2Id : match.user1Id
+        const user = await this.userRepository.findById(id.toString());
+        const userInfo = await this.userRepository.findUserInfo(id.toString());
+        if (user && userInfo) {
+            return {
+                id:user._id,
+              name: user.name,
+              age: user.dateOfBirth,
+              place: userInfo.place,
+              image: userInfo.profilePhotos,
+            };
+          }
+          return null;
+            
+        })
+        
+    )
+    return matchedProfiles.filter((profile) => profile !== null) as unknown as ILikeProfile[];
+
+  }
+
 }
 
 

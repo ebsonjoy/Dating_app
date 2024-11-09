@@ -16,4 +16,10 @@ export enum StatusMessage {
   EMAIL_NOT_FOUND = "No account associated with this email",
   FORGOT_PASSWORD_REQUEST_FAILED = "Failed to process password reset request",
   INVALID_INPUT = "Invalid input provided",
+  SEND_MESSAGE_FAILED =  'Failed to send message',
+  
+  GET_CHAT_HISTORY_FAILED= "Failed to get chat history",
+  MARK_MESSAGES_AS_READ_SUCCESS= "Messages marked as read",
+  MARK_MESSAGES_AS_READ_FAILED= "Failed to mark messages as read",
+  GET_UNREAD_MESSAGES_COUNT_FAILED= "Failed to get unread messages count",
   }

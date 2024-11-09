@@ -44,7 +44,7 @@ export class AdminController{
 
     logout = asyncHandler(async (req: Request, res: Response) => {
         try {
-            res.cookie("jwt", "", {
+            res.cookie("admin_jwt", "", {
                 httpOnly: true,
                 expires: new Date(0),
             });

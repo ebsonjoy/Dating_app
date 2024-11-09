@@ -12,10 +12,8 @@ export interface IUser extends Document {
     };
     dateOfBirth: string;
     otp: string;
-    // isPremium: boolean;
-    // planId: mongoose.Types.ObjectId;
-    // planExpiryDate: Date | null;
-    // planStartingDate: Date | null;
+    isGoogleLogin:boolean;
+    googleId?: string;
     subscription: {
         isPremium: boolean;
         planId: mongoose.Types.ObjectId | null;

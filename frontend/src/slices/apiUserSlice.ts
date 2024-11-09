@@ -135,7 +135,7 @@ interface PlansData{
 interface paymentData{
   isPremium: boolean;
   planId:string;
-  expiryDate:Date;
+  planExpiryDate:Date;
   planStartingDate:Date;
 }
 
@@ -162,12 +162,24 @@ interface IUserSubscriptionResponse {
   email: string;
   planStartingDate: Date; 
   planExpiryDate: Date;
-  isPremium: boolean; // Adding isPremium
+  isPremium: boolean; 
   planId: PlansData;
 }
 interface IUserPlanDetails{
   subscription: IUserSubscriptionResponse;
   plan: PlansData;
+}
+interface ILike{
+  likerId:string;
+  likedUserId:string;
+}
+
+interface ILikeProfile {
+  id:string;
+  name: string;
+  dateOfBirth: string;
+  place: string;
+  profilePhotos: string[];
 }
 export const usersApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -175,6 +187,13 @@ export const usersApiSlice = apiSlice.injectEndpoints({
       query: (data) => ({
         url: `${USERS_URL}/auth`,
         method: "POST",
+        body: data,
+      }),
+    }),
+    googleLogin: builder.mutation<{ token: string }, { credential: string }>({
+      query: (data) => ({
+        url: `${USERS_URL}/auth/google`,
+        method: 'POST',
         body: data,
       }),
     }),
@@ -281,11 +300,28 @@ export const usersApiSlice = apiSlice.injectEndpoints({
     getUserPlanDetails: builder.query<IUserPlanDetails, string>({  
       query: (userId) => `${USERS_URL}/getUserPlanDetails/${userId}`,
     }),
+    handleHomeLikes: builder.mutation<void, ILike>({
+      query: (data) => ({
+        url: `${USERS_URL}/handleHomeLikes`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+    getSentLikeProfiles: builder.query<ILikeProfile, string>({  
+      query: (userId) => `${USERS_URL}/sentLikes/${userId}`,
+    }),
+    getReceivedLikeProfiles: builder.query<ILikeProfile, string>({  
+      query: (userId) => `${USERS_URL}/receivedLikes/${userId}`,
+    }),
+    getMatchProfiles: builder.query<ILikeProfile, string>({  
+      query: (userId) => `${USERS_URL}/getMathProfiles/${userId}`,
+    }),
   }),
 });
 
 export const {
   useLoginMutation,
+  useGoogleLoginMutation,
   useLogoutMutation,
   useRegisterMutation,
   useUpdateUserMutation,
@@ -301,4 +337,8 @@ export const {
   useGetUserPlansQuery,
   useUpdateUserSubscriptionMutation,
   useGetUserPlanDetailsQuery,
+  useHandleHomeLikesMutation,
+  useGetSentLikeProfilesQuery,
+  useGetReceivedLikeProfilesQuery,
+  useGetMatchProfilesQuery,
 } = usersApiSlice;

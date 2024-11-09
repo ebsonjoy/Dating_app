@@ -17,6 +17,15 @@ const userSchema = new mongoose.Schema<IUser>(
             type: String,
             required: true,
         },
+        isGoogleLogin:{
+            type: Boolean,
+            default: false,
+        },
+        googleId: {
+            type: String,
+            sparse: true,
+            unique: true,
+          },
         subscription: {
             isPremium: {
                 type: Boolean,

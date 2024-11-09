@@ -2,10 +2,9 @@ import Joi from 'joi';
 import { Request, Response, NextFunction } from 'express'; 
 import { ValidationError } from 'joi'; 
 
-// Define the Joi validation schema
 const userInfoSchema = Joi.object({
   gender: Joi.string()
-    .valid('male', 'female', 'other') // Only allow specific values
+    .valid('male', 'female', 'other') 
     .required()
     .messages({
       'any.only': 'Gender must be male, female, or other.',
@@ -13,7 +12,7 @@ const userInfoSchema = Joi.object({
     }),
 
   lookingFor: Joi.string()
-    .valid('friendship', 'relationship', 'casual', 'serious') // Specific options for what the user is looking for
+    .valid('friendship', 'relationship', 'casual', 'serious') 
     .required()
     .messages({
       'any.only': 'Looking for must be one of: friendship, relationship, casual, or serious.',
@@ -21,7 +20,7 @@ const userInfoSchema = Joi.object({
     }),
 
   relationship: Joi.string()
-    .valid('single', 'in a relationship', 'married', 'divorced', 'widowed') // Specific relationship statuses
+    .valid('single', 'in a relationship', 'married', 'divorced', 'widowed') 
     .required()
     .messages({
       'any.only': 'Relationship status must be one of: single, in a relationship, married, divorced, or widowed.',
@@ -29,8 +28,8 @@ const userInfoSchema = Joi.object({
     }),
 
   interests: Joi.array()
-    .items(Joi.string().trim().min(1)) // Each interest must be a non-empty string
-    .min(1) // At least one interest is required
+    .items(Joi.string().trim().min(1))
+    .min(1) 
     .required()
     .messages({
       'array.min': 'At least one interest is required.',
@@ -75,13 +74,13 @@ const userInfoSchema = Joi.object({
 
   bio: Joi.string()
     .trim()
-    .max(300) // Limit bio to 300 characters
+    .max(300) 
     .messages({
       'string.max': 'Bio must be 300 characters or less.'
     }),
 
   smoking: Joi.string()
-    .valid('yes', 'no', 'occasionally') // Specific options for smoking
+    .valid('yes', 'no', 'occasionally') 
     .required()
     .messages({
       'any.only': 'Smoking preference must be yes, no, or occasionally.',
@@ -89,7 +88,7 @@ const userInfoSchema = Joi.object({
     }),
 
   drinking: Joi.string()
-    .valid('yes', 'no', 'occasionally') // Specific options for drinking
+    .valid('yes', 'no', 'occasionally')
     .required()
     .messages({
       'any.only': 'Drinking preference must be yes, no, or occasionally.',
@@ -98,9 +97,9 @@ const userInfoSchema = Joi.object({
 
   profilePhotos: Joi.array()
     .items(Joi.object().keys({
-      name: Joi.string().required(), // Name of the file
-      size: Joi.number().max(5 * 1024 * 1024).required(), // Max size of 5 MB
-      type: Joi.string().valid('image/jpeg', 'image/png', 'image/gif').required() // Only allow specific image types
+      name: Joi.string().required(), 
+      size: Joi.number().max(5 * 1024 * 1024).required(), 
+      type: Joi.string().valid('image/jpeg', 'image/png', 'image/gif').required()
     })).max(4) // Limit to 4 profile photos
     .required()
     .messages({
@@ -123,7 +122,7 @@ const userInfoSchema = Joi.object({
 // Middleware for validating user info
 const validateUserInfo = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    await userInfoSchema.validateAsync(req.body, { abortEarly: false }); // `abortEarly: false` to gather all validation errors
+    await userInfoSchema.validateAsync(req.body, { abortEarly: false }); 
     next();
   } catch (error) {
     const validationError = error as ValidationError;

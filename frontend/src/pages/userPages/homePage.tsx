@@ -1,58 +1,57 @@
-
 import React, { useEffect, useState } from 'react';
 import Navbar from '../../components/user/Navbar';
-import '../style/userStyle/homePage.css';
-import { FaHeart, FaTimes, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
-import { useGetUsersProfilesQuery } from '../../slices/apiUserSlice'; 
+import { FaHeart, FaTimes, FaArrowLeft, FaArrowRight, FaGraduationCap, FaBriefcase, FaMapMarkerAlt, FaVenusMars, FaSearch, FaWineGlass, FaSmoking } from 'react-icons/fa';
+import { useGetUsersProfilesQuery,useHandleHomeLikesMutation, useGetMatchProfilesQuery } from '../../slices/apiUserSlice';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../store'; 
+import { RootState } from '../../store';
 import { useNavigate } from 'react-router-dom';
 import SkeletonLoader from '../../components/skeletonLoader';
+import MatchesSection from './matchProfiles';
 
-// const PROFILE_IMAGE_DIR_PATH = 'http://localhost:5000/UserProfileImages/';
+
+// Custom Card Component
+const Card = ({ children, className = '' }) => {
+  return (
+    <div className={`bg-white rounded-xl shadow-lg ${className}`}>
+      {children}
+    </div>
+  );
+};
+
 const Home: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [imageIndex, setImageIndex] = useState(0);
   const navigate = useNavigate();
   const [loading, setLoading] = useState<boolean>(true);
 
-  const { userInfo } = useSelector((state: RootState) => state.auth); 
+  const { userInfo } = useSelector((state: RootState) => state.auth);
+  const userId = userInfo?._id;
+  const { data: users = [], isLoading, isError } = useGetUsersProfilesQuery(userId);
+  const [likes] = useHandleHomeLikesMutation();
+  const { data: matchProfiles } = useGetMatchProfilesQuery(userId);
+
+
   useEffect(() => {
     if (!userInfo) {
       navigate('/landing');
     }
   }, [navigate, userInfo]);
 
-  const userId = userInfo?._id;
-  const { data: users = [], isLoading, isError } = useGetUsersProfilesQuery(userId);
-
-
-  // if (isLoading) {
-  //   return <SkeletonLoader/>;
-  // }
-
   useEffect(() => {
     const timer = setTimeout(() => {
-      setLoading(false); // End the loading state after 2 seconds
-    }, 1000); // Change to 1000 for 1 second delay
-
-    return () => clearTimeout(timer); // Clean up timer on component unmount
+      setLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
   }, []);
-
-  console.log(users);
 
   useEffect(() => {
     if (users.length > 0) {
       setCurrentIndex(0);
-      setImageIndex(0); 
+      setImageIndex(0);
     }
   }, [users]);
-  if (loading) return <SkeletonLoader />; // Show loading state
 
-  if (isLoading) return <SkeletonLoader />;
-
-  // if (isLoading) return <SkeletonLoader />;
-  // if (isLoading) return <div>Loading...</div>;
+  if (loading || isLoading) return <SkeletonLoader />;
   if (isError) return <div>Error loading users</div>;
 
   const currentUser = users[currentIndex];
@@ -80,90 +79,196 @@ const Home: React.FC = () => {
     setImageIndex(0);
   };
 
-  
-  const userDetailByImageIndex = currentUser
-    ? [
-        { label: '', value: `${currentUser.name || 'Unknown'}, ${currentUser.age || 'N/A'}` },
-        { label: 'Bio', value: currentUser.bio || 'No bio available' },
-        { label: 'Occupation', value: currentUser.occupation || 'No occupation specified' },
-        { label: 'Relationship Interest', value: currentUser.relationship || 'Not specified' },
-      ]
-    : [{ label: 'Error', value: 'No user data available.' }];
+  const handleLike = async () => {
+    try {
+      if (userId && currentUser?.userId) {
+        const res = await likes({ likerId: userId, likedUserId: currentUser.userId }).unwrap();
+
+        console.log('Liker ID:', userId);
+        console.log('Liked User ID:', currentUser.userId);
+        console.log(res);
+        setCurrentIndex((prevIndex) => (prevIndex < users.length - 1 ? prevIndex + 1 : 0));
+        setImageIndex(0);
+      } else {
+        console.error("User ID or current user is missing.");
+      }
+    } catch (error) {
+      console.error("Error while liking the user:", error);
+    }
+  };
+
+  const getUserDetailsByImageIndex = (user: any, index: number) => {
+    switch (index) {
+      case 0:
+        return {
+          mainInfo: `${user.name}, ${user.age}`,
+          details: [
+            { icon: <FaBriefcase className="text-pink-500" />, label: 'Occupation', value: user.occupation },
+            { icon: <FaMapMarkerAlt className="text-pink-500" />, label: 'Location', value: user.place },
+            { icon: <FaVenusMars className="text-pink-500" />, label: 'Gender', value: user.gender },
+            { icon: <FaSearch className="text-pink-500" />, label: 'Looking For', value: user.lookingFor }
+          ]
+        };
+      case 1:
+        return {
+          mainInfo: 'About Me',
+          details: [
+            { label: 'Bio', value: user.bio },
+            { icon: <FaGraduationCap className="text-pink-500" />, label: 'Education', value: user.education },
+            { label: 'Interests', value: user.interests.join(', ') }
+          ]
+        };
+      case 2:
+        return {
+          mainInfo: 'Lifestyle',
+          details: [
+            { icon: <FaWineGlass className="text-pink-500" />, label: 'Drinking', value: user.drinking },
+            { icon: <FaSmoking className="text-pink-500" />, label: 'Smoking', value: user.smoking },
+            { label: 'Relationship Goal', value: user.relationship }
+          ]
+        };
+      default:
+        return {
+          mainInfo: `${user.name}'s Profile`,
+          details: [
+            { label: 'Bio', value: user.bio },
+            { label: 'Interests', value: user.interests.join(', ') }
+          ]
+        };
+    }
+  };
 
   return (
-    <div className="vr-dating-home-container">
+    <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white">
       <Navbar />
-      <div className="vr-dating-home-content">
-        <div className="vr-dating-matches">
-          <h2>Matches</h2>
-          <div className="no-matches">
-            {users.length === 0 ? (
-              <p>No matches found.</p>
-            ) : (
-              <p>Get your matches here</p>
-            )}
-            <span>Start discovering people to get matches.</span>
-          </div>
-        </div>
-
-        <div className="vr-dating-profile-section">
-         {currentUser ? ( 
-            <div className="vr-dating-profile-box">
-              {/* Dots at the Top */}
-              <div className="vr-dating-progress-indicator-top">
-                {currentUser.profilePhotos.map((_, index) => (
-                  <span
-                    key={index}
-                    className={`vr-dating-progress-dot ${index === imageIndex ? 'active' : ''}`}
-                  ></span>
-                ))}
-              </div>
-
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex flex-col lg:flex-row gap-6">
+          {/* Matches Section */}
         
-              <div className="vr-dating-profile-image-box">
-                <img
-                  src={currentUser.profilePhotos[imageIndex]}
-                  alt={`User Profile ${imageIndex + 1}`}
-                />
-              </div>
-
-              {/* Right Box: Profile Details */}
-              <div className="vr-dating-profile-details-box">
-                <h2>{userDetailByImageIndex[imageIndex].label}</h2>
-                <p>{userDetailByImageIndex[imageIndex].value}</p>
-              </div>
-
-              {/* Navigation Buttons */}
-              <button className="vr-dating-prev-button" onClick={handlePreviousImage}>
-                <FaArrowLeft />
-              </button>
-              <button className="vr-dating-next-button" onClick={handleNextImage}>
-                <FaArrowRight />
-              </button>
+<MatchesSection matchProfiles={matchProfiles} />
+          {/* <Card className="lg:w-1/4 w-full bg-white/80 backdrop-blur-sm p-6">
+            <h2 className="text-2xl font-bold text-center mb-4 bg-gradient-to-r from-pink-500 to-purple-500 text-transparent bg-clip-text">
+              Your Matches
+            </h2>
+            <div className="text-center mt-4">
+              {users.length === 0 ? (
+                <p className="text-gray-600">No matches yet</p>
+              ) : (
+                
+            
+                <div className="space-y-4">
+                  <p className="text-gray-700 font-medium">Discover Your Perfect Match</p>
+                  <div className="w-16 h-1 bg-gradient-to-r from-pink-500 to-purple-500 mx-auto rounded-full"></div>
+                </div>
+              )}
             </div>
+          </Card> */}
 
+          {/* Profile Section */}
+          <div className="lg:w-3/4 w-full">
+            {currentUser ? (
+              <div className="space-y-6">
+                <Card className="overflow-hidden bg-white/80 backdrop-blur-sm p-6">
+                  <div className="flex flex-col md:flex-row gap-6">
+                    {/* Image Section */}
+                    <div className="md:w-1/2 relative group">
+                      <div className="relative rounded-xl overflow-hidden shadow-xl">
+                        <img
+                          src={currentUser.profilePhotos[imageIndex]}
+                          alt={`User Profile ${imageIndex + 1}`}
+                          className="w-full h-[450px] object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        
+                        {/* Navigation Buttons */}
+                        <div className="absolute inset-0 flex items-center justify-between px-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                          <button
+                            onClick={handlePreviousImage}
+                            className="p-3 bg-white/90 rounded-full shadow-lg hover:bg-white transition-colors"
+                          >
+                            <FaArrowLeft className="text-pink-500" />
+                          </button>
+                          <button
+                            onClick={handleNextImage}
+                            className="p-3 bg-white/90 rounded-full shadow-lg hover:bg-white transition-colors"
+                          >
+                            <FaArrowRight className="text-pink-500" />
+                          </button>
+                        </div>
 
+                        {/* Image Dots */}
+                        <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
+                          {currentUser.profilePhotos.map((_, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => setImageIndex(idx)}
+                              className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                                idx === imageIndex ? 'bg-white w-4' : 'bg-white/60'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    </div>
 
-          ) : (
-            <div className="vr-dating-no-profiles-box bg-gray-100 border border-gray-300 rounded-lg p-12 shadow-md text-center w-full max-w-md mx-auto h-64 flex flex-col justify-center items-center">
-            <h2 className="text-2xl font-semibold text-gray-800">No available profiles</h2>
-            <p className="text-gray-600 mt-2">Please wait or update your profile to find matches.</p>
-          </div>
-          
-          )}
-          {currentUser ? (
-          <div className="vr-dating-skip-like-buttons">
-            <button className="vr-dating-skip-button" onClick={handleSkip}>
-              <FaTimes />
-            </button>
-            <button className="vr-dating-like-button">
-              <FaHeart />
-            </button> 
-          </div>
-          ) : (
-            <div>
+                    {/* Details Section */}
+                    <div className="md:w-1/2 space-y-6">
+                      <div>
+                        <h2 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 text-transparent bg-clip-text mb-2">
+                          {getUserDetailsByImageIndex(currentUser, imageIndex).mainInfo}
+                        </h2>
+                        <div className="w-20 h-1 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full" />
+                      </div>
+
+                      <div className="space-y-4">
+                        {getUserDetailsByImageIndex(currentUser, imageIndex).details.map((detail, idx) => (
+                          <div key={idx} className="flex items-start space-x-3 p-3 rounded-lg bg-white/50 hover:bg-white/80 transition-colors duration-300">
+                            {detail.icon && (
+                              <span className="mt-1">{detail.icon}</span>
+                            )}
+                            <div>
+                              <p className="text-sm font-semibold text-gray-600">
+                                {detail.label}
+                              </p>
+                              <p className="text-gray-800">
+                                {detail.value || 'Not specified'}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* Action Buttons */}
+                <div className="flex justify-center space-x-6">
+                  <button
+                    onClick={handleSkip}
+                    className="p-4 bg-white rounded-full shadow-lg hover:bg-gray-50 transition-all duration-300 transform hover:-translate-y-1"
+                  >
+                    <FaTimes className="text-gray-400 text-xl" />
+                  </button>
+                  <button
+                    onClick={handleLike}
+                    className="p-4 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full shadow-lg hover:from-pink-600 hover:to-purple-600 transition-all duration-300 transform hover:-translate-y-1"
+                  >
+                    <FaHeart className="text-white text-xl" />
+                  </button>
+                  
+                </div>
               </div>
-          )}
+            ) : (
+              <Card className="text-center p-8 bg-white/80 backdrop-blur-sm">
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 text-transparent bg-clip-text mb-4">
+                  No Profiles Available
+                </h2>
+                <p className="text-gray-600">
+                  Check back soon or update your preferences to find more matches.
+                </p>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
     </div>

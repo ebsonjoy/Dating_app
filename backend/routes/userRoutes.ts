@@ -28,12 +28,24 @@ router.post("/userInfoSignUp",multerUploadUserImg.array("profilePhotos", 4),user
 
 router.get("/getHomeUsersProfiles/:userId", protect, userController.getHomeUsersProfiles);
 router.get("/getUserProfile/:userId",protect, userController.getUserProfile);
-router.put("/updatePersonalInfo/:userId",validateSignup,upload.none(),userController.updatedPersonalInfo)
+router.put("/updatePersonalInfo/:userId",upload.none(),userController.updatedPersonalInfo)
 router.put("/updateDatingInfo/:userId", multerUploadUserImg.array("profilePhotos", 4), userController.updateUserDatingInfo);
 
 // Plan
 router.get('/getUserPlans',planController.getUserPlan)
 router.put('/updateUserSubscription/:userId',userController.updateUserSubscription)
 router.get('/getUserPlanDetails/:userId',userController.userSubscriptionDetails)
+
+// Google Login
+router.post('/auth/google', userController.googleAuth);
+
+//LIKE
+router.post('/handleHomeLikes',userController.handleHomeLikes)
+router.get("/sentLikes/:userId", userController.getSentLikesProfiles);
+router.get("/receivedLikes/:userId", userController.getReceivedLikesProfiles);
+
+//MATCH
+
+router.get('/getMathProfiles/:userId',userController.getMathProfiles)
 
 export default router;

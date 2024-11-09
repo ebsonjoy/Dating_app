@@ -27,7 +27,8 @@ const UserInformation: React.FC = () => {
   const { userInfo } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
   useEffect(() => {
-    if (userInfo) {
+    if (userInfo && !userInfo.isGoogleLogin) {
+      console.log('renderr user Effect')
       navigate('/');
     }
   }, [navigate, userInfo]);

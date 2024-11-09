@@ -4,13 +4,22 @@ import { IUser } from "../../types/user.types";
 import { IUserInfo, ILocation } from "../../types/userInfo.types";
 import User from "../../models/User";
 import UserInfo from "../../models/UserInfo";
+import Like from "../../models/LikesModel";
+import Match from "../../models/MatchModel";
 import mongoose from "mongoose";
 import { IPlan } from "../../types/plan.types";
+import { ILikeData,ILike} from "../../types/like.types";
+import { IMatch } from "../../types/match.types";
+
+
+
 @injectable()
 export class UserRepository  implements IUserRepository {
     constructor(
         private readonly UserModel = User,
-        private readonly UserInfoModel = UserInfo
+        private readonly UserInfoModel = UserInfo,
+        private readonly LikesModel = Like,
+        private readonly MatchModel = Match,
     ){}
    
     async findByEmail(email: string): Promise<IUser | null> {
@@ -120,7 +129,45 @@ export class UserRepository  implements IUserRepository {
     
         return { subscription, plan };
     }
+
+    async findExistingLike(likeData: ILikeData): Promise<ILike | null> {
+        const { likerId, likedUserId } = likeData;
+        return await this.LikesModel.findOne({ likerId, likedUserId });
+    }
+    async findReverseLike(likeData: ILikeData): Promise<ILike | null> {
+        const { likerId, likedUserId } = likeData;
+        return await this.LikesModel.findOne({ likerId: likedUserId, likedUserId: likerId });
+    }
     
 
+    async saveLike(likeData: ILikeData): Promise<void> {
+        const { likerId, likedUserId } = likeData;
+        await this.LikesModel.create({ likerId, likedUserId, status: "pending" });
+    }
 
+    async updateLikeStatus(likeData: ILikeData, status: "pending" | "matched"): Promise<void> {
+        const { likerId, likedUserId } = likeData;
+        await this.LikesModel.updateOne({ likerId, likedUserId }, { status });
+    }
+
+    async findSentLikes(likerId: string): Promise<ILikeData[]> {
+        return this.LikesModel.find({ likerId });
+      }
+
+      async findReceivedLikes(likedUserId: string): Promise<ILikeData[]> {
+        return this.LikesModel.find({ likedUserId });
+      }
+
+      async saveMatch(matchData: { user1Id: string; user2Id: string; matchDate: Date }): Promise<void> {
+        await this.MatchModel.create(matchData);
+    }
+
+    async findMatchedProfileById(userId:string):Promise<IMatch[]>{
+        return await this.MatchModel.find({
+            $or: [
+                { user1Id: userId },
+                { user2Id: userId }
+            ]
+        })
+    }
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaHeart, FaUserCircle, FaBars, FaTimes, FaChevronDown } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
@@ -45,7 +45,7 @@ const Navbar = () => {
               className="flex items-center cursor-pointer group"
             >
               <span className="text-2xl font-black text-white tracking-wider group-hover:scale-105 transition-transform duration-200">
-                VR_DATING
+              CupidsCourt
               </span>
             </div>
 
@@ -84,13 +84,13 @@ const Navbar = () => {
                     ${isActive('/userSubscription') || isActive('/userPlanDetails') 
                       ? 'bg-white text-rose-500' 
                       : 'text-white hover:bg-white/10'}`}
-                  onClick={() => setPlansOpen(!plansOpen)} // Added toggle for plans dropdown
+                  onClick={() => setPlansOpen(!plansOpen)}
                 >
                   Plans
                   <FaChevronDown className="ml-1 text-xs group-hover:rotate-180 transition-transform duration-200" />
                 </button>
 
-                <div className={`absolute right-0 w-48 py-2 mt-1 bg-white rounded-lg shadow-xl ${plansOpen ? 'block' : 'hidden'}`}>
+                <div className={`absolute right-0 w-48 py-2 mt-1 bg-white rounded-lg shadow-xl ${plansOpen ? 'block' : 'hidden'}`} style={{ zIndex: 50 }}>
                   <DropdownItem to="/userSubscription">
                     Subscription Plans
                   </DropdownItem>
@@ -101,7 +101,7 @@ const Navbar = () => {
               </div>
 
               {/* Like Button */}
-              <button className="relative p-2 text-white hover:bg-white/10 rounded-lg transition-colors">
+              <button onClick={() => navigate("/userLikes")} className="relative p-2 text-white hover:bg-white/10 rounded-lg transition-colors">
                 <FaHeart className="text-xl" />
                 <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
                   2

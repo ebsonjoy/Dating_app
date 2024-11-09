@@ -6,29 +6,59 @@ import { toast } from "react-toastify";
 import Loader from "../../components/user/loader";
 import { Link, useNavigate } from "react-router-dom";
 import { AppDispatch, RootState } from "../../store";
+import { useGoogleLoginMutation } from "../../slices/apiUserSlice";
+import { GoogleLogin } from '@react-oauth/google'
 
-import { AiOutlineGoogle } from "react-icons/ai";
+// import { AiOutlineGoogle } from "react-icons/ai";
 
 //tailwind
 const SignIn: React.FC = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const [login, { isLoading }] = useLoginMutation();
   const { userInfo } = useSelector((state: RootState) => state.auth);
+  const [googleLogin] = useGoogleLoginMutation();
 
   useEffect(() => {
-    if (userInfo) {
+    if (userInfo && !userInfo.isGoogleLogin) {
+      console.log('useeeeeeeeeeeeeeeeeeeeeeee');
+      
       navigate("/");
     }
   }, [navigate, userInfo]);
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    try {
+      const res = await googleLogin({ 
+        credential: credentialResponse.credential 
+      }).unwrap();
+      const userId = res._id;
+      localStorage.setItem("userId", userId);
+      console.log('rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr',res)
+      // console.log('nnn',res.navigateTo)
+      dispatch(setCredentials({ ...res}));
+      if (res.isGoogleLogin) {
+        console.log('wrkkkkkkkkkkkkkkkkkkkkkkkkkk')
+        navigate('/userInfoSignUp'); // Redirect to profile completion page
+      } else {
+        console.log('hmhm')
+        navigate('/'); // Home page for users with a complete profile
+      }
+    } catch (err: any) {
+      toast.error(err?.data?.message || err.error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
       const res = await login({ email, password }).unwrap();
       dispatch(setCredentials({ ...res }));
+      console.log('submitttttt')
+
       navigate("/");
     } catch (err: any) {
       if (
@@ -43,9 +73,9 @@ const SignIn: React.FC = () => {
     }
   };
 
-  const handleGoogleSignIn = () => {
-    console.log("Google Sign In");
-  };
+  // const handleGoogleSignIn = () => {
+  //   console.log("Google Sign In");
+  // };
 
   return (
     <div className="flex h-screen bg-gray-200 text-gray-900">
@@ -120,37 +150,14 @@ const SignIn: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-700">Sign in with Google</span>
-              <button
-                className="p-2 bg-white border border-gray-300 text-gray-700 rounded-full flex items-center"
-                onClick={handleGoogleSignIn}
-              >
-                {/* Embedded Google SVG */}
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 48 48"
-                  className="w-6 h-6 mr-2"
-                >
-                  <path
-                    fill="#4285F4"
-                    d="M24 9.5c3.04 0 5.24 1.26 6.44 2.32l4.92-4.92C31.78 4.76 28.22 3 24 3 14.92 3 7.4 9.74 5.08 18.26l5.92 4.6C12.9 15.66 18.03 9.5 24 9.5z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M46.63 24.56c0-.9-.08-1.77-.2-2.62H24v7.05h12.7c-.55 2.68-2.14 4.95-4.5 6.46l5.92 4.6c3.44-3.16 5.5-7.82 5.5-13.5z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M11 28.8c-1.16-1.44-1.82-3.26-1.82-5.26 0-1.99.66-3.82 1.8-5.26l-5.92-4.6C2.53 16.74 1 20.24 1 24.04s1.53 7.3 4.06 10.36l5.94-4.6z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M24 46c5.22 0 9.6-1.72 12.8-4.68l-5.92-4.6c-1.64 1.14-3.72 1.86-6.88 1.86-5.97 0-11.1-6.16-12.02-13.36l-5.92 4.6C7.4 38.26 14.92 45 24 45z"
-                  />
-                </svg>
-                <span>Sign in</span>
-              </button>
-            </div>
+      {/* <span className="text-sm text-gray-700">Sign in with Google</span> */}
+      <GoogleLogin
+        onSuccess={handleGoogleSuccess}
+        onError={() => {
+          toast.error('Google Sign In was unsuccessful');
+        }}
+      />
+    </div>
           </form>
         </div>
       </div>

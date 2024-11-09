@@ -4,6 +4,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  isGoogleLogin:boolean;
 }
 
 interface AuthState {

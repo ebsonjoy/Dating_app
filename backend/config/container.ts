@@ -25,6 +25,14 @@ import { UserService } from '../services/user/UserService';
 import { UserController } from '../controller/user/UserController';
 import UserInfo from '../models/UserInfo';
 
+//Messages
+import { IMessageRepository } from '../interfaces/messages/IMessageRepository';
+import { IMessageService } from '../interfaces/messages/IMessageService';
+import { MessageRepository } from '../repositories/messages/messageRepository';
+import { MessageService } from '../services/messages/messageService';
+import { MessageController } from '../controller/messages/MessageController';
+import Message from '../models/MessageModel';
+
 const container = new Container();
 
 // PLAN Container
@@ -52,5 +60,13 @@ container.bind<IUserRepository>('IUserRepository').toDynamicValue(() => {
 }).inSingletonScope();
 container.bind<IUserService>('IUserService').to(UserService).inSingletonScope();
 container.bind<UserController>('UserController').to(UserController).inSingletonScope();
+
+// Message Container
+
+container.bind<IMessageRepository>('IMessageRepository').toDynamicValue(()=>{
+    return new MessageRepository(Message)
+}).inSingletonScope()
+container.bind<IMessageService>('IMessageService').to(MessageService).inSingletonScope();
+container.bind<MessageController>('MessageController').to(MessageController).inSingletonScope();
 
 export { container };

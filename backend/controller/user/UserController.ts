@@ -5,7 +5,7 @@ import { HttpStatusCode } from '../../enums/HttpStatusCode';
 import generateToken from '../../utils/generateToken';
 import { inject, injectable } from 'inversify';
 import { StatusMessage } from '../../enums/StatusMessage';
-
+import { GoogleAuthService } from '../../services/user/googleAuthService';
 
 @injectable()
 export class UserController {
@@ -63,6 +63,47 @@ export class UserController {
             res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
         }
     });
+
+
+
+    googleAuth = asyncHandler(async (req: Request, res: Response) => {
+        try {
+          const { credential } = req.body;
+          const googleAuthService = new GoogleAuthService();
+          const payload = await googleAuthService.verifyGoogleToken(credential);
+          if (!payload) {
+            res.status(HttpStatusCode.UNAUTHORIZED).json({ 
+              message: 'Invalid Google token' 
+            });
+            return;
+          }
+      
+          const user = await googleAuthService.findOrCreateUser(payload);
+          
+          if (!user.status) {
+            res.status(HttpStatusCode.FORBIDDEN).json({ 
+              message: StatusMessage.FORBIDDEN 
+            });
+            return;
+          }
+      
+          generateToken(res, user._id.toString());
+          
+          res.status(HttpStatusCode.OK).json({
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            isGoogleLogin:user.isGoogleLogin,
+          });
+        } catch (error) {
+          console.error('Google Auth Error:', error);
+          res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ 
+            message: StatusMessage.INTERNAL_SERVER_ERROR 
+          });
+        }
+      });
+
+
     
     resendOTP = asyncHandler(async (req: Request, res: Response) => {
         try {
@@ -183,6 +224,7 @@ export class UserController {
     updatedPersonalInfo = asyncHandler(async (req: Request, res: Response) => {
         const { userId } = req.params;
         const userPeronalData = req.body;
+        console.log(userPeronalData)
         try {
             const updatedPersonalInfo = await this.userService.updateUserPersonalInfo(userId, userPeronalData);
     
@@ -249,7 +291,56 @@ export class UserController {
             res.status(HttpStatusCode.OK).json(details);
         } catch (error) {
             console.error(`Error fetching subscription details: ${error}`);
-            res.status(500).json({ message: "Failed to retrieve user subscription details" });
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: "Failed to retrieve user subscription details" });
         }
     });
+
+    handleHomeLikes = asyncHandler(async(req:Request, res:Response)=>{
+        const {likerId,likedUserId} = req.body
+        try {
+            const result = await this.userService.handleHomeLikes({ likerId, likedUserId });
+            console.log(result)
+            res.status(HttpStatusCode.OK).json(result);
+
+            
+        } catch (error) {
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: 'Failed to like user', error });
+        }
+    })
+
+    getSentLikesProfiles = asyncHandler(async (req: Request, res: Response) => {
+        const { userId } = req.params;
+    
+        try {
+          const profiles = await this.userService.getSentLikesProfiles(userId);
+          res.status(HttpStatusCode.OK).json(profiles);
+        } catch (error) {
+            console.log(error)
+          res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: "Failed to retrieve sent likes profiles", error });
+        }
+      });
+
+      getReceivedLikesProfiles = asyncHandler(async (req: Request, res: Response) => {
+        const { userId } = req.params;
+    
+        try {
+          const profiles = await this.userService.getReceivedLikesProfiles(userId);
+          res.status(HttpStatusCode.OK).json(profiles);
+        } catch (error) {
+          res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: "Failed to retrieve received likes profiles", error });
+        }
+      });
+
+      getMathProfiles = asyncHandler(async(req: Request,res:Response)=>{
+        const {userId} = req.params
+        try {
+            const mathProfiles = await this.userService.getmatchProfile(userId)
+            res.status(HttpStatusCode.OK).json(mathProfiles)
+        } catch (error) {
+            console.log(error);
+          res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: "Failed to retrieve Match profiles", error });
+            
+        }
+      })
+    
 }

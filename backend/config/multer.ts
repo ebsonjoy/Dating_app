@@ -34,7 +34,7 @@ export const multerUploadUserImg = multer({
   });
   
 
-  // Function to delete an image from S3 using its URL
+  // delete
 export const deleteImageFromS3 = async (imageUrl: string) => {
   try {
     const bucketName = process.env.AWS_BUCKET_NAME!;
