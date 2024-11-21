@@ -46,6 +46,7 @@ interface PlansData{
   offerPrice: number;
   offerName: string;
   status:boolean;
+  features: string[];
 }
 interface UpdatePlanArgs {
   planId: string; 

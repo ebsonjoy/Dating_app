@@ -1,4 +1,3 @@
-// src/pages/AddPlan.tsx
 
 import React, { useState } from 'react';
 import Navbar from '../../components/admin/adminNavBar';
@@ -17,7 +16,8 @@ const AddPlan: React.FC = () => {
         offerPercentage: '',
         actualPrice: '',
         offerPrice: '',
-        offerName: ''
+        offerName: '',
+        features: [] as string[],
     });
 
     const [errors, setErrors] = useState({
@@ -26,8 +26,12 @@ const AddPlan: React.FC = () => {
         offerPercentage: '',
         actualPrice: '',
         offerPrice: '',
-        offerName: ''
+        offerName: '',
+        features: '',
     });
+
+    const [modalOpen, setModalOpen] = useState(false);
+    const [currentFeatures, setCurrentFeatures] = useState<string[]>(['', '', '']);
 
    
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -46,7 +50,8 @@ const AddPlan: React.FC = () => {
             offerPercentage: '',
             actualPrice: '',
             offerPrice: '',
-            offerName: ''
+            offerName: '',
+            features: '',
         };
 
         
@@ -78,6 +83,10 @@ const AddPlan: React.FC = () => {
         if (!planDetails.offerName) newErrors.offerName = 'Offer Name is required.';
         else if (!/^[A-Za-z\s]+$/.test(planDetails.offerName)) newErrors.offerName = 'Offer Name must contain only letters.';
 
+        if (planDetails.features.length < 3) {
+            newErrors.features = 'You must add at least 3 features.';
+        }
+
         setErrors(newErrors);
         return Object.values(newErrors).every(x => x === ''); 
     };
@@ -86,7 +95,8 @@ const AddPlan: React.FC = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // if (!validateFields()) return;
+        if (!validateFields()) return;
+        console.log(planDetails)
 
         try {
             const response = await addPlan(planDetails).unwrap();
@@ -100,16 +110,17 @@ const AddPlan: React.FC = () => {
                 offerPercentage: '',
                 actualPrice: '',
                 offerPrice: '',
-                offerName: ''
+                offerName: '',
+                features: [],
             });
-            navigate('/admin/subscriptionPlans');
+            navigate('/admin/subscriptionPlans?refresh=true');
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error:any) {
             console.error('Failed to add plan:', error);
             if (error?.data?.errors && Array.isArray(error.data.errors)) {
                 error.data.errors.forEach((errMsg: string) => {
-                    toast.error(errMsg, { duration: 4000 }); // Each error displays for 4 seconds
+                    toast.error(errMsg, { duration: 4000 });
                 });
             } else {
                 toast.error('Failed to add plan. Please try again.');
@@ -117,11 +128,24 @@ const AddPlan: React.FC = () => {
         }
     };
 
+    const openModal = () => setModalOpen(true);
+    const closeModal = () => setModalOpen(false);
+
+    const saveFeatures = () => {
+        
+        if (currentFeatures.filter(f => f.trim() !== '').length < 3) {
+            toast.error('Please add at least 3 features.');
+            return;
+        }
+        setPlanDetails(prev => ({ ...prev, features: currentFeatures.filter(f => f.trim() !== '') }));  
+        closeModal();
+    };
+
     return (
-        <div className="flex h-screen">
+        <div className="flex flex-col lg:flex-row h-screen">
             {/* Navbar */}
             <Navbar />
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col overflow-y-auto">
                 <Header title="Add Subscription Plan" />          
                 <div className="flex-1 p-6 bg-gray-100">
                     <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
@@ -222,6 +246,24 @@ const AddPlan: React.FC = () => {
                                 />
                                 {errors.offerName && <p className="text-red-500 text-sm">{errors.offerName}</p>}
                             </div>
+
+
+                            <div className="sm:col-span-2">
+                                <label className="mb-1 font-semibold text-gray-700">Features</label>
+                                <button
+                                    type="button"
+                                    onClick={openModal}
+                                    className="w-full py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+                                >
+                                    Add Features
+                                </button>
+                                {errors.features && <p className="text-red-500 text-sm">{errors.features}</p>}
+                                <ul className="list-disc pl-5 mt-2 text-gray-700">
+                                    {planDetails.features.map((feature, idx) => (
+                                        <li key={idx}>{feature}</li>
+                                    ))}
+                                </ul>
+                            </div>
     
                             {/* Submit Button */}
                             <div className="sm:col-span-2">
@@ -237,6 +279,46 @@ const AddPlan: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+             {/* Modal */}
+             {modalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                    <div className="bg-white p-6 rounded-lg w-96">
+                        <h2 className="text-lg font-bold mb-4">Add Features</h2>
+                        {currentFeatures.map((feature, idx) => (
+                            <div key={idx} className="mb-2">
+                                <input
+                                    type="text"
+                                    value={feature}
+                                    onChange={(e) => {
+                                        const updatedFeatures = [...currentFeatures];
+                                        updatedFeatures[idx] = e.target.value;
+                                        setCurrentFeatures(updatedFeatures);
+                                    }}
+                                    className="w-full p-2 border border-gray-300 rounded-md"
+                                    placeholder={`Feature ${idx + 1}`}
+                                />
+                            </div>
+                        ))}
+                        <button
+                            type="button"
+                            onClick={saveFeatures}
+                            className="w-full py-2 mt-4 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                        >
+                            Save Features
+                        </button>
+                        <button
+                            type="button"
+                            onClick={closeModal}
+                            className="w-full py-2 mt-2 bg-gray-300 rounded-md hover:bg-gray-400"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            )}
+
+
         </div>
     );
 };

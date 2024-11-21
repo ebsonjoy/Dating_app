@@ -10,6 +10,7 @@ const PlanSchema = new mongoose.Schema<IPlanDocument>(
     offerPrice: { type: Number, required: true },
     offerName: { type: String, required: true },
     status: { type: Boolean, default: true },
+    features: { type: [String], required: true },
   },
   { timestamps: true }
 );

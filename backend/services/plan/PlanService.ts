@@ -17,14 +17,14 @@ export class PlanService implements IPlanService {
         }
     }
     
-    async fetchUserPlans(): Promise<IPlanDocument[]> {
-        try {
-            return await this.planRepository.getUserPlans();
-        } catch (error) {
-            console.log(error);
-            throw new Error('Failed to fetch user plans');
-        }
-    }
+    // async fetchUserPlans(): Promise<IPlanDocument[]> {
+    //     try {
+    //         return await this.planRepository.getUserPlans();
+    //     } catch (error) {
+    //         console.log(error);
+    //         throw new Error('Failed to fetch user plans');
+    //     }
+    // }
     
 
     async fetchPlanById(id: string): Promise<IPlanDocument> {
@@ -40,21 +40,38 @@ export class PlanService implements IPlanService {
     
     async addNewPlan(planData: Partial<IPlanDocument>): Promise<IPlanDocument> {
         try {
+            const existingPlan = await this.planRepository.findByPlanName(planData.planName!); 
+    if (existingPlan) {
+      throw new Error(`Plan with name "${planData.planName}" already exists.`);
+    }
             return await this.planRepository.create(planData);
         } catch (error) {
-            console.log(error);
-            throw new Error('Failed to add new plan');
+            console.log('Error in addNewPlan:', error);
+            throw error;
         }
     }
     
     async editPlan(id: string, planData: Partial<IPlanDocument>): Promise<IPlanDocument> {
         try {
+
+            const currentPlan = await this.planRepository.getById(id);
+            if (!currentPlan) {
+                throw new Error('Plan not found');
+            }
+
+            if (planData.planName && planData.planName !== currentPlan.planName) {
+                const existingPlan = await this.planRepository.findByPlanName(planData.planName);
+                if (existingPlan) {
+                    throw new Error(`Plan with name "${planData.planName}" already exists.`);
+                }
+            }
+
             const plan = await this.planRepository.update(id, planData);
             if (!plan) throw new Error('Plan not found');
             return plan;
         } catch (error) {
-            console.log(error);
-            throw new Error('Failed to edit plan');
+            console.log('Failed to edit plan',error);
+            throw error;
         }
     }
     

@@ -10,7 +10,7 @@ import bcrypt from 'bcryptjs';
 import { calculateAge } from "../../utils/calculateAge";
 import { ISubscriptionDetails } from "../../types/user.types";
 import mongoose from "mongoose";
-import { IPlan } from "../../types/plan.types";
+import { IPlan, IPlanDocument } from "../../types/plan.types";
 import { deleteImageFromS3 } from "../../config/multer";
 import { ILikeData, ILikeProfile } from "../../types/like.types";
 // import { IMatch } from "../../types/match.types";
@@ -201,6 +201,38 @@ export class UserService implements IUserService {
         }
     }
 
+
+
+    async fetchUserPlans(userId:string): Promise<IPlanDocument[]> {
+        try {
+
+            const user = await this.userRepository.findById(userId);
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        if (!user.subscription.isPremium || !user.subscription.planId) {
+            // If not premium, fetch all active plans
+            return await this.userRepository.getUserPlans();
+        }
+
+        const currentPlan = await this.userRepository.findPlanById(user.subscription.planId.toString());
+        if (!currentPlan) {
+            throw new Error("Current plan not found");
+        }
+
+        return await this.userRepository.getPlansAbovePrice(currentPlan.offerPrice);
+
+
+          
+        } catch (error) {
+            console.log(error);
+            throw new Error('Failed to fetch user plans');
+        }
+    }
+
+
+
     async getUserSubscriptionDetails(userId: string): Promise<{ subscription: IUser['subscription']; plan: IPlan | null } | null> {
         const user = await this.userRepository.findUserPlanDetailsById(userId);
         
@@ -213,6 +245,14 @@ export class UserService implements IUserService {
 
         return { subscription, plan };
     }
+
+    async cancelSubscriptionPlan(userId: string): Promise<IUser | null> {
+        const user = await this.userRepository.cancelSubscriptionPlan(userId);
+        if (!user) {
+          throw new Error("User not found or subscription cancellation failed.");
+        }
+        return user;
+      }
 
     async updateUserPersonalInfo(userId: string, data: IUser): Promise<IUser | null> {
         try {

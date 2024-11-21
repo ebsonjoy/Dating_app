@@ -26,6 +26,14 @@ export class PlanRepository implements IPlanRepository {
       throw new Error("Failed to retrieve plan");
     }
   }
+  async findByPlanName(planName: string): Promise<IPlanDocument | null> {
+    try {
+      return await this.model.findOne({ planName });
+    } catch (error) {
+      console.error("Error fetching plan by name:", error);
+      throw new Error("Failed to retrieve plan by name");
+    }
+  }
 
   async create(plan: Partial<IPlanDocument>): Promise<IPlanDocument> {
     try {
@@ -71,13 +79,13 @@ export class PlanRepository implements IPlanRepository {
     }
   }
 
-  async getUserPlans(): Promise<IPlanDocument[]> {
-    try {
-      const activePlans = await this.model.find({ status: true });
-      return activePlans;
-    } catch (error) {
-      console.error("Error fetching active user plans:", error);
-      throw new Error("Failed to retrieve active user plans");
-    }
-  }
+  // async getUserPlans(): Promise<IPlanDocument[]> {
+  //   try {
+  //     const activePlans = await this.model.find({ status: true });
+  //     return activePlans;
+  //   } catch (error) {
+  //     console.error("Error fetching active user plans:", error);
+  //     throw new Error("Failed to retrieve active user plans");
+  //   }
+  // }
 }

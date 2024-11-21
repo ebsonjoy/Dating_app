@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../../components/admin/adminNavBar";
 import Header from "../../components/admin/adminHeader";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,useSearchParams  } from "react-router-dom";
 import { useGetPlansQuery, useUpdatePlanStatusMutation } from "../../slices/adminApiSlice";
 // responsive
 interface Plans {
@@ -19,6 +19,7 @@ const PlanList: React.FC = () => {
   const { data: planList, error, isLoading, refetch } = useGetPlansQuery();
   const [updatePlanStatus] = useUpdatePlanStatusMutation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [plans, setPlans] = useState<Plans[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const plansPerPage = 3;
@@ -33,6 +34,12 @@ const PlanList: React.FC = () => {
       setPlans(planList);
     }
   }, [planList]);
+
+  useEffect(() => {
+    if (searchParams.get('refresh')) {
+      refetch();
+    }
+  }, [searchParams, refetch]);
 
   const handleEditPlan = (planId: string) => {
     navigate(`/admin/editPlan/${planId}`);
@@ -71,23 +78,29 @@ const PlanList: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col md:flex-row h-screen">
+    <div className="flex flex-col lg:flex-row h-screen">
       <Navbar />
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-y-auto">
         <Header title="Subscription Plans" />
 
         <div className="flex-1 bg-gray-100">
           <div className="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-md">
-            <div className="flex justify-between items-center mb-4 flex-col md:flex-row">
-              <h1 className="text-xl font-bold text-gray-800">Subscription Plans</h1>
-              <button
-                className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200 mt-4 md:mt-0"
-                onClick={() => navigate("/admin/addPlans")}
-              >
-                Add Plan
-              </button>
-            </div>
+          <div className="flex justify-between items-center mb-4 flex-col md:flex-row">
+  <button
+    className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200 mt-4 md:mt-0"
+    onClick={() => navigate("/admin/paymentDetails")}
+  >
+    Revenue Details
+  </button>
+  <button
+    className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200 mt-4 md:mt-0"
+    onClick={() => navigate("/admin/addPlans")}
+  >
+    Add Plan
+  </button>
+</div>
+
 
             {/* Responsive Table */}
             <div className="overflow-x-auto">

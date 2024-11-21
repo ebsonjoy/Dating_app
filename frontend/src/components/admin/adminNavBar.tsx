@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FiUsers, FiHeart, FiDollarSign, FiLogOut, FiGrid, FiBookOpen, FiMenu } from 'react-icons/fi';
+import { FiUsers, FiHeart, FiLogOut, FiGrid, FiBookOpen, FiMenu } from 'react-icons/fi';
+import { BiRupee } from 'react-icons/bi';
 import { useLogoutAdminMutation } from '../../slices/adminApiSlice';
 import { useDispatch } from 'react-redux';
 import { logoutAdmin } from '../../slices/adminAuthSlice';
@@ -30,7 +31,7 @@ const Navbar: React.FC = () => {
     { name: 'Users', path: '/admin/usersList', icon: FiUsers },
     { name: 'Matches', path: '/admin/matches', icon: FiHeart },
     { name: 'Advice', path: '/admin/advice', icon: FiBookOpen },
-    { name: 'Subscription', path: '/admin/subscriptionPlans', icon: FiDollarSign },
+    { name: 'Subscription', path: '/admin/subscriptionPlans', icon: BiRupee },
   ];
 
   return (

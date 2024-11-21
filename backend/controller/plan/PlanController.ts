@@ -24,27 +24,39 @@ export class PlanController {
 });
 
 
-getUserPlan = asyncHandler(async (req: Request, res: Response) => {
-  try {
-      const plans = await this.planService.fetchUserPlans();
-      res.status(HttpStatusCode.OK).json(plans);
-  } catch (error) {
-      console.log(error);
-      res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
-  }
-});
+// getUserPlan = asyncHandler(async (req: Request, res: Response) => {
+//   try {
+//       const plans = await this.planService.fetchUserPlans();
+//       res.status(HttpStatusCode.OK).json(plans);
+//   } catch (error) {
+//       console.log(error);
+//       res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
+//   }
+// });
 
 
 createPlan = asyncHandler(async (req: Request, res: Response) => {
   const planData: IPlanDocument = req.body;
+  console.log(planData);
+
   try {
-      const newPlan = await this.planService.addNewPlan(planData);
-      res.status(HttpStatusCode.CREATED).json(newPlan);
-  } catch (error) {
-      console.log(error);
-      res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
+    const newPlan = await this.planService.addNewPlan(planData);
+    res.status(HttpStatusCode.CREATED).json(newPlan);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.log('addPlanControllerrrr', error);
+    if (error.message.includes("already exists")) {
+      res.status(HttpStatusCode.BAD_REQUEST).json({
+        errors: [error.message],
+      });
+    } else {
+      res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+        errors: [StatusMessage.INTERNAL_SERVER_ERROR],
+      });
+    }
   }
 });
+
 
 getOnePlan = asyncHandler(async (req: Request, res: Response) => {
   const { planId } = req.params;
@@ -65,6 +77,8 @@ getOnePlan = asyncHandler(async (req: Request, res: Response) => {
 updatePlan = asyncHandler(async (req: Request, res: Response) => {
   const { planId } = req.params;
   const planData: IPlanDocument = req.body;
+  console.log(planData)
+
   try {
       const updatedPlan = await this.planService.editPlan(planId, planData);
       if (!updatedPlan) {
@@ -72,9 +86,16 @@ updatePlan = asyncHandler(async (req: Request, res: Response) => {
           return
       }
       res.status(HttpStatusCode.OK).json(updatedPlan);
-  } catch (error) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error:any) {
       console.log(error);
+      if (error.message.includes("already exists")) {
+        res.status(HttpStatusCode.BAD_REQUEST).json({
+          errors: [error.message],
+        });
+      } else {
       res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
+      }
   }
 });
 
@@ -95,6 +116,7 @@ updatePlanStatus = asyncHandler(async (req: Request, res: Response) => {
       res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
   }
 });
+
 
 
 }

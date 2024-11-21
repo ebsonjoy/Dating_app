@@ -6,8 +6,9 @@ import User from "../../models/User";
 import UserInfo from "../../models/UserInfo";
 import Like from "../../models/LikesModel";
 import Match from "../../models/MatchModel";
+import Plan from "../../models/PlanModel";
 import mongoose from "mongoose";
-import { IPlan } from "../../types/plan.types";
+import { IPlan, IPlanDocument } from "../../types/plan.types";
 import { ILikeData,ILike} from "../../types/like.types";
 import { IMatch } from "../../types/match.types";
 
@@ -20,6 +21,8 @@ export class UserRepository  implements IUserRepository {
         private readonly UserInfoModel = UserInfo,
         private readonly LikesModel = Like,
         private readonly MatchModel = Match,
+        private readonly PlanModel = Plan,
+
     ){}
    
     async findByEmail(email: string): Promise<IUser | null> {
@@ -115,6 +118,16 @@ export class UserRepository  implements IUserRepository {
     }
     }
 
+    async getUserPlans(): Promise<IPlanDocument[]> {
+        try {
+          const activePlans = await this.PlanModel.find({ status: true });
+          return activePlans;
+        } catch (error) {
+          console.error("Error fetching active user plans:", error);
+          throw new Error("Failed to retrieve active user plans");
+        }
+      }
+
     async findUserPlanDetailsById(userId: string): Promise<{ subscription: IUser['subscription']; plan: IPlan | null } | null> {
         const user = await this.UserModel.findById(userId)
             .select('subscription') 
@@ -129,6 +142,46 @@ export class UserRepository  implements IUserRepository {
     
         return { subscription, plan };
     }
+
+
+    async findPlanById(id: string): Promise<IPlanDocument | null> {
+        try {
+          const plan = await this.PlanModel.findById(id).exec();
+          if (!plan) throw new Error("Plan not found");
+          return plan;
+        } catch (error) {
+          console.error("Error fetching plan by ID:", error);
+          throw new Error("Failed to retrieve plan");
+        }
+      }
+
+      async getPlansAbovePrice(minPrice: number): Promise<IPlanDocument[]> {
+        try {
+            return await this.PlanModel.find({ status: true, offerPrice: { $gt: minPrice } });
+        } catch (error) {
+            console.error("Error fetching plans above price:", error);
+            throw new Error("Failed to retrieve plans");
+        }
+    }
+
+
+
+
+
+    async cancelSubscriptionPlan(userId: string): Promise<IUser | null> {
+        return await this.UserModel.findByIdAndUpdate(
+          userId,
+          {
+            $set: {
+              "subscription.isPremium": false,
+              "subscription.planId": null,
+              "subscription.planExpiryDate": null,
+              "subscription.planStartingDate": null,
+            },
+          },
+          { new: true } 
+        );
+      }
 
     async findExistingLike(likeData: ILikeData): Promise<ILike | null> {
         const { likerId, likedUserId } = likeData;

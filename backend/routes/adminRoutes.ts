@@ -22,7 +22,7 @@ router.post('/create',adminControllerr.register)
 router.get('/getAllPlans',planController.getPlans)
 router.get('/getOnePlan/:planId',planController.getOnePlan)
 router.post('/createNewPlan',validatePlanDetails,planController.createPlan)
-router.put('/updatePlan/:planId',validatePlanDetails,planController.updatePlan)
+router.put('/updatePlan/:planId',planController.updatePlan)
 router.put('/updatePlanStatus/:planId',planController.updatePlanStatus)
 
 

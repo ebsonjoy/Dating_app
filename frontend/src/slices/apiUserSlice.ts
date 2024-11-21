@@ -131,6 +131,7 @@ interface PlansData{
   offerPrice: number;
   offerName: string;
   status:boolean;
+  features:string[];
 }
 interface paymentData{
   isPremium: boolean;
@@ -280,8 +281,8 @@ export const usersApiSlice = apiSlice.injectEndpoints({
 
     // plans
 
-    getUserPlans:builder.query<PlansData,void>({
-      query:()=>`${USERS_URL}/getUserPlans`,
+    getUserPlans:builder.query<PlansData,string>({
+      query:(userId)=>`${USERS_URL}/getUserPlans/${userId}`,
     }),
 
     //payment
@@ -299,6 +300,13 @@ export const usersApiSlice = apiSlice.injectEndpoints({
     //detials for subscription
     getUserPlanDetails: builder.query<IUserPlanDetails, string>({  
       query: (userId) => `${USERS_URL}/getUserPlanDetails/${userId}`,
+    }),
+
+    cancelSubscription: builder.mutation<void, string>({
+      query: (userId) => ({
+        url: `${USERS_URL}/cancelUserPlan/${userId}`,
+        method: 'PUT',
+      }),
     }),
     handleHomeLikes: builder.mutation<void, ILike>({
       query: (data) => ({
@@ -341,4 +349,5 @@ export const {
   useGetSentLikeProfilesQuery,
   useGetReceivedLikeProfilesQuery,
   useGetMatchProfilesQuery,
+  useCancelSubscriptionMutation,
 } = usersApiSlice;

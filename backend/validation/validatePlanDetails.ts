@@ -57,6 +57,18 @@ const planDetailsSchema = Joi.object({
     .messages({
       'string.pattern.base': 'Offer Name must contain only letters.',
       'string.empty': 'Offer Name is required.'
+    }),
+
+    features: Joi.array()
+    .items(Joi.string().trim().required().messages({
+      'string.empty': 'Feature cannot be empty.',
+    }))
+    .required()
+    .min(1)
+    .messages({
+      'array.base': 'Features must be an array.',
+      'array.min': 'At least one feature is required.',
+      'any.required': 'Features are required.'
     })
 });
 

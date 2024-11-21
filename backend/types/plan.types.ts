@@ -8,6 +8,7 @@ export interface IPlan{
   offerPrice: number;
   offerName: string;
   status:boolean;
+  features: string[];
   }
 
   export interface IPlanDocument extends IPlan, Document {}

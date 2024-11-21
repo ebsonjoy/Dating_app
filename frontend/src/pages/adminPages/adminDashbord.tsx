@@ -16,12 +16,12 @@ const AdminDashboard: React.FC = () => {
   }, [navigate, adminInfo]);
 
   return (
-    <div className="flex flex-col sm:flex-row h-screen">
+    <div className="flex flex-col lg:flex-row h-screen">
       {/* Sidebar (Navbar) */}
       <Navbar />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-y-auto">
         {/* Header */}
         <Header title="Dashboard" />
 

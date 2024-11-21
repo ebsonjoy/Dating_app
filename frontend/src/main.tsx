@@ -25,7 +25,7 @@ import UserLikes from './pages/userPages/userLikes'
 
 
 
-import ChatPage from './pages/chatTest/chatPage'
+import ChatPage from './pages/messagePage/messagePage'
 
 // Admin Routes
 
@@ -36,6 +36,7 @@ import UserList from './pages/adminPages/usersList';
 import SubscriptionPlans from './pages/adminPages/subscriptionPlans';
 import AddPlan from './pages/adminPages/addPlan';
 import EditPlan from './pages/adminPages/editSubscriptionPlan';
+import PaymentDetails from './pages/adminPages/paymentDetails';
 
 
 const router = createBrowserRouter(
@@ -77,6 +78,8 @@ const router = createBrowserRouter(
       <Route  path="/admin/subscriptionPlans" element={<SubscriptionPlans/>} />
       <Route  path="/admin/addPlans" element={<AddPlan/>} />
       <Route  path="/admin/editPlan/:planId" element={<EditPlan/>} />
+      <Route  path="/admin/paymentDetails" element={<PaymentDetails/>} />
+
 
 
 

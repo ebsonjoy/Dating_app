@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import { IUserService } from '../../interfaces/user/IUserService';
@@ -280,6 +281,17 @@ export class UserController {
         }
     });
 
+    getUserPlan = asyncHandler(async (req: Request, res: Response) => {
+        const {userId} = req.params;
+        try {
+            const plans = await this.userService.fetchUserPlans(userId);
+            res.status(HttpStatusCode.OK).json(plans);
+        } catch (error) {
+            console.log(error);
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
+        }
+      });
+
     userSubscriptionDetails = asyncHandler(async (req: Request, res: Response) => {
         const { userId } = req.params;
         try {
@@ -294,6 +306,28 @@ export class UserController {
             res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: "Failed to retrieve user subscription details" });
         }
     });
+
+    cancelSubscriptionPlan = asyncHandler(async (req: Request, res: Response) => {
+        const { userId } = req.params;
+        try {
+          const updatedUser = await this.userService.cancelSubscriptionPlan(userId);
+          if (!updatedUser) {
+             res
+              .status(HttpStatusCode.NOT_FOUND)
+              .json({ message: 'User not found or subscription cancellation failed' });
+              return
+          }
+          res.status(HttpStatusCode.OK).json({ message: 'Subscription cancelled successfully' });
+        } catch (error:any) {
+          console.error(`Error cancelling subscription: ${error.message}`);
+          res
+            .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
+            .json({ message: 'Failed to cancel subscription' });
+        }
+      });
+
+
+
 
     handleHomeLikes = asyncHandler(async(req:Request, res:Response)=>{
         const {likerId,likedUserId} = req.body

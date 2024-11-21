@@ -86,9 +86,9 @@ const UsersList: React.FC = () => {
   if (error) return <div>Error loading users</div>;
 
   return (
-    <div className="flex flex-col md:flex-row h-screen">
+    <div className="flex flex-col lg:flex-row h-screen">
       <Navbar />
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-y-auto">
         <Header title="Users" />
         <div className="flex-1 p-3 bg-gray-100">
           <div className="flex flex-col md:flex-row items-center justify-between mb-6">

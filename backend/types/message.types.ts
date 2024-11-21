@@ -1,15 +1,16 @@
-import { Document } from 'mongoose';
+import mongoose, { Document } from "mongoose";
 
 export interface IMessage extends Document {
-    senderId: string;
-    receiverId: string;
-    content: string;
-    timestamp: Date;
-    isRead: boolean;
+    _id: string;
+  senderId: mongoose.Types.ObjectId; 
+  receiverId: mongoose.Types.ObjectId;
+  message: string;
+  createdAt?: Date; 
+  updatedAt?: Date;
 }
 
 export interface IMessageData {
     senderId: string;
     receiverId: string;
-    content: string;
+    message: string;
 }

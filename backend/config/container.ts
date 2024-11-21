@@ -32,6 +32,7 @@ import { MessageRepository } from '../repositories/messages/messageRepository';
 import { MessageService } from '../services/messages/messageService';
 import { MessageController } from '../controller/messages/MessageController';
 import Message from '../models/MessageModel';
+import Conversation from '../models/conversationModel';
 
 const container = new Container();
 
@@ -64,7 +65,7 @@ container.bind<UserController>('UserController').to(UserController).inSingletonS
 // Message Container
 
 container.bind<IMessageRepository>('IMessageRepository').toDynamicValue(()=>{
-    return new MessageRepository(Message)
+    return new MessageRepository(Message,Conversation)
 }).inSingletonScope()
 container.bind<IMessageService>('IMessageService').to(MessageService).inSingletonScope();
 container.bind<MessageController>('MessageController').to(MessageController).inSingletonScope();

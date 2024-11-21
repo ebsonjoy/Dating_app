@@ -1,7 +1,7 @@
 import express from "express";
 import { container } from '../config/container';
 import { UserController } from "../controller/user/UserController";
-import { PlanController } from '../controller/plan/PlanController';
+// import { PlanController } from '../controller/plan/PlanController';
 import { protect } from "../middleware/AuthMiddleware";
 // import { multerUploadUserProfile } from "../config/multerConfig";
 import { multerUploadUserImg } from "../config/multer";
@@ -12,7 +12,7 @@ import multer from "multer";
 const upload = multer();
 const router = express.Router();
 const userController = container.get<UserController>('UserController')
-const planController = container.get<PlanController>('PlanController');
+// const planController = container.get<PlanController>('PlanController');
 
 
 //container User
@@ -32,9 +32,11 @@ router.put("/updatePersonalInfo/:userId",upload.none(),userController.updatedPer
 router.put("/updateDatingInfo/:userId", multerUploadUserImg.array("profilePhotos", 4), userController.updateUserDatingInfo);
 
 // Plan
-router.get('/getUserPlans',planController.getUserPlan)
+router.get('/getUserPlans/:userId',userController.getUserPlan)
 router.put('/updateUserSubscription/:userId',userController.updateUserSubscription)
 router.get('/getUserPlanDetails/:userId',userController.userSubscriptionDetails)
+router.put('/cancelUserPlan/:userId',userController.cancelSubscriptionPlan)
+
 
 // Google Login
 router.post('/auth/google', userController.googleAuth);

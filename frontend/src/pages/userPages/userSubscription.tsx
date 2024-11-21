@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from 'react';
 import Navbar from '../../components/user/Navbar';
 import { useGetUserPlansQuery } from '../../slices/apiUserSlice';
@@ -6,6 +7,10 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../store";
 import SkeletonLoader from '../../components/skeletonLoader';
 import { Sparkles, Crown, Clock, Check } from 'lucide-react';
+import { toast } from 'react-toastify';
+import { useNavigate } from "react-router-dom"
+// import { useParams } from 'react-router-dom';
+
 
 interface Subscription {
     _id: string; 
@@ -16,6 +21,7 @@ interface Subscription {
     offerName: string;
     offerPercentage: number;
     status: boolean;
+    features : string[]
 }
 
 interface paymentData {
@@ -27,10 +33,11 @@ interface paymentData {
 const SubscriptionPage: React.FC = () => {
     const { userInfo } = useSelector((state: RootState) => state.auth);
     const userId = userInfo?._id;
-    const { data: plans, error, isLoading } = useGetUserPlansQuery();
+    const { data: plans, error, isLoading } = useGetUserPlansQuery(userId);
     const [selectedSubscription, setSelectedSubscription] = useState<Subscription | null>(null);
     const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
     const [updateUserSubscription, { isLoading: isUpdating }] = useUpdateUserSubscriptionMutation();
+    const navigate = useNavigate();
 
     // Existing functionality remains the same...
     const handleSubscriptionSelect = (subscription: Subscription) => {
@@ -83,7 +90,10 @@ const SubscriptionPage: React.FC = () => {
                     console.error('Failed to update user subscription:', updateResult.error);
                     setPaymentStatus("Failed to update subscription after payment.");
                 } else {
+                    toast.success("Payment Successful!")
                     setPaymentStatus("Payment Successful!");
+                   navigate("/userPlanDetails?refresh=true"); 
+
                 }
             },
             prefill: {
@@ -112,6 +122,7 @@ const SubscriptionPage: React.FC = () => {
     }
 
     const subscriptions: Subscription[] = plans || [];
+
 
     return (
         <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-red-50">
@@ -188,11 +199,15 @@ const SubscriptionPage: React.FC = () => {
                                     <div className="space-y-4 mb-8">
                                         <div className="flex items-center gap-2">
                                             <Check className="w-5 h-5 text-green-500" />
-                                            <span className="text-gray-600">Unlimited Matches</span>
+                                            <span className="text-gray-600">{subscription.features[0]}</span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <Check className="w-5 h-5 text-green-500" />
-                                            <span className="text-gray-600">Priority Support</span>
+                                            <span className="text-gray-600">{subscription.features[1]}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Check className="w-5 h-5 text-green-500" />
+                                            <span className="text-gray-600">{subscription.features[2]}</span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                             <Clock className="w-5 h-5 text-green-500" />
