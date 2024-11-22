@@ -57,10 +57,11 @@ const SignIn: React.FC = () => {
     try {
       const res = await login({ email, password }).unwrap();
       dispatch(setCredentials({ ...res }));
-      console.log('submitttttt')
+      console.log('submitttttt',res)
 
       navigate("/");
     } catch (err: any) {
+      console.log('eeeeeeeeeeeeeeeeeeeeee',err)
       if (
         err?.data?.message === "Your account has been blocked by the admin."
       ) {

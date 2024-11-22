@@ -226,6 +226,13 @@ export const usersApiSlice = apiSlice.injectEndpoints({
       }),
     }),
 
+    refreshToken: builder.mutation<void, void>({
+      query: () => ({
+        url: `${USERS_URL}/refresh-token`,
+        method: "POST",
+      }),
+    }),
+
     updateUser: builder.mutation<RegisterResponse, UpdateUserData>({
       query: (data) => ({
         url: `${USERS_URL}/profile`,
@@ -331,6 +338,7 @@ export const {
   useLoginMutation,
   useGoogleLoginMutation,
   useLogoutMutation,
+  useRefreshTokenMutation,
   useRegisterMutation,
   useUpdateUserMutation,
   useVerifyOtpMutation,

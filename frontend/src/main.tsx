@@ -116,10 +116,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './index.css';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import appRoutes from './routes/index';
+import AuthProvider from './components/user/AuthProvider'
 
-// const googleClientId = process.env.GOOGLE_CLIENT_ID;
-
-// console.log(googleClientId)
 
 const router = createBrowserRouter(appRoutes);
 
@@ -127,7 +125,9 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <Provider store={store}>
     <GoogleOAuthProvider clientId="107022301338-q6fc28r4llhv23cen8mch1lhm15tvuu9.apps.googleusercontent.com">
       <React.StrictMode>
+      <AuthProvider>
         <RouterProvider router={router} />
+        </AuthProvider>
       </React.StrictMode>
     </GoogleOAuthProvider>
   </Provider>

@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import express from 'express';
 import dotenv from 'dotenv';
+import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import connectDB from './config/db';
 import {notFound,errorHandler} from './middleware/errorMiddleware'
@@ -15,6 +16,14 @@ const app = express();
 const port = process.env.PORT || 4000;
 
 connectDB();
+
+
+const corsOptions = {
+    origin: ['http://localhost:3001'], 
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true,
+};
+app.use(cors(corsOptions));
 app.use(cookieParser())
 app.get('/', (req, res) => {
     res.send('Server is ready');

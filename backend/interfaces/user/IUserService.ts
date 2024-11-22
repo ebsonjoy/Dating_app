@@ -9,6 +9,7 @@ import { ILikeData,ILikeProfile } from "../../types/like.types";
 export interface IUserService {
     authenticateUser(email: string, password: string): Promise<IUser | null>;
     registerUser(userData:  Partial<IUser>): Promise<IUser | null>;
+    getUserById(userId:string):Promise<IUser>;
     resendOTP(email: string): Promise<{ success: boolean; message: string }>;
     verifyOTP(email: string, otp: string): Promise<boolean>;
     requestPasswordReset(email: string): Promise<void>;

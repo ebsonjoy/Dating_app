@@ -50,6 +50,19 @@ export class UserService implements IUserService {
             throw new Error('Failed to register user');
         }
     }
+
+    async getUserById(userId: string): Promise<IUser> {
+        try {
+            const user = await this.userRepository.findById(userId);
+            if (!user) {
+                throw new Error('User not found');
+            }
+            return user;
+        } catch (error) {
+            console.log(error);
+            throw new Error('Failed to Fetch user');
+        }
+    }
     
 
     async resendOTP(email: string): Promise<{ success: boolean; message: string }> {

@@ -3,19 +3,48 @@ import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import { IUserService } from '../../interfaces/user/IUserService';
 import { HttpStatusCode } from '../../enums/HttpStatusCode';
-import generateToken from '../../utils/generateToken';
+// import generateToken from '../../utils/generateToken';
 import { inject, injectable } from 'inversify';
 import { StatusMessage } from '../../enums/StatusMessage';
 import { GoogleAuthService } from '../../services/user/googleAuthService';
+import TokenService from '../../utils/tokenService';
 
 @injectable()
 export class UserController {
     constructor(
         @inject('IUserService') private readonly userService : IUserService
     ){}
+
+
+
+    // authUser = asyncHandler(async (req: Request, res: Response) => {
+    //     try {
+    //         const { email, password } = req.body;
+    //         const user = await this.userService.authenticateUser(email, password);
+    //         if (!user) {
+    //             res.status(HttpStatusCode.NOT_FOUND).json({ message: StatusMessage.NOT_FOUND });
+    //             return;
+    //         }
+    //         if (user.status === false) {
+    //             res.status(HttpStatusCode.FORBIDDEN).json({ message: StatusMessage.FORBIDDEN });
+    //             return;
+    //         }
+    //         generateToken(res, user._id.toString());
+    //         res.status(HttpStatusCode.OK).json({
+    //             _id: user._id,
+    //             name: user.name,
+    //             email: user.email,
+    //         });
+    //     } catch (error) {
+    //         console.log(error)
+    //         res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
+    //     }
+    // });
+
     authUser = asyncHandler(async (req: Request, res: Response) => {
         try {
             const { email, password } = req.body;
+
             const user = await this.userService.authenticateUser(email, password);
             if (!user) {
                 res.status(HttpStatusCode.NOT_FOUND).json({ message: StatusMessage.NOT_FOUND });
@@ -25,7 +54,13 @@ export class UserController {
                 res.status(HttpStatusCode.FORBIDDEN).json({ message: StatusMessage.FORBIDDEN });
                 return;
             }
-            generateToken(res, user._id.toString());
+            const accessToken = TokenService.generateAccessToken(user._id.toString());
+            const refreshToken = TokenService.generateRefreshToken(user._id.toString())
+
+            TokenService.setTokenCookies(res, accessToken, refreshToken);
+
+
+            // generateToken(res, user._id.toString());
             res.status(HttpStatusCode.OK).json({
                 _id: user._id,
                 name: user.name,
@@ -39,15 +74,62 @@ export class UserController {
     
 
 
+    // logoutUser = asyncHandler(async (req: Request, res: Response) => {
+    //     try {
+    //         res.cookie("jwt", "", { httpOnly: true, expires: new Date(0) });
+    //         res.status(HttpStatusCode.OK).json({ message: StatusMessage.SUCCESS });
+    //     } catch (error) {
+    //         console.log(error);
+    //         res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
+    //     }
+    // });
+
     logoutUser = asyncHandler(async (req: Request, res: Response) => {
         try {
-            res.cookie("jwt", "", { httpOnly: true, expires: new Date(0) });
+            res.cookie('accessToken', '', { 
+                httpOnly: true, 
+                expires: new Date(0) 
+              });
+              res.cookie('refreshToken', '', { 
+                httpOnly: true, 
+                expires: new Date(0) 
+              });
             res.status(HttpStatusCode.OK).json({ message: StatusMessage.SUCCESS });
         } catch (error) {
             console.log(error);
             res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
         }
     });
+
+
+    refreshToken = asyncHandler(async (req: Request, res: Response) => {
+        const refreshToken = req.cookies.refreshToken;
+        if (!refreshToken) {
+          res.status(401).json({ message: 'No refresh token' });
+          return 
+        }
+    
+        const decoded = TokenService.verifyRefreshToken(refreshToken);
+        
+        if (!decoded) {
+           res.status(401).json({ message: 'Invalid refresh token' });
+           return 
+        }
+
+        const user = await this.userService.getUserById(decoded.userId)    
+        if (!user) {
+           res.status(401).json({ message: 'User not found' });
+           return 
+        }
+    
+        const newAccessToken = TokenService.generateAccessToken(user._id.toString());
+    
+        TokenService.setTokenCookies(res, newAccessToken, refreshToken);
+    
+        res.status(200).json({ message: 'Token refreshed successfully' });
+      });
+
+
     
     registerUser = asyncHandler(async (req: Request, res: Response) => {
         try {
@@ -88,7 +170,11 @@ export class UserController {
             return;
           }
       
-          generateToken(res, user._id.toString());
+        //   generateToken(res, user._id.toString());
+            const accessToken = TokenService.generateAccessToken(user._id.toString());
+            const refreshToken = TokenService.generateRefreshToken(user._id.toString())
+
+            TokenService.setTokenCookies(res, accessToken, refreshToken);
           
           res.status(HttpStatusCode.OK).json({
             _id: user._id,
