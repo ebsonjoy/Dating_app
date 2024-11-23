@@ -117,6 +117,7 @@ import './index.css';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import appRoutes from './routes/index';
 import AuthProvider from './components/user/AuthProvider'
+import { SocketProvider } from './context/socketContext';
 
 
 const router = createBrowserRouter(appRoutes);
@@ -126,7 +127,9 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <GoogleOAuthProvider clientId="107022301338-q6fc28r4llhv23cen8mch1lhm15tvuu9.apps.googleusercontent.com">
       <React.StrictMode>
       <AuthProvider>
+        <SocketProvider>
         <RouterProvider router={router} />
+        </SocketProvider>
         </AuthProvider>
       </React.StrictMode>
     </GoogleOAuthProvider>

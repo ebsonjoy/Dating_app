@@ -5,6 +5,8 @@ import { useGetSentLikeProfilesQuery, useGetReceivedLikeProfilesQuery } from '..
 import { RootState } from "../../store";
 import { useSelector } from "react-redux";
 import { useNavigate } from 'react-router-dom';
+import SkeletonLoader from '../../components/skeletonLoader';
+
 
 
 
@@ -37,7 +39,7 @@ const LikesPage: React.FC = () => {
   };
 
   
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <SkeletonLoader />;
   if (error) return <div>Failed to load subscription details.</div>;
 
 

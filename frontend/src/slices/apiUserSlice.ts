@@ -1,5 +1,14 @@
 import { apiSlice } from "./apiSlice";
 const USERS_URL = "/api/users";
+const MESSAGES_URL = "/api/message";
+import { 
+  IMessage, 
+  SendMessagePayload, 
+  GetChatHistoryParams, 
+  IChatHistory 
+} from '../types/message.types';
+
+
 interface LoginData {
   email: string;
   password: string;
@@ -182,6 +191,11 @@ interface ILikeProfile {
   place: string;
   profilePhotos: string[];
 }
+
+interface ILikesCount{
+  count: number
+}
+
 export const usersApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation<{ token: string }, LoginData>({
@@ -331,6 +345,25 @@ export const usersApiSlice = apiSlice.injectEndpoints({
     getMatchProfiles: builder.query<ILikeProfile, string>({  
       query: (userId) => `${USERS_URL}/getMathProfiles/${userId}`,
     }),
+    getReceivedLikesCount: builder.query<ILikesCount, string>({  
+      query: (userId) => `${USERS_URL}/getReceivedLikesCount/${userId}`,
+    }),
+
+
+    //Message
+
+    sendMessage: builder.mutation<IMessage, SendMessagePayload>({
+      query: (messageData) => ({
+        url: `${MESSAGES_URL}/messages/${messageData.receiverId}`,
+        method: 'POST',
+        body: messageData
+      })
+    }),
+    getChatHistory: builder.query<IChatHistory, GetChatHistoryParams>({
+      query: ({ userId1, userId2 }) => ({
+        url: `${MESSAGES_URL}/chat-history?userId1=${userId1}&userId2=${userId2}`
+      })
+    })
   }),
 });
 
@@ -358,4 +391,8 @@ export const {
   useGetReceivedLikeProfilesQuery,
   useGetMatchProfilesQuery,
   useCancelSubscriptionMutation,
+  useGetReceivedLikesCountQuery,
+  useSendMessageMutation, 
+  useGetChatHistoryQuery 
+
 } = usersApiSlice;

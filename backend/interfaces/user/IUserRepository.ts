@@ -12,11 +12,9 @@ export interface IUserRepository {
     findUserInfo(userId: string): Promise<IUserInfo | null>;
     createUserInfo(userInfoData: IUserInfo): Promise<IUserInfo | null>;
     cancelSubscriptionPlan(userId:string):Promise<IUser | null>
-  getUserPlans(): Promise<IPlanDocument[]>;
-  findPlanById(id: string): Promise<IPlanDocument | null>;
-
-  getPlansAbovePrice(minPrice: number): Promise<IPlanDocument[]>;
-
+    getUserPlans(): Promise<IPlanDocument[]>;
+    findPlanById(id: string): Promise<IPlanDocument | null>;
+    getPlansAbovePrice(minPrice: number): Promise<IPlanDocument[]>;
     updateUserInfo(userId: string, data: UserInfoUpdate): Promise<IUserInfo | null>;
     findMatchedUsers(filters: Partial<IUserInfo>): Promise<IUserInfo[] | null>;
     findUserPlanDetailsById(userId: string): Promise<{ subscription: IUser['subscription']; plan: IPlan | null } | null>;
@@ -25,9 +23,9 @@ export interface IUserRepository {
     findReverseLike(likeData: ILikeData):Promise<ILike | null>;
     updateLikeStatus(likeData: ILikeData, status: "pending" | "matched"): Promise<void>
     saveMatch(matchData: { user1Id: string; user2Id: string; matchDate: Date }): Promise<void>
-
     findSentLikes(likerId: string): Promise<ILikeData[]>;
-  findReceivedLikes(likedUserId: string): Promise<ILikeData[]>;
-  findMatchedProfileById(user1Id:string):Promise<IMatch[]>
+    findReceivedLikes(likedUserId: string): Promise<ILikeData[]>;
+    findMatchedProfileById(user1Id:string):Promise<IMatch[]>;
+    userReceivedLikesCount(user1Id:string):Promise<number>;
    
 }

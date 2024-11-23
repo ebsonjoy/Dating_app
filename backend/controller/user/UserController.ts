@@ -462,5 +462,17 @@ export class UserController {
             
         }
       })
+
+
+      getReceivedLikesCount = asyncHandler(async(req: Request,res:Response)=>{
+        const {userId} = req.params
+        try {
+            const count = await this.userService.getReceivedLikesCount(userId);
+            res.status(200).json({ count });
+        } catch (error) {
+            console.error("Error in LikeController:", error);
+            res.status(500).json({ message: "Failed to fetch received likes count" });
+        }
+    })
     
 }

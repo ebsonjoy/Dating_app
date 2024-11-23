@@ -1,42 +1,58 @@
-import { Server as HttpServer } from "http";
 import { Server, Socket } from "socket.io";
+import http from "http";
 
-interface UserSocketMap {
-  [userId: string]: string;
-}
+const userSocketMap: Record<string, string> = {}; 
 
-const userSocketMap: UserSocketMap = {};
-export const initializeSocket = (httpServer: HttpServer) => {
-  const io = new Server(httpServer, {
+export let io: Server;
+
+export const initializeSocket = (server: http.Server): void => {
+  io = new Server(server, {
     cors: {
-      origin: ["http://localhost:3001"],
+      origin: ["http://localhost:3001"], 
       methods: ["GET", "POST"],
     },
   });
-  const emitOnlineUsers = () => {
-    io.emit("getOnlineUsers", Object.keys(userSocketMap));
-  };
 
   io.on("connection", (socket: Socket) => {
-    console.log("A user connected:", socket.id);
+    console.log("A user connected", socket.id);
 
+    
     const userId = socket.handshake.query.userId as string;
-
     if (userId && userId !== "undefined") {
       userSocketMap[userId] = socket.id;
     }
 
-    emitOnlineUsers();
+   
+    io.emit("getOnlineUsers", Object.keys(userSocketMap));
+
+    
+    // socket.on("sendMessage", ({ receiverId, message }) => {
+    //   const receiverSocketId = userSocketMap[receiverId];
+    //   if (receiverSocketId) {
+    //     io.to(receiverSocketId).emit("receiveMessage", { senderId: userId, message });
+    //   }
+    // });
+
+    socket.on("sendMessage", ({ receiverId, message }) => {
+      const receiverSocketId = userSocketMap[receiverId];
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("receiveMessage", {
+          senderId: userId,
+          message,
+          createdAt: new Date().toISOString(), // Add timestamp
+        });
+      }
+    });
+
+    
     socket.on("disconnect", () => {
-      console.log("User disconnected:", socket.id);
+      console.log("User disconnected", socket.id);
       if (userId) {
         delete userSocketMap[userId];
       }
-      emitOnlineUsers();
+      io.emit("getOnlineUsers", Object.keys(userSocketMap));
     });
   });
-
-  return io;
 };
 
 export const getReceiverSocketId = (receiverId: string): string | undefined => {

@@ -48,6 +48,7 @@ router.post('/auth/google', userController.googleAuth);
 router.post('/handleHomeLikes',userProtect,userController.handleHomeLikes)
 router.get("/sentLikes/:userId",userProtect,userController.getSentLikesProfiles);
 router.get("/receivedLikes/:userId",userProtect, userController.getReceivedLikesProfiles);
+router.get('/getReceivedLikesCount/:userId',userProtect,userController.getReceivedLikesCount)
 
 //MATCH
 

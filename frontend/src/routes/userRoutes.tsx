@@ -39,6 +39,10 @@ import { Route } from 'react-router-dom';
 import App from '../App';
 import PrivateRoute from '../components/user/PrivateRoute'
 
+
+
+
+
 // Public routes
 import LandingScreen from '../pages/userPages/landingPage';
 import LoginScreen from '../pages/userPages/loginPage';
@@ -54,10 +58,15 @@ import ProfileScreen from '../pages/userPages/userProfile';
 import UserSubscription from '../pages/userPages/userSubscription';
 import UserPlanDetails from '../pages/userPages/userPlanDetails';
 import UserLikes from '../pages/userPages/userLikes';
-import ChatPage from '../pages/messagePage/messagePage';
+// import ChatPage from '../pages/messagePage/messagePage';
+// import ChatPage from '../pages/userPages/ChatPage'
 import NotFound from '../components/user/notFoundPage';
 
+import MessagesPage from '../pages/userPages/messagePage';
+
+
 const userRoutes = (
+  
   <Route path="/" element={<App />}>
     {/* Public Routes */}
     <Route path="/landing" element={<LandingScreen />} />
@@ -70,13 +79,15 @@ const userRoutes = (
     {/* Protected Routes */}
     <Route element={<PrivateRoute />}>
       <Route index path="/" element={<HomeScreen />} />
+      <Route path="*" element={<NotFound />} />
       <Route path="/userInfoSignUp" element={<UserInformation />} />
       <Route path="/profile" element={<ProfileScreen />} />
       <Route path="/userSubscription" element={<UserSubscription />} />
       <Route path="/userPlanDetails" element={<UserPlanDetails />} />
       <Route path="/userLikes" element={<UserLikes />} />
-      <Route path="/chat" element={<ChatPage />} />
-      <Route path="*" element={<NotFound />} />
+      {/* <Route path="/chat/:partnerUserId" element={<ChatPage />} /> */}
+      <Route path="/message" element={<MessagesPage />} />
+
 
 
     </Route>

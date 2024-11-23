@@ -357,6 +357,16 @@ async handleHomeLikes(likesIds: ILikeData): Promise<{ match: boolean; message: s
     }
   }
 
+  async getReceivedLikesCount(userId: string): Promise<number> {
+    try {
+        const count = await this.userRepository.userReceivedLikesCount(userId);
+        return count;
+    } catch (error) {
+        console.error("Error in LikeService:", error);
+        throw new Error("Unable to fetch received likes count");
+    }
+}
+
 
   //..................................................
 

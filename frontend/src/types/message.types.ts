@@ -1,14 +1,40 @@
+// src/types/message.ts
+
 export interface IMessage {
-  _id: string;
+  _id?: string;
   senderId: string;
   receiverId: string;
-  content: string;
-  timestamp: string;
-  isRead: boolean;
+  message: string;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
 }
-  
-export interface IMessageData {
+
+export interface IChatHistory {
+  messages: IMessage[];
+  partnerProfile?: {
+    id: string;
+    name: string;
+    image: string[];
+  };
+}
+
+export interface IMessageState {
+  currentChat?: {
+    partnerId: string;
+    messages: IMessage[];
+  };
+  chatHistories: {
+    [partnerId: string]: IMessage[];
+  };
+}
+
+export interface SendMessagePayload {
+  senderId: string;
   receiverId: string;
-  content: string;
-  timestamp: string;
+  message: string;
+}
+
+export interface GetChatHistoryParams {
+  userId1: string;
+  userId2: string;
 }

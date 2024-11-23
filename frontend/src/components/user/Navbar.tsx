@@ -2,19 +2,21 @@ import  { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaHeart, FaUserCircle, FaBars, FaTimes, FaChevronDown } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
-import { useLogoutMutation } from '../../slices/apiUserSlice';
+import { useLogoutMutation,useGetReceivedLikesCountQuery } from '../../slices/apiUserSlice';
 import { logout } from '../../slices/authSlice';
 import { RootState } from '../../store';
 
 const Navbar = () => {
   const [logoutApiCall] = useLogoutMutation();
   const { userInfo } = useSelector((state: RootState) => state.auth);
+  const userId = userInfo?._id
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [plansOpen, setPlansOpen] = useState(false);
-
+  const { data: likesCount } = useGetReceivedLikesCountQuery(userId);
+console.log(likesCount?.count)
   // Close mobile menu on route change
   useEffect(() => {
     setMenuOpen(false);
@@ -104,7 +106,7 @@ const Navbar = () => {
               <button onClick={() => navigate("/userLikes")} className="relative p-2 text-white hover:bg-white/10 rounded-lg transition-colors">
                 <FaHeart className="text-xl" />
                 <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                  2
+                  {likesCount?.count>0 ? likesCount?.count : 0}
                 </span>
               </button>
 

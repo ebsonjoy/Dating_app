@@ -143,6 +143,19 @@ export class UserRepository  implements IUserRepository {
         return { subscription, plan };
     }
 
+    async userReceivedLikesCount(user1Id: string): Promise<number> {
+        try {
+            const count = await this.LikesModel.countDocuments({ likedUserId: user1Id });
+          if (!count){
+            return 0
+          }
+          return count;
+        } catch (error) {
+            console.error("Error fetching user received likes:", error);
+            throw new Error("Failed to retrieve likes count");
+        }
+      }
+
 
     async findPlanById(id: string): Promise<IPlanDocument | null> {
         try {

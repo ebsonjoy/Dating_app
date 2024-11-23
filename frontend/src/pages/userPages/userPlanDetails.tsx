@@ -6,6 +6,8 @@ import { useGetUserPlanDetailsQuery,useCancelSubscriptionMutation  } from "../..
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
 import { toast } from 'react-toastify';
+import SkeletonLoader from '../../components/skeletonLoader';
+
 
 const SubscriptionPage: React.FC = () => {
   const { userInfo } = useSelector((state: RootState) => state.auth);
@@ -25,7 +27,7 @@ const SubscriptionPage: React.FC = () => {
     }
   }, [searchParams, refetch]);
   console.log(userPlanDetals);
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading) return <SkeletonLoader />;
   if (error) return <div>Failed to load subscription details.</div>;
   const isPremium = userPlanDetals?.subscription.isPremium;
   const planName = userPlanDetals?.subscription?.planId?.planName || "N/A";

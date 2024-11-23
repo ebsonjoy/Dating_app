@@ -38,7 +38,7 @@ const MatchesSection = ({ matchProfiles = [] }) => {
 
   const handleMatchClick = (partnerUserId: string) => {
     console.log('iiiiiiiiiiiiiidddddddd',partnerUserId)
-    navigate(`/chat/${partnerUserId}`);
+    navigate("/message", { state: { partnerUserId } });
   };
 
   return (

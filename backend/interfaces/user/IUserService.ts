@@ -28,5 +28,6 @@ export interface IUserService {
     getSentLikesProfiles(userId: string): Promise<ILikeProfile[] | null>;
     getReceivedLikesProfiles(userId: string): Promise<ILikeProfile[] | null>;
     getmatchProfile(userId:string) : Promise<ILikeProfile[]>
+    getReceivedLikesCount(user1Id:string) :Promise<number>;
 
 }

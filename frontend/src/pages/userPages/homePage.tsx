@@ -7,6 +7,7 @@ import { RootState } from '../../store';
 import { useNavigate } from 'react-router-dom';
 import SkeletonLoader from '../../components/skeletonLoader';
 import MatchesSection from './matchProfiles';
+// import LazyImage from '../../components/lazyLoading/LazyImage';
 
 
 // Custom Card Component
@@ -40,7 +41,7 @@ const Home: React.FC = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 1000);
+    }, 2000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -145,7 +146,7 @@ const Home: React.FC = () => {
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Matches Section */}
         
-<MatchesSection matchProfiles={matchProfiles} />
+           <MatchesSection matchProfiles={matchProfiles} />
           {/* <Card className="lg:w-1/4 w-full bg-white/80 backdrop-blur-sm p-6">
             <h2 className="text-2xl font-bold text-center mb-4 bg-gradient-to-r from-pink-500 to-purple-500 text-transparent bg-clip-text">
               Your Matches

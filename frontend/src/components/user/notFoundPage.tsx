@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import  { useEffect, useState } from 'react';
 import { Home, ArrowLeft, RefreshCw } from 'lucide-react';
-
+import {useNavigate } from 'react-router-dom';
 const NotFound = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isMobile, setIsMobile] = useState(false);
-
+  const navigate = useNavigate();
   useEffect(() => {
     setIsLoaded(true);
     
@@ -89,7 +89,7 @@ const NotFound = () => {
             </button>
             
             <button 
-              onClick={() => window.location.href = '/'}
+              onClick={() => navigate("/")}
               className="group relative px-4 md:px-6 py-2.5 md:py-3 text-sm font-medium rounded-lg bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 transition-all duration-300 w-full sm:w-auto"
             >
               <span className="relative flex items-center justify-center gap-2">

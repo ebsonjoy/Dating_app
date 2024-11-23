@@ -9,8 +9,9 @@ import { useDispatch } from "react-redux";
 import { useUpdateUserPersonalInfoMutation } from "../../slices/apiUserSlice";
 import { useUpdateUserDatingInfoMutation } from "../../slices/apiUserSlice";
 import { toast } from "react-toastify";
-const PROFILE_IMAGE_DIR_PATH = "http://localhost:5000/UserProfileImages/";
+// const PROFILE_IMAGE_DIR_PATH = "http://localhost:5000/UserProfileImages/";
 import { useNavigate } from 'react-router-dom';
+import SkeletonLoader from '../../components/skeletonLoader';
 
 
 const ProfilePage: React.FC = () => {
@@ -20,6 +21,7 @@ const ProfilePage: React.FC = () => {
   const userId = userInfo?._id;
   const { data: userProfile, isLoading,refetch } = useGetUserProfileQuery(userId);
   const navigate = useNavigate(); 
+  
   //Personal Info
   const [updateUserPersonalInfo] = useUpdateUserPersonalInfoMutation();
   const [name, setFirstName] = useState<string>("");
@@ -236,6 +238,7 @@ const ProfilePage: React.FC = () => {
       toast.error("Failed to update dating info");
     }
   };
+  if (isLoading) return <SkeletonLoader />;
 
 
   return (
