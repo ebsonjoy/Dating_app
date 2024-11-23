@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
-
+import EmojiPicker from 'emoji-picker-react';
 import Navbar from '../../components/user/Navbar';
 import { useSocketContext } from '../../context/SocketContext';
 import { useSendMessageMutation, useGetChatHistoryQuery, useGetMatchProfilesQuery } from '../../slices/apiUserSlice';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import { Search, Phone, Video } from 'lucide-react';
+import { Search, Phone, Video, Smile } from 'lucide-react';
 import { useLocation } from "react-router-dom";
+import type { EmojiClickData } from 'emoji-picker-react';
 
 interface Message {
   senderId: string;
@@ -23,27 +24,39 @@ interface MatchProfile {
 }
 
 const MatchesAndChat: React.FC = () => {
-  // ... (previous state and hooks remain the same)
   const { socket } = useSocketContext();
   const [sendMessageMutation] = useSendMessageMutation();
   const { userInfo } = useSelector((state: RootState) => state.auth);
   const userId = userInfo?._id;
   const location = useLocation();
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
+  const emojiButtonRef = useRef<HTMLButtonElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState('');
   const [messages, setMessages] = useState<Message[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { data: chatHistory } = useGetChatHistoryQuery(
+  // Add skip and refetch to the query
+  const { data: chatHistory, refetch: refetchChatHistory } = useGetChatHistoryQuery(
     { userId1: userId, userId2: selectedMatch },
-    { skip: !userId || !selectedMatch }
+    { 
+      skip: !userId || !selectedMatch,
+      pollingInterval: 0 // Disable polling as we'll handle updates manually
+    }
   );
 
   const { data: matchProfiles = [] } = useGetMatchProfilesQuery(userId);
 
+  // Format timestamp
+  const formatMessageTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  // Filter matches based on search query
   const filteredMatches = matchProfiles.filter((match: MatchProfile) =>
     match.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -52,14 +65,26 @@ const MatchesAndChat: React.FC = () => {
     (match: MatchProfile) => match.id === selectedMatch
   );
 
+  // Add focus detection
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && selectedMatch) {
+        refetchChatHistory();
+      }
+    };
 
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [selectedMatch, refetchChatHistory]);
+
+  // Update when returning to the page
   useEffect(() => {
     if (location.state && location.state.partnerUserId) {
       setSelectedMatch(location.state.partnerUserId);
+    //   refetchChatHistory();
     }
   }, [location.state]);
 
-  // ... (previous useEffects and handlers remain the same)
   useEffect(() => {
     if (chatHistory) {
       setMessages(chatHistory.data);
@@ -82,6 +107,35 @@ const MatchesAndChat: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        showEmojiPicker &&
+        emojiPickerRef.current &&
+        emojiButtonRef.current &&
+        !emojiPickerRef.current.contains(event.target as Node) &&
+        !emojiButtonRef.current.contains(event.target as Node)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showEmojiPicker]);
+
+  const handleEmojiClick = (emojiData: EmojiClickData) => {
+    const emoji = emojiData.emoji;
+    const cursorPosition = messageInput.length;
+    const newMessage = 
+      messageInput.slice(0, cursorPosition) + 
+      emoji + 
+      messageInput.slice(cursorPosition);
+    
+    setMessageInput(newMessage);
+    setShowEmojiPicker(false);
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!messageInput.trim() || !selectedMatch) return;
@@ -91,6 +145,7 @@ const MatchesAndChat: React.FC = () => {
         senderId: userId,
         receiverId: selectedMatch,
         message: messageInput,
+        createdAt: new Date().toISOString(), // Add timestamp when sending
       };
 
       await sendMessageMutation(newMessage).unwrap();
@@ -108,6 +163,12 @@ const MatchesAndChat: React.FC = () => {
     } catch (error) {
       console.error('Failed to send message', error);
     }
+  };
+
+  // Handle match selection
+  const handleMatchSelect = (matchId: string) => {
+    setSelectedMatch(matchId);
+    refetchChatHistory(); // Fetch latest messages when selecting a match
   };
 
   const handleVideoCall = () => {
@@ -144,7 +205,7 @@ const MatchesAndChat: React.FC = () => {
                 </div>
               </div>
 
-              {/* Scrollable matches list */}
+              {/* Matches List */}
               <div className="flex-1 overflow-y-auto">
                 <div className="px-4 pb-4 space-y-2">
                   {filteredMatches.length === 0 ? (
@@ -155,7 +216,7 @@ const MatchesAndChat: React.FC = () => {
                     filteredMatches.map((match: MatchProfile, index: number) => (
                       <div
                         key={index}
-                        onClick={() => setSelectedMatch(match.id)}
+                        onClick={() => handleMatchSelect(match.id)}
                         className={`flex items-center p-2 rounded-lg hover:bg-pink-50 transition-all cursor-pointer ${
                           selectedMatch === match.id ? 'bg-pink-100' : ''
                         }`}
@@ -229,14 +290,19 @@ const MatchesAndChat: React.FC = () => {
                           key={index}
                           className={`flex ${msg.senderId === userId ? 'justify-end' : 'justify-start'}`}
                         >
-                          <div
-                            className={`max-w-[70%] px-3 py-2 rounded-lg ${
-                              msg.senderId === userId
-                                ? 'bg-pink-500 text-white'
-                                : 'bg-gray-200 text-black'
-                            }`}
-                          >
-                            {msg.message}
+                          <div className="flex flex-col">
+                            <div
+                              className={`max-w-[70%] px-3 py-2 rounded-lg ${
+                                msg.senderId === userId
+                                  ? 'bg-pink-500 text-white'
+                                  : 'bg-gray-200 text-black'
+                              }`}
+                            >
+                              {msg.message}
+                            </div>
+                            <span className="text-xs text-gray-500 mt-1 px-1">
+                              {formatMessageTime(msg.createdAt)}
+                            </span>
                           </div>
                         </div>
                       ))}
@@ -245,18 +311,45 @@ const MatchesAndChat: React.FC = () => {
                   </div>
 
                   {/* Message Input */}
-                  <form onSubmit={handleSendMessage} className="p-3 bg-white border-t">
-                    <div className="flex">
+                  <form onSubmit={handleSendMessage} className="p-3 bg-white border-t relative">
+                    <div className="flex items-center gap-2">
+                      <div className="relative">
+                        <button
+                          type="button"
+                          ref={emojiButtonRef}
+                          onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                          className="p-2 text-gray-500 hover:text-pink-500 rounded-full hover:bg-gray-100 transition-colors"
+                        >
+                          <Smile className="h-5 w-5" />
+                        </button>
+                        
+                        {showEmojiPicker && (
+                          <div 
+                            ref={emojiPickerRef}
+                            className="absolute bottom-12 left-0 z-50 shadow-lg rounded-lg"
+                            style={{ backgroundColor: 'white' }}
+                          >
+                            <EmojiPicker
+                              onEmojiClick={handleEmojiClick}
+                              width={300}
+                              height={400}
+                            />
+                          </div>
+                        )}
+                      </div>
+
                       <input
                         type="text"
                         value={messageInput}
                         onChange={(e) => setMessageInput(e.target.value)}
                         placeholder="Type a message..."
-                        className="flex-1 p-2 border rounded-l-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                       />
+                      
                       <button
                         type="submit"
-                        className="bg-pink-500 text-white px-4 py-2 rounded-r-lg hover:bg-pink-600 transition-colors"
+                        disabled={!messageInput.trim()}
+                        className="bg-pink-500 text-white px-4 py-2 rounded-lg hover:bg-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Send
                       </button>
@@ -274,6 +367,7 @@ const MatchesAndChat: React.FC = () => {
 
 export default MatchesAndChat;
 
+// Helper function to calculate age
 const calculateAge = (birthDate: string | number | Date) => {
   const birth = new Date(birthDate);
   const today = new Date();
