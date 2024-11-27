@@ -474,5 +474,28 @@ export class UserController {
             res.status(500).json({ message: "Failed to fetch received likes count" });
         }
     })
+
+
+    //video call
+
+    // createVideoCallHistory = asyncHandler(async (req: Request, res: Response) => {
+    //     const {videoCallHistory} = req.body
+
+    //     console.log('controoooooooooooooooooooooo',videoCallHistory)
+
+    //     if (!videoCallHistory) {
+    //       res.status(HttpStatusCode.BAD_REQUEST).json({
+    //           message: "videoCallHistory is required in the request body.",
+    //         });
+    //         return 
+    //       }
+    //     try {
+    //         const videoCall = await this.userService.createVideoCallHistory(videoCallHistory);
+    //         res.status(HttpStatusCode.OK).json(videoCall);
+    //     } catch (error: unknown) {
+    //         console.log(error);
+    //         res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
+    //     }
+    // });
     
 }

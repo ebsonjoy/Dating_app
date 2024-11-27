@@ -8,6 +8,8 @@ import {
   IChatHistory 
 } from '../types/message.types';
 
+import { IVideoCall } from "../types/videoCall.types";
+
 
 interface LoginData {
   email: string;
@@ -357,13 +359,23 @@ export const usersApiSlice = apiSlice.injectEndpoints({
         url: `${MESSAGES_URL}/messages/${messageData.receiverId}`,
         method: 'POST',
         body: messageData
-      })
+      }),
     }),
     getChatHistory: builder.query<IChatHistory, GetChatHistoryParams>({
       query: ({ userId1, userId2 }) => ({
         url: `${MESSAGES_URL}/chat-history?userId1=${userId1}&userId2=${userId2}`
-      })
-    })
+      }),
+    }),
+    //video call 
+
+    createVideoCall: builder.mutation<IVideoCall, IVideoCall>({
+      query: (data) => ({
+        url: `${USERS_URL}/createVideoCall`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+
   }),
 });
 
@@ -393,6 +405,7 @@ export const {
   useCancelSubscriptionMutation,
   useGetReceivedLikesCountQuery,
   useSendMessageMutation, 
-  useGetChatHistoryQuery 
+  useGetChatHistoryQuery,
+  useCreateVideoCallMutation,
 
 } = usersApiSlice;

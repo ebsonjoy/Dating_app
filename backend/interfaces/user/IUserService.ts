@@ -4,6 +4,7 @@ import { IUserProfile } from "../../types/user.types";
 import { ISubscriptionDetails } from "../../types/user.types";
 import { IPlan, IPlanDocument } from "../../types/plan.types";
 import { ILikeData,ILikeProfile } from "../../types/like.types";
+// import { IVideoCall } from "../../types/videoCall.types";
 // import { IMatch } from "../../types/match.types";
 
 export interface IUserService {
@@ -29,5 +30,8 @@ export interface IUserService {
     getReceivedLikesProfiles(userId: string): Promise<ILikeProfile[] | null>;
     getmatchProfile(userId:string) : Promise<ILikeProfile[]>
     getReceivedLikesCount(user1Id:string) :Promise<number>;
+//video call
+// createVideoCallHistory(videoCallHistory: Partial<IVideoCall>): Promise<IVideoCall>;
+
 
 }

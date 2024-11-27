@@ -4,6 +4,9 @@ import { UserInfoUpdate } from "../../types/userInfo.types";
 import { IPlan, IPlanDocument } from "../../types/plan.types";
 import { ILike, ILikeData } from "../../types/like.types";
 import {IMatch} from '../../types/match.types'
+// import { IVideoCall } from "../../types/videoCall.types";
+
+
 export interface IUserRepository {
     findByEmail(email: string): Promise<IUser | null>;
     register(userData: Partial<IUser>): Promise<IUser | null>;
@@ -27,5 +30,12 @@ export interface IUserRepository {
     findReceivedLikes(likedUserId: string): Promise<ILikeData[]>;
     findMatchedProfileById(user1Id:string):Promise<IMatch[]>;
     userReceivedLikesCount(user1Id:string):Promise<number>;
+
+    //videocall
+    // create(videoCallHistory: Partial<IVideoCall>): Promise<IVideoCall>;
+    // findByUserId(userId: string, limit?: number): Promise<IVideoCall[]>;
+
+    
+
    
 }

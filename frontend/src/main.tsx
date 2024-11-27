@@ -118,6 +118,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import appRoutes from './routes/index';
 import AuthProvider from './components/user/AuthProvider'
 import { SocketProvider } from './context/socketContext';
+// import { VideoCallProvider } from './context/VideoCallContext';
 
 
 const router = createBrowserRouter(appRoutes);
@@ -128,7 +129,9 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
       <React.StrictMode>
       <AuthProvider>
         <SocketProvider>
+          {/* <VideoCallProvider> */}
         <RouterProvider router={router} />
+        {/* </VideoCallProvider> */}
         </SocketProvider>
         </AuthProvider>
       </React.StrictMode>

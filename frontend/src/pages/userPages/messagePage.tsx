@@ -1,13 +1,18 @@
-import React, { useState, useEffect, useRef } from 'react';
-import EmojiPicker from 'emoji-picker-react';
-import Navbar from '../../components/user/Navbar';
-import { useSocketContext } from '../../context/SocketContext';
-import { useSendMessageMutation, useGetChatHistoryQuery, useGetMatchProfilesQuery } from '../../slices/apiUserSlice';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../store';
-import { Search, Phone, Video, Smile } from 'lucide-react';
+import React, { useState, useEffect, useRef } from "react";
+import EmojiPicker from "emoji-picker-react";
+import Navbar from "../../components/user/Navbar";
+import { useSocketContext } from "../../context/SocketContext";
+import {
+  useSendMessageMutation,
+  useGetChatHistoryQuery,
+  useGetMatchProfilesQuery,
+} from "../../slices/apiUserSlice";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store";
+import { Search, Phone, Video, Smile } from "lucide-react";
 import { useLocation } from "react-router-dom";
-import type { EmojiClickData } from 'emoji-picker-react';
+import type { EmojiClickData } from "emoji-picker-react";
+import VideoCall from "./videoCall";
 
 interface Message {
   senderId: string;
@@ -23,6 +28,12 @@ interface MatchProfile {
   place: string;
 }
 
+interface CallState {
+  isReceivingCall: boolean;
+  from: string;
+  offer: any;
+}
+
 const MatchesAndChat: React.FC = () => {
   const { socket } = useSocketContext();
   const [sendMessageMutation] = useSendMessageMutation();
@@ -35,25 +46,33 @@ const MatchesAndChat: React.FC = () => {
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<string | null>(null);
-  const [messageInput, setMessageInput] = useState('');
+  const [messageInput, setMessageInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const [showVideoCall, setShowVideoCall] = useState(false);
+  const [callState, setCallState] = useState<CallState>({
+    isReceivingCall: false,
+    from: "",
+    offer: null,
+  });
 
   // Add skip and refetch to the query
-  const { data: chatHistory, refetch: refetchChatHistory } = useGetChatHistoryQuery(
-    { userId1: userId, userId2: selectedMatch },
-    { 
-      skip: !userId || !selectedMatch,
-      pollingInterval: 0 // Disable polling as we'll handle updates manually
-    }
-  );
+  const { data: chatHistory, refetch: refetchChatHistory } =
+    useGetChatHistoryQuery(
+      { userId1: userId, userId2: selectedMatch },
+      {
+        skip: !userId || !selectedMatch,
+        pollingInterval: 0, // Disable polling as we'll handle updates manually
+      }
+    );
 
   const { data: matchProfiles = [] } = useGetMatchProfilesQuery(userId);
 
   // Format timestamp
   const formatMessageTime = (timestamp: string) => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
   // Filter matches based on search query
@@ -68,20 +87,21 @@ const MatchesAndChat: React.FC = () => {
   // Add focus detection
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && selectedMatch) {
+      if (document.visibilityState === "visible" && selectedMatch) {
         refetchChatHistory();
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [selectedMatch, refetchChatHistory]);
 
   // Update when returning to the page
   useEffect(() => {
     if (location.state && location.state.partnerUserId) {
       setSelectedMatch(location.state.partnerUserId);
-    //   refetchChatHistory();
+      //   refetchChatHistory();
     }
   }, [location.state]);
 
@@ -93,18 +113,37 @@ const MatchesAndChat: React.FC = () => {
 
   useEffect(() => {
     if (socket) {
-      socket.on('newMessage', (newMessage: Message) => {
+      socket.on("newMessage", (newMessage: Message) => {
         setMessages((prevMessages) => [...prevMessages, newMessage]);
       });
 
       return () => {
-        socket.off('newMessage');
+        socket.off("newMessage");
       };
     }
   }, [socket]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (!socket) return;
+
+    // Listen for incoming calls
+    socket.on("incoming-call", ({ from, offer }) => {
+      console.log("Received incoming call from:", from);
+      setCallState({
+        isReceivingCall: true,
+        from,
+        offer,
+      });
+    });
+
+    // Clean up listeners
+    return () => {
+      socket.off("incoming-call");
+    };
+  }, [socket]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   useEffect(() => {
@@ -120,18 +159,18 @@ const MatchesAndChat: React.FC = () => {
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [showEmojiPicker]);
 
   const handleEmojiClick = (emojiData: EmojiClickData) => {
     const emoji = emojiData.emoji;
     const cursorPosition = messageInput.length;
-    const newMessage = 
-      messageInput.slice(0, cursorPosition) + 
-      emoji + 
+    const newMessage =
+      messageInput.slice(0, cursorPosition) +
+      emoji +
       messageInput.slice(cursorPosition);
-    
+
     setMessageInput(newMessage);
     setShowEmojiPicker(false);
   };
@@ -159,9 +198,9 @@ const MatchesAndChat: React.FC = () => {
         },
       ]);
 
-      setMessageInput('');
+      setMessageInput("");
     } catch (error) {
-      console.error('Failed to send message', error);
+      console.error("Failed to send message", error);
     }
   };
 
@@ -172,11 +211,30 @@ const MatchesAndChat: React.FC = () => {
   };
 
   const handleVideoCall = () => {
-    console.log('Starting video call with:', selectedMatchProfile?.name);
+    console.log("Starting video call with:", selectedMatchProfile?.id);
+    if (selectedMatch && userId) {
+      console.log("Initiating video call to:", selectedMatch);
+      setShowVideoCall(true);
+    }
+  };
+
+  const handleAcceptCall = () => {
+    setShowVideoCall(true);
+  };
+
+  const handleRejectCall = () => {
+    if (socket && callState.from) {
+      socket.emit("call-rejected", { to: callState.from });
+    }
+    setCallState({
+      isReceivingCall: false,
+      from: "",
+      offer: null,
+    });
   };
 
   const handleVoiceCall = () => {
-    console.log('Starting voice call with:', selectedMatchProfile?.name);
+    console.log("Starting voice call with:", selectedMatchProfile?.name);
   };
 
   return (
@@ -213,27 +271,31 @@ const MatchesAndChat: React.FC = () => {
                       <p className="text-gray-600">No matches found</p>
                     </div>
                   ) : (
-                    filteredMatches.map((match: MatchProfile, index: number) => (
-                      <div
-                        key={index}
-                        onClick={() => handleMatchSelect(match.id)}
-                        className={`flex items-center p-2 rounded-lg hover:bg-pink-50 transition-all cursor-pointer ${
-                          selectedMatch === match.id ? 'bg-pink-100' : ''
-                        }`}
-                      >
-                        <img
-                          src={match.image[0]}
-                          alt={match.name}
-                          className="w-10 h-10 rounded-full object-cover border-2 border-pink-500"
-                        />
-                        <div className="ml-3 overflow-hidden">
-                          <h3 className="font-semibold text-gray-800 truncate">{match.name}</h3>
-                          <p className="text-xs text-gray-600 truncate">
-                            {calculateAge(match.age)} years • {match.place}
-                          </p>
+                    filteredMatches.map(
+                      (match: MatchProfile, index: number) => (
+                        <div
+                          key={index}
+                          onClick={() => handleMatchSelect(match.id)}
+                          className={`flex items-center p-2 rounded-lg hover:bg-pink-50 transition-all cursor-pointer ${
+                            selectedMatch === match.id ? "bg-pink-100" : ""
+                          }`}
+                        >
+                          <img
+                            src={match.image[0]}
+                            alt={match.name}
+                            className="w-10 h-10 rounded-full object-cover border-2 border-pink-500"
+                          />
+                          <div className="ml-3 overflow-hidden">
+                            <h3 className="font-semibold text-gray-800 truncate">
+                              {match.name}
+                            </h3>
+                            <p className="text-xs text-gray-600 truncate">
+                              {calculateAge(match.age)} years • {match.place}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      )
+                    )
                   )}
                 </div>
               </div>
@@ -243,7 +305,9 @@ const MatchesAndChat: React.FC = () => {
             <div className="flex-1 bg-white rounded-xl shadow-lg flex flex-col min-w-0">
               {!selectedMatch ? (
                 <div className="flex items-center justify-center h-full">
-                  <p className="text-gray-500 text-lg">Select a person to start chatting...</p>
+                  <p className="text-gray-500 text-lg">
+                    Select a person to start chatting...
+                  </p>
                 </div>
               ) : (
                 <>
@@ -260,27 +324,76 @@ const MatchesAndChat: React.FC = () => {
                           {selectedMatchProfile?.name}
                         </h3>
                         <p className="text-xs text-gray-600 truncate">
-                          {calculateAge(selectedMatchProfile?.age || '')} years • {selectedMatchProfile?.place}
+                          {calculateAge(selectedMatchProfile?.age || "")} years
+                          • {selectedMatchProfile?.place}
                         </p>
                       </div>
                     </div>
-                    <div className="flex gap-2 flex-shrink-0">
-                      <button
-                        onClick={handleVoiceCall}
-                        className="p-2 rounded-full hover:bg-gray-100"
-                        title="Voice Call"
-                      >
-                        <Phone className="h-5 w-5 text-pink-500" />
-                      </button>
-                      <button
-                        onClick={handleVideoCall}
-                        className="p-2 rounded-full hover:bg-gray-100"
-                        title="Video Call"
-                      >
-                        <Video className="h-5 w-5 text-pink-500" />
-                      </button>
-                    </div>
+                    {showVideoCall ? (
+                      <VideoCall
+                        userId={userId}
+                        matchId={selectedMatch}
+                        socket={socket}
+                        onClose={() => {
+                          setShowVideoCall(false);
+                          setCallState({
+                            isReceivingCall: false,
+                            from: "",
+                            offer: null,
+                          });
+                        }}
+                        isInitiator={!callState.isReceivingCall}
+                        incomingOffer={callState.offer}
+                        partnerName={
+                          callState.isReceivingCall
+                            ? selectedMatchProfile?.name || "Partner"
+                            : selectedMatchProfile?.name || "Partner"
+                        }
+                      />
+                    ) : (
+                      <div className="flex gap-2 flex-shrink-0">
+                        <button
+                          onClick={handleVoiceCall}
+                          className="p-2 rounded-full hover:bg-gray-100"
+                          title="Voice Call"
+                        >
+                          <Phone className="h-5 w-5 text-pink-500" />
+                        </button>
+                        <button
+                          onClick={handleVideoCall}
+                          className="p-2 rounded-full hover:bg-gray-100"
+                          title="Video Call"
+                        >
+                          <Video className="h-5 w-5 text-pink-500" />
+                        </button>
+                      </div>
+                    )}
                   </div>
+
+                  {callState.isReceivingCall && !showVideoCall && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                      <div className="bg-white p-6 rounded-lg">
+                        <h3 className="text-lg font-semibold mb-4">
+                          Incoming Video Call from{" "}
+                          {selectedMatchProfile?.name || "Unknown"}
+                        </h3>
+                        <div className="flex gap-4">
+                          <button
+                            onClick={handleAcceptCall}
+                            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                          >
+                            Accept
+                          </button>
+                          <button
+                            onClick={handleRejectCall}
+                            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                          >
+                            Decline
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Messages Area */}
                   <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
@@ -288,14 +401,18 @@ const MatchesAndChat: React.FC = () => {
                       {messages.map((msg, index) => (
                         <div
                           key={index}
-                          className={`flex ${msg.senderId === userId ? 'justify-end' : 'justify-start'}`}
+                          className={`flex ${
+                            msg.senderId === userId
+                              ? "justify-end"
+                              : "justify-start"
+                          }`}
                         >
-                          <div className="flex flex-col">
+                          <div className="flex flex-col max-w-[70%]">
                             <div
-                              className={`max-w-[70%] px-3 py-2 rounded-lg ${
+                              className={`px-4 py-2 rounded-lg break-words ${
                                 msg.senderId === userId
-                                  ? 'bg-pink-500 text-white'
-                                  : 'bg-gray-200 text-black'
+                                  ? "bg-pink-500 text-white"
+                                  : "bg-gray-200 text-black"
                               }`}
                             >
                               {msg.message}
@@ -311,7 +428,10 @@ const MatchesAndChat: React.FC = () => {
                   </div>
 
                   {/* Message Input */}
-                  <form onSubmit={handleSendMessage} className="p-3 bg-white border-t relative">
+                  <form
+                    onSubmit={handleSendMessage}
+                    className="p-3 bg-white border-t relative"
+                  >
                     <div className="flex items-center gap-2">
                       <div className="relative">
                         <button
@@ -322,12 +442,12 @@ const MatchesAndChat: React.FC = () => {
                         >
                           <Smile className="h-5 w-5" />
                         </button>
-                        
+
                         {showEmojiPicker && (
-                          <div 
+                          <div
                             ref={emojiPickerRef}
                             className="absolute bottom-12 left-0 z-50 shadow-lg rounded-lg"
-                            style={{ backgroundColor: 'white' }}
+                            style={{ backgroundColor: "white" }}
                           >
                             <EmojiPicker
                               onEmojiClick={handleEmojiClick}
@@ -345,7 +465,7 @@ const MatchesAndChat: React.FC = () => {
                         placeholder="Type a message..."
                         className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
                       />
-                      
+
                       <button
                         type="submit"
                         disabled={!messageInput.trim()}

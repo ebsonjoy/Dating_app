@@ -1,16 +1,18 @@
 import { injectable } from "inversify";
-import { IUserRepository } from "../../interfaces/user/IUserRepository";
-import { IUser } from "../../types/user.types";
-import { IUserInfo, ILocation } from "../../types/userInfo.types";
+import mongoose from "mongoose";
 import User from "../../models/User";
 import UserInfo from "../../models/UserInfo";
 import Like from "../../models/LikesModel";
 import Match from "../../models/MatchModel";
 import Plan from "../../models/PlanModel";
-import mongoose from "mongoose";
+// import VideoCall from "../../models/videoCall";
+import { IUserRepository } from "../../interfaces/user/IUserRepository";
+import { IUser } from "../../types/user.types";
+import { IUserInfo, ILocation } from "../../types/userInfo.types";
 import { IPlan, IPlanDocument } from "../../types/plan.types";
 import { ILikeData,ILike} from "../../types/like.types";
 import { IMatch } from "../../types/match.types";
+// import { IVideoCall } from "../../types/videoCall.types";
 
 
 
@@ -22,6 +24,7 @@ export class UserRepository  implements IUserRepository {
         private readonly LikesModel = Like,
         private readonly MatchModel = Match,
         private readonly PlanModel = Plan,
+        // private readonly VideoCallModel = VideoCall
 
     ){}
    
@@ -177,10 +180,6 @@ export class UserRepository  implements IUserRepository {
         }
     }
 
-
-
-
-
     async cancelSubscriptionPlan(userId: string): Promise<IUser | null> {
         return await this.UserModel.findByIdAndUpdate(
           userId,
@@ -236,4 +235,12 @@ export class UserRepository  implements IUserRepository {
             ]
         })
     }
+
+
+    //video call  
+    
+    // async create(videoCallHistory: Partial<IVideoCall>): Promise<IVideoCall> {
+    //     return this.VideoCallModel.create(videoCallHistory);
+    // }
+    
 }

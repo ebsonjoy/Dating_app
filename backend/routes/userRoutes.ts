@@ -54,4 +54,7 @@ router.get('/getReceivedLikesCount/:userId',userProtect,userController.getReceiv
 
 router.get('/getMathProfiles/:userId',userProtect,userController.getMathProfiles)
 
+
+// router.post("/createVideoCall",userProtect,userController.createVideoCallHistory)
+
 export default router;

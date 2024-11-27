@@ -13,7 +13,9 @@ import mongoose from "mongoose";
 import { IPlan, IPlanDocument } from "../../types/plan.types";
 import { deleteImageFromS3 } from "../../config/multer";
 import { ILikeData, ILikeProfile } from "../../types/like.types";
+// import { CreateVideoCallHistoryDto, IVideoCall, VideoCallHistoryResponseDto } from "../../types/videoCall.types";
 // import { IMatch } from "../../types/match.types";
+
 
 @injectable()
 export class UserService implements IUserService {
@@ -447,6 +449,14 @@ async handleHomeLikes(likesIds: ILikeData): Promise<{ match: boolean; message: s
     return matchedProfiles.filter((profile) => profile !== null) as unknown as ILikeProfile[];
 
   }
+
+
+  //video call
+
+//   async createVideoCallHistory(videoCallHistory:IVideoCall):Promise<IVideoCall>{
+//     const callHistory = await this.userRepository.create(videoCallHistory);
+//     return callHistory
+//   }
 
 }
 
