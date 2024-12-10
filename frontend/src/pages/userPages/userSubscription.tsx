@@ -44,15 +44,36 @@ const SubscriptionPage: React.FC = () => {
         setSelectedSubscription(subscription);
     };
 
-    const getDurationInMonths = (duration: string): number => {
-        const matches = duration.match(/(\d+)\s*months?/i);
-        return matches ? parseInt(matches[1], 10) : 0;
-    };
+    // const getDurationInMonths = (duration: string): number => {
+    //     const matches = duration.match(/(\d+)\s*months?/i);
+    //     return matches ? parseInt(matches[1], 10) : 0;
+    // };
 
+    // const calculateExpiryDate = (duration: string) => {
+    //     const durationInMonths = getDurationInMonths(duration);
+    //     const expiryDate = new Date();
+    //     expiryDate.setMonth(expiryDate.getMonth() + durationInMonths);
+    //     return expiryDate.toISOString();
+    // };
+
+    const getDurationInDays = (duration: string): number => {
+        const dayMatches = duration.match(/(\d+)\s*days?/i);
+        const weekMatches = duration.match(/(\d+)\s*weeks?/i);
+        const monthMatches = duration.match(/(\d+)\s*months?/i);
+        const yearMatches = duration.match(/(\d+)\s*years?/i);
+    
+        if (dayMatches) return parseInt(dayMatches[1], 10);
+        if (weekMatches) return parseInt(weekMatches[1], 10) * 7;
+        if (monthMatches) return parseInt(monthMatches[1], 10) * 30;
+        if (yearMatches) return parseInt(yearMatches[1], 10) * 365;
+    
+        return 0;
+    };
+    
     const calculateExpiryDate = (duration: string) => {
-        const durationInMonths = getDurationInMonths(duration);
+        const durationInDays = getDurationInDays(duration);
         const expiryDate = new Date();
-        expiryDate.setMonth(expiryDate.getMonth() + durationInMonths);
+        expiryDate.setDate(expiryDate.getDate() + durationInDays);
         return expiryDate.toISOString();
     };
 
@@ -73,7 +94,6 @@ const SubscriptionPage: React.FC = () => {
             image: "https://yourapp.com/logo.png",
             handler: async function (response: any) {
                 console.log(response);
-                
                 const subscriptionData: paymentData = {
                     isPremium: true,
                     planId: subscription._id,
@@ -92,7 +112,9 @@ const SubscriptionPage: React.FC = () => {
                 } else {
                     toast.success("Payment Successful!")
                     setPaymentStatus("Payment Successful!");
-                   navigate("/userPlanDetails?refresh=true"); 
+                //    navigate("/userPlanDetails?refresh=true"); 
+                navigate('/')
+
 
                 }
             },
@@ -114,7 +136,7 @@ const SubscriptionPage: React.FC = () => {
     };
 
     if (isLoading || isUpdating) {
-        return <SkeletonLoader />;
+        return <SkeletonLoader/>;
     }
 
     if (error) {

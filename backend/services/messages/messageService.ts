@@ -2,7 +2,8 @@ import { injectable, inject } from 'inversify';
 import { IMessageService } from '../../interfaces/messages/IMessageService';
 import { IMessageRepository } from '../../interfaces/messages/IMessageRepository';
 import { IMessage, IMessageData } from '../../types/message.types';
-// import { IConversation } from '../../types/conversation.types';
+import { ICallHistory } from '../../types/videoCall.types';
+
 
 @injectable()
 export class MessageService implements IMessageService {
@@ -36,6 +37,64 @@ export class MessageService implements IMessageService {
 
       throw new Error('Failed to get chat history');
     }
+  }
+
+// Video
+  async createCallHistory(callHistory:ICallHistory):Promise<void>{
+    const { callerId, receiverId, type, duration, status } = callHistory;
+    console.log('in serviceeeeeee',callHistory)
+    try {
+    const newCallHistory = await this.messageRepository.createCallHistory({
+      callerId,
+      receiverId,
+      type,
+      duration,
+      status,
+  });
+
+  const senderId = callerId.toString()
+  const callHistoryId =newCallHistory._id.toString()
+
+  let conversation  = await this.messageRepository.findConversationByUserIds(senderId,receiverId.toString())
+  if(!conversation){
+  conversation =  await this.messageRepository.createConversation(senderId,receiverId.toString());
+  }
+
+      let messageText = '';
+      const callDuration = duration ?? 0;
+      switch (status) {
+          case 'ended':
+              messageText = `Video call ended (${Math.floor(callDuration / 60)}:${(callDuration % 60)
+                  .toString()
+                  .padStart(2, '0')})`;
+              break;
+          case 'rejected':
+              messageText = 'Call rejected';
+              break;
+          case 'missed':
+              messageText = 'Missed call';
+              break;
+          default:
+              messageText = 'Video call';
+      }
+     
+  const message = messageText
+  console.log('switch case',message)
+    const newMessage=  await this.messageRepository.createMessageCallHistory({
+        senderId,
+        receiverId:receiverId.toString(),
+        message,
+        callHistoryId
+    });
+console.log('meeeeeeeeeeeeesssssssssss',newMessage)
+    if (newMessage && conversation._id) {
+      await this.messageRepository.addMessageToConversation(conversation._id.toString(), newMessage._id.toString());
+    }
+  } catch (error) {
+    console.error('Failed to create call history:', error);
+    throw new Error('Failed to create call history');
+}
+
   }
   
 }

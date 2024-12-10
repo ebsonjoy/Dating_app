@@ -4,8 +4,7 @@ import { IUserProfile } from "../../types/user.types";
 import { ISubscriptionDetails } from "../../types/user.types";
 import { IPlan, IPlanDocument } from "../../types/plan.types";
 import { ILikeData,ILikeProfile } from "../../types/like.types";
-// import { IVideoCall } from "../../types/videoCall.types";
-// import { IMatch } from "../../types/match.types";
+
 
 export interface IUserService {
     authenticateUser(email: string, password: string): Promise<IUser | null>;
@@ -18,20 +17,19 @@ export interface IUserService {
     createUserInfo(userInfoData: IUserInfo): Promise<IUserInfo | null>;
     getMatchedUsers(userId: string): Promise<IUserProfile[] | null>;
     getUserProfile(userId: string): Promise<{ user: IUser | null; userInfo: IUserInfo|null; }>;
+
+    getUserDetails(userId: string): Promise<IUserProfile[] | null>;
+
     updateUserPersonalInfo(userId: string, data: IUser): Promise<IUser | null>;
     updateUserSubscription(userId: string, subscriptionData: ISubscriptionDetails): Promise<IUser | null>;
     updateUserDatingInfo(userId: string, data: IUserInfo, files: Express.Multer.File[]): Promise<IUserInfo | null>;
     getUserSubscriptionDetails(userId: string): Promise<{ subscription: IUser['subscription']; plan: IPlan | null } | null>;
     fetchUserPlans(userId:string): Promise<IPlanDocument[]>;
-
     cancelSubscriptionPlan(userId:string): Promise<IUser | null>;
     handleHomeLikes(likesIds: ILikeData): Promise<{ match: boolean; message: string } | null>
     getSentLikesProfiles(userId: string): Promise<ILikeProfile[] | null>;
     getReceivedLikesProfiles(userId: string): Promise<ILikeProfile[] | null>;
     getmatchProfile(userId:string) : Promise<ILikeProfile[]>
     getReceivedLikesCount(user1Id:string) :Promise<number>;
-//video call
-// createVideoCallHistory(videoCallHistory: Partial<IVideoCall>): Promise<IVideoCall>;
-
 
 }

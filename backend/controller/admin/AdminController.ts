@@ -77,5 +77,25 @@ export class AdminController{
             res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
         }
     });
+
+    fetchPayments = asyncHandler(async (req: Request, res: Response) => {
+        try {
+            const payments = await this.adminService.getPayments();
+            res.status(HttpStatusCode.OK).json(payments);
+          } catch (error) {
+            console.log(error)
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
+          }
+    });
+
+    getDashboardMasterData = asyncHandler(async(req:Request,res:Response)=>{
+        try{
+            const masterData = await this.adminService.dashBoardMasterData()
+            res.status(HttpStatusCode.OK).json(masterData)
+        }catch (error) {
+            console.log(error)
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
+          }
+    })
     
 }

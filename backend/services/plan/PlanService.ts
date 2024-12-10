@@ -15,17 +15,7 @@ export class PlanService implements IPlanService {
             console.log(error);
             throw new Error('Failed to fetch plans');
         }
-    }
-    
-    // async fetchUserPlans(): Promise<IPlanDocument[]> {
-    //     try {
-    //         return await this.planRepository.getUserPlans();
-    //     } catch (error) {
-    //         console.log(error);
-    //         throw new Error('Failed to fetch user plans');
-    //     }
-    // }
-    
+    }    
 
     async fetchPlanById(id: string): Promise<IPlanDocument> {
         try {

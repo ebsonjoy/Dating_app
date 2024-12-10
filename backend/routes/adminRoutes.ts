@@ -17,6 +17,8 @@ router.post('/login',adminControllerr.login)
 router.put('/updateUserStatus/:userId',adminControllerr.updateUserStatus)
 router.post('/logoutAdmin',adminControllerr.logout)
 router.post('/create',adminControllerr.register)
+router.get('/paymentDetails',adminControllerr.fetchPayments)
+router.get('/dashBoardMasterData',adminControllerr.getDashboardMasterData)
 
 //contaner Plan
 router.get('/getAllPlans',planController.getPlans)

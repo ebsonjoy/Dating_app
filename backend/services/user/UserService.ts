@@ -7,14 +7,16 @@ import { IUserInfo, UserInfoUpdate } from "../../types/userInfo.types";
 import { IUser, IUserProfile } from "../../types/user.types";
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+// import Plan from "../../models/PlanModel";
 import { calculateAge } from "../../utils/calculateAge";
 import { ISubscriptionDetails } from "../../types/user.types";
 import mongoose from "mongoose";
 import { IPlan, IPlanDocument } from "../../types/plan.types";
 import { deleteImageFromS3 } from "../../config/multer";
 import { ILikeData, ILikeProfile } from "../../types/like.types";
-// import { CreateVideoCallHistoryDto, IVideoCall, VideoCallHistoryResponseDto } from "../../types/videoCall.types";
-// import { IMatch } from "../../types/match.types";
+import { calculateExpiryDate } from "../../utils/calculateExpDate";
+// import { IPayment,CreatePaymentInput } from "../../types/payment.types";
+
 
 
 @injectable()
@@ -34,21 +36,67 @@ export class UserService implements IUserService {
          throw new Error('Failed to autheticate user');
     }
     }
+    // async registerUser(userData: IUser): Promise<IUser | null> {
+
+    //     try {
+    //         const otp = generateOTP();
+    //         const otpExpiresAt = new Date(Date.now() + 1 * 60 * 1000);
+    //         const user = await this.userRepository.register({
+    //             ...userData,
+    //             otp,
+    //             otpExpiresAt
+    //         });
+    
+    //         await sendOTP(userData.email, otp);
+    //         return user;
+    //     } catch (error) {
+    //         console.log(error);
+    //         throw new Error('Failed to register user');
+    //     }
+    // }
+
 
     async registerUser(userData: IUser): Promise<IUser | null> {
+        const planId = '675315d8356f388bd2d2844e';
+    
+        let dataToUpdate: Partial<IUser> | null = null;
+    
         try {
+            const currentPlan = await this.userRepository.findPlanById(planId);
+    
+            if (currentPlan) {
+                dataToUpdate = {
+                    subscription: {
+                        isPremium: true,
+                        planId: currentPlan._id ? new mongoose.Types.ObjectId(planId) : null,
+                        // planExpiryDate: calculateExpiryDate(currentPlan.duration),
+                        planExpiryDate:  new Date(Date.now() + 2 * 60 * 1000),
+                        planStartingDate: new Date(),
+                    },
+                };
+            }
+    
             const otp = generateOTP();
-            const otpExpiresAt = new Date(Date.now() + 1 * 60 * 1000);
+            const otpExpiresAt = new Date(Date.now() + 1 * 60 * 1000); 
             const user = await this.userRepository.register({
                 ...userData,
                 otp,
-                otpExpiresAt
+                otpExpiresAt,
             });
     
+            if (!user) {
+                throw new Error('User registration failed');
+            }
+    
             await sendOTP(userData.email, otp);
+    
+            if (dataToUpdate) {
+                await this.userRepository.update(user._id.toString(), dataToUpdate);
+            }
+    
             return user;
         } catch (error) {
-            console.log(error);
+            console.error(error);
             throw new Error('Failed to register user');
         }
     }
@@ -216,6 +264,49 @@ export class UserService implements IUserService {
         }
     }
 
+    async getUserDetails(userId: string): Promise<IUserProfile[]> {
+        try {
+          // Fetch the user's basic information
+          const user = await this.userRepository.findById(userId);
+          if (!user) {
+            return []; // Return an empty array if the user is not found
+          }
+      
+          // Fetch user's extended profile information
+          const userInfo = await this.userRepository.findUserInfo(userId);
+          if (!userInfo) {
+            return []; // Return an empty array if extended profile info is not found
+          }
+      
+          // Combine the user's basic and extended profile information
+          const matchedUsersWithDetails = [
+              {
+                  userId: userId,
+                  name: user.name || 'Unknown',
+                  age: calculateAge(user.dateOfBirth ? new Date(user.dateOfBirth) : undefined),
+                  gender: userInfo.gender || 'Not specified',
+                  lookingFor: userInfo.lookingFor,
+                  profilePhotos: userInfo.profilePhotos || [],
+                  relationship: userInfo.relationship || 'Not specified',
+                  interests: userInfo.interests || [],
+                  occupation: userInfo.occupation || 'Not specified',
+                  education: userInfo.education || 'Not specified',
+                  bio: userInfo.bio || 'Not specified',
+                  smoking: userInfo.smoking || 'Not specified',
+                  drinking: userInfo.drinking || 'Not specified',
+                  place: userInfo.place || 'Not specified',
+              },
+          ] as unknown as IUserProfile[]; // Ensure this is typed correctly as an array
+      
+          return matchedUsersWithDetails; // Return the array containing one user
+        } catch (error) {
+          console.error(error);
+          throw new Error('Failed to get user details');
+        }
+      }
+      
+      
+
 
 
     async fetchUserPlans(userId:string): Promise<IPlanDocument[]> {
@@ -227,7 +318,6 @@ export class UserService implements IUserService {
         }
 
         if (!user.subscription.isPremium || !user.subscription.planId) {
-            // If not premium, fetch all active plans
             return await this.userRepository.getUserPlans();
         }
 
@@ -294,6 +384,32 @@ export class UserService implements IUserService {
                     planStartingDate: subscriptionData.planStartingDate,
                 },
             };
+            const user = await this.userRepository.findById(userId);
+            if (!user) {
+                throw new Error(`User not found for ID: ${userId}`);
+            }
+    
+            const plan = await this.userRepository.findPlanById(subscriptionData.planId.toString());
+            if (!plan) {
+                throw new Error(`Plan not found for ID: ${subscriptionData.planId}`);
+            }
+
+            const count = await this.userRepository.paymentsCount()
+            const paymentCount = count === null ? 0 : count;
+            const paymentId = (paymentCount + 1).toString().padStart(4, '0');
+
+            const paymentData = {
+                paymentId,
+                userName : user.name,
+                planName:plan.planName,
+                amount : plan.offerPrice,
+                userId: new mongoose.Types.ObjectId(userId),
+                planId: new mongoose.Types.ObjectId(subscriptionData.planId),
+            }
+            if (!paymentData.userName || !paymentData.planName || !paymentData.amount) {
+                throw new Error('Invalid payment data');
+            }
+                await this.userRepository.createPayment(paymentData);
             return await this.userRepository.update(userId, dataToUpdate);
         } catch (error) {
             console.log(error);
@@ -382,6 +498,7 @@ async handleHomeLikes(likesIds: ILikeData): Promise<{ match: boolean; message: s
 
         if (user && userInfo) {
           return {
+            id:user._id,
             name: user.name,
             age: user.dateOfBirth,
             place: userInfo.place,
@@ -406,6 +523,7 @@ async handleHomeLikes(likesIds: ILikeData): Promise<{ match: boolean; message: s
 
         if (user && userInfo) {
           return {
+            id:user._id,
             name: user.name,
             age: user.dateOfBirth,
             place: userInfo.place,
@@ -449,14 +567,6 @@ async handleHomeLikes(likesIds: ILikeData): Promise<{ match: boolean; message: s
     return matchedProfiles.filter((profile) => profile !== null) as unknown as ILikeProfile[];
 
   }
-
-
-  //video call
-
-//   async createVideoCallHistory(videoCallHistory:IVideoCall):Promise<IVideoCall>{
-//     const callHistory = await this.userRepository.create(videoCallHistory);
-//     return callHistory
-//   }
 
 }
 

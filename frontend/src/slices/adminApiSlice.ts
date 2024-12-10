@@ -53,6 +53,25 @@ interface UpdatePlanArgs {
   data: PlansData; 
 }
 
+interface IPayment {
+  paymentId:string;
+  userName: string;
+  planName: string;
+  amount: number;
+  userId: string;
+  planId: string;
+  date?: Date;
+}
+
+export interface IDashboardMasterData{
+  userCount : number;
+  matchesCount : number;
+  totalRevanue : number;
+  premiumUsers : number;
+}
+
+
+
 export const adminApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     // Admin login
@@ -128,6 +147,18 @@ export const adminApiSlice = apiSlice.injectEndpoints({
         body: data,
       }),
     }),
+    getPayment : builder.query<IPayment[], void>({
+      query: () => ({
+        url: `${ADMIN_URL}/paymentDetails`,
+        method: "GET",
+      }),
+    }),
+    getDashBoardMasterData : builder.query<IDashboardMasterData, void>({
+      query: () => ({
+        url: `${ADMIN_URL}/dashBoardMasterData`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -144,4 +175,6 @@ export const {
   useGetOnePlanQuery,
   useUpdatePlanMutation,
   useUpdatePlanStatusMutation,
+  useGetPaymentQuery,
+  useGetDashBoardMasterDataQuery
 } = adminApiSlice;

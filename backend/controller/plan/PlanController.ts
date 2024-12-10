@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from 'express';
 import { inject, injectable } from 'inversify';
 import asyncHandler from 'express-async-handler';
@@ -24,17 +25,6 @@ export class PlanController {
 });
 
 
-// getUserPlan = asyncHandler(async (req: Request, res: Response) => {
-//   try {
-//       const plans = await this.planService.fetchUserPlans();
-//       res.status(HttpStatusCode.OK).json(plans);
-//   } catch (error) {
-//       console.log(error);
-//       res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
-//   }
-// });
-
-
 createPlan = asyncHandler(async (req: Request, res: Response) => {
   const planData: IPlanDocument = req.body;
   console.log(planData);
@@ -42,9 +32,7 @@ createPlan = asyncHandler(async (req: Request, res: Response) => {
   try {
     const newPlan = await this.planService.addNewPlan(planData);
     res.status(HttpStatusCode.CREATED).json(newPlan);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
-    console.log('addPlanControllerrrr', error);
     if (error.message.includes("already exists")) {
       res.status(HttpStatusCode.BAD_REQUEST).json({
         errors: [error.message],
@@ -56,6 +44,8 @@ createPlan = asyncHandler(async (req: Request, res: Response) => {
     }
   }
 });
+
+
 
 
 getOnePlan = asyncHandler(async (req: Request, res: Response) => {
@@ -86,7 +76,6 @@ updatePlan = asyncHandler(async (req: Request, res: Response) => {
           return
       }
       res.status(HttpStatusCode.OK).json(updatedPlan);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error:any) {
       console.log(error);
       if (error.message.includes("already exists")) {
@@ -116,7 +105,5 @@ updatePlanStatus = asyncHandler(async (req: Request, res: Response) => {
       res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
   }
 });
-
-
 
 }

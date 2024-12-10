@@ -5,14 +5,15 @@ import UserInfo from "../../models/UserInfo";
 import Like from "../../models/LikesModel";
 import Match from "../../models/MatchModel";
 import Plan from "../../models/PlanModel";
-// import VideoCall from "../../models/videoCall";
+import Payment from "../../models/PaymentModel";
 import { IUserRepository } from "../../interfaces/user/IUserRepository";
 import { IUser } from "../../types/user.types";
 import { IUserInfo, ILocation } from "../../types/userInfo.types";
 import { IPlan, IPlanDocument } from "../../types/plan.types";
 import { ILikeData,ILike} from "../../types/like.types";
 import { IMatch } from "../../types/match.types";
-// import { IVideoCall } from "../../types/videoCall.types";
+import {IPaymentCreate } from "../../types/payment.types";
+
 
 
 
@@ -24,8 +25,7 @@ export class UserRepository  implements IUserRepository {
         private readonly LikesModel = Like,
         private readonly MatchModel = Match,
         private readonly PlanModel = Plan,
-        // private readonly VideoCallModel = VideoCall
-
+        private readonly PaymentModel = Payment,
     ){}
    
     async findByEmail(email: string): Promise<IUser | null> {
@@ -236,11 +236,14 @@ export class UserRepository  implements IUserRepository {
         })
     }
 
+    async createPayment(paymentData: IPaymentCreate): Promise<void | null> {
+         await this.PaymentModel.create(paymentData)
+    }
 
-    //video call  
-    
-    // async create(videoCallHistory: Partial<IVideoCall>): Promise<IVideoCall> {
-    //     return this.VideoCallModel.create(videoCallHistory);
-    // }
-    
+    async paymentsCount():Promise<number>{
+        return await this.PaymentModel.countDocuments()
+    }
+
+
 }
+

@@ -23,15 +23,6 @@ export class MessageController {
             const newMessage = await this.messageService.sendMessage(senderId,receiverId, messageData);
             
             // SOCKET.IO FUNCTIONALITY
-    // const receiverSocketId = getReceiverSocketId(receiverId);
-    // if (receiverSocketId) {
-    //   io.to(receiverSocketId).emit("newMessage", {
-    //     senderId,
-    //     message: newMessage.message,    
-    //     createdAt: newMessage.createdAt,
-    //   });
-    // }
-
     const receiverSocketId = getReceiverSocketId(receiverId);
 if (receiverSocketId) {
   io.to(receiverSocketId).emit("newMessage", {
@@ -42,7 +33,6 @@ if (receiverSocketId) {
 }
 
     res.status(HttpStatusCode.CREATED).json({ success: true, data: newMessage });
-            // res.status(HttpStatusCode.CREATED).json({ success: true, data: message });
         } catch (error) {
             console.error(error);
             res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ success: false, error: StatusMessage.SEND_MESSAGE_FAILED });
@@ -69,9 +59,24 @@ if (receiverSocketId) {
     });
 
 
-    // createCallHistroy =  asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    createCallHistroy =  asyncHandler(async (req: Request, res: Response): Promise<void> => {
+        const { callerId, receiverId, type, duration, status } = req.body;
+        console.log('hissssssssssssssssssssssssssssssss',req.body)
 
-    // })
+        try {
+            const callHistory = await this.messageService.createCallHistory({callerId,receiverId,type,duration,status})
+            res.status(HttpStatusCode.OK).json({ success: true, data: callHistory });
+            console.log('caaaaaaaaaaaaaaaaaa',callHistory)
+
+        }catch (error) {
+            console.error(error);
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                error: StatusMessage.GET_CHAT_HISTORY_FAILED,
+            });
+        }
+
+    })
 
    
 }

@@ -1,23 +1,23 @@
 import { injectable } from 'inversify';
-// import Message from '../../models/MessageModel';
-// import Conversation from '../../models/conversationModel';
 import { IConversation } from '../../types/conversation.types';
 import { IMessage, IMessageData } from '../../types/message.types';
 import { IMessageRepository } from '../../interfaces/messages/IMessageRepository';
 import { Model } from 'mongoose';
+import { ICallHistory } from '../../types/videoCall.types';
+import { ICallHistoryResponse } from '../../types/videoCall.types';
+
+
 
 @injectable()
 export class MessageRepository implements IMessageRepository {
-    // constructor(
-    //   private readonly ConversationModel = Conversation,
-    //     private readonly MessageModel = Message
-    // ) {}
     private MessageModel: Model<IMessage>;
     private ConversationModel: Model<IConversation>;
+    private CallHistoryModel : Model<ICallHistory>;
   
-    constructor(MessageModel: Model<IMessage>, ConversationModel: Model<IConversation>) {
+    constructor(MessageModel: Model<IMessage>, ConversationModel: Model<IConversation>,CallHistoryModel : Model<ICallHistory>) {
       this.MessageModel = MessageModel;
       this.ConversationModel = ConversationModel;
+      this.CallHistoryModel = CallHistoryModel;
     }
 
     async createMessage(senderId: string, receiverId: string, messageData: IMessageData): Promise<IMessage> {
@@ -63,6 +63,40 @@ async addMessageToConversation(conversationId: string, messageId: string): Promi
   } catch (error) {
     console.error('Error adding message to conversation:', error);
     throw new Error('Failed to add message to conversation');
+  }
+}
+
+
+// call
+
+async createCallHistory(callHistory:ICallHistory):Promise<ICallHistoryResponse>{
+  try{
+    const history = new this.CallHistoryModel({
+      callerId:callHistory.callerId,
+      receiverId:callHistory.receiverId,
+      type:callHistory.type,
+      duration:callHistory.duration,
+      status:callHistory.status
+    })
+    return await history.save()
+  }catch (error) {
+    console.error('Error creating message:', error);
+    throw new Error('Failed to create message');
+  }
+}
+
+async createMessageCallHistory(messageData: IMessageData): Promise<IMessage> {
+  try {
+    const message = new this.MessageModel({
+      message:messageData.message,
+      senderId:messageData.senderId,
+      receiverId:messageData.receiverId,
+      callHistoryId:messageData.callHistoryId,
+    });
+    return await message.save();
+  } catch (error) {
+    console.error('Error creating message:', error);
+    throw new Error('Failed to create message');
   }
 }
 

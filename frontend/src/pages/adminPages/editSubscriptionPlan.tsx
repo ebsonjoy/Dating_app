@@ -59,12 +59,25 @@ const EditPlan: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [currentFeatures, setCurrentFeatures] = useState<string[]>(['', '', '']);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value.trim(),
-    });
-    setErrors({ ...errors, [e.target.name]: '' }); 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    
+    if (name === 'durationValue' || name === 'durationType') {
+      const durationValue = name === 'durationValue' ? value : formData.duration.split(' ')[0];
+      const durationType = name === 'durationType' ? value : formData.duration.split(' ')[1];
+      
+      setFormData(prev => ({
+        ...prev,
+        duration: `${durationValue} ${durationType}`.trim()
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value.trim()
+      }));
+    }
+    
+    setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const validateFields = () => {
@@ -78,23 +91,37 @@ const EditPlan: React.FC = () => {
       features: '',
     };
 
+    // Validate Plan Name
     if (!formData.planName) newErrors.planName = 'Plan Name is required.';
     else if (!/^[A-Za-z\s]+$/.test(formData.planName)) newErrors.planName = 'Plan Name must contain only letters.';
 
-    if (!formData.duration) newErrors.duration = 'Duration is required.';
+    // Validate Duration
+    const [durationValue, durationType] = formData.duration.split(' ');
+    if (!durationValue) {
+      newErrors.duration = 'Duration value is required.';
+    } else if (isNaN(Number(durationValue)) || Number(durationValue) <= 0) {
+      newErrors.duration = 'Duration value must be a positive number.';
+    }
 
+    if (!durationType) {
+      newErrors.duration = 'Duration type is required.';
+    }
+
+    // Validate Offer Percentage
     if (!formData.offerPercentage) {
       newErrors.offerPercentage = 'Offer Percentage is required.';
     } else if (isNaN(Number(formData.offerPercentage)) || Number(formData.offerPercentage) < 1 || Number(formData.offerPercentage) > 100) {
       newErrors.offerPercentage = 'Offer Percentage must be a number between 1 and 100.';
     }
 
+    // Validate Actual Price
     if (!formData.actualPrice) {
       newErrors.actualPrice = 'Actual Price is required.';
     } else if (isNaN(Number(formData.actualPrice)) || Number(formData.actualPrice) <= 0) {
       newErrors.actualPrice = 'Actual Price must be a positive number.';
     }
 
+    // Validate Offer Price
     if (!formData.offerPrice) {
       newErrors.offerPrice = 'Offer Price is required.';
     } else if (isNaN(Number(formData.offerPrice)) || Number(formData.offerPrice) <= 0) {
@@ -103,15 +130,17 @@ const EditPlan: React.FC = () => {
       newErrors.offerPrice = 'Offer Price must be less than or equal to Actual Price.';
     }
 
+    // Validate Offer Name
     if (!formData.offerName) newErrors.offerName = 'Offer Name is required.';
     else if (!/^[A-Za-z\s]+$/.test(formData.offerName)) newErrors.offerName = 'Offer Name must contain only letters.';
 
+    // Validate Features
     if (formData.features.length < 3) {
       newErrors.features = 'You must add at least 3 features.';
     }
 
     setErrors(newErrors);
-    return Object.values(newErrors).every(x => x === ''); 
+    return Object.values(newErrors).every(x => x === '');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -174,6 +203,7 @@ const EditPlan: React.FC = () => {
     return <p>Loading...</p>;
   }
 
+
   return (
     <div className="flex flex-col lg:flex-row h-screen">
       <Navbar />
@@ -197,19 +227,37 @@ const EditPlan: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-white text-sm font-medium mb-2" htmlFor="duration">
-                    Duration (Months)
-                  </label>
-                  <input
-                    type="text"
-                    name="duration"
-                    value={formData.duration}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none"
-                  />
-                  {errors.duration && <p className="text-red-500 text-sm mt-1">{errors.duration}</p>}
-                </div>
+               {/* Edit Plan Duration */}
+<div className="sm:col-span-1">
+    <label htmlFor="duration" className="mb-1 font-semibold text-gray-700">Duration</label>
+    <div className="flex space-x-2">
+        <input
+            type="number"
+            name="durationValue"
+            id="durationValue"
+            value={formData.duration.split(' ')[0] || ''}
+            onChange={handleChange}
+            className={`border ${errors.duration ? 'border-red-500' : 'border-gray-300'} p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-600 bg-gray-800 text-white`}
+            placeholder="Enter duration value (e.g., 3)" 
+            required
+        />
+        <select
+            name="durationType"
+            id="durationType"
+            value={formData.duration.split(' ')[1] || ''}
+            onChange={handleChange}
+            className={`border ${errors.duration ? 'border-red-500' : 'border-gray-300'} p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 bg-gray-800 text-white`}
+        >
+            <option value="">Select Duration Type</option>
+            <option value="days">Days</option>
+            <option value="weeks">Weeks</option>
+            <option value="months">Months</option>
+            <option value="years">Years</option>
+        </select>
+    </div>
+    {errors.duration && <p className="text-red-500 text-sm">{errors.duration}</p>}
+</div>
+
 
                 <div>
                   <label className="block text-white text-sm font-medium mb-2" htmlFor="actualPrice">

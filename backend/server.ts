@@ -26,7 +26,7 @@ initializeSocket(server);
 
 connectDB();
 
-// Middleware
+
 const corsOptions = {
   origin: ["http://localhost:3001"],
   methods: ["GET", "POST", "PUT", "DELETE"],
@@ -38,7 +38,6 @@ app.use(express.json());
 app.use(express.static("backend/public"));
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
 app.get("/", (req, res) => {
   res.send("Server is ready");
 });

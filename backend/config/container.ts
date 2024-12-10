@@ -33,6 +33,7 @@ import { MessageService } from '../services/messages/messageService';
 import { MessageController } from '../controller/messages/MessageController';
 import Message from '../models/MessageModel';
 import Conversation from '../models/conversationModel';
+import CallHistory from '../models/videoCall';
 
 const container = new Container();
 
@@ -65,7 +66,7 @@ container.bind<UserController>('UserController').to(UserController).inSingletonS
 // Message Container
 
 container.bind<IMessageRepository>('IMessageRepository').toDynamicValue(()=>{
-    return new MessageRepository(Message,Conversation)
+    return new MessageRepository(Message,Conversation,CallHistory)
 }).inSingletonScope()
 container.bind<IMessageService>('IMessageService').to(MessageService).inSingletonScope();
 container.bind<MessageController>('MessageController').to(MessageController).inSingletonScope();

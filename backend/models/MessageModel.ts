@@ -17,6 +17,11 @@ const messageSchema = new Schema<IMessage>(
       type: String,
       required: true,
     },
+    callHistory: {
+      type: Schema.Types.ObjectId,
+      ref: "CallHistory",
+      required: false,
+    },
   },
   { timestamps: true } 
 );

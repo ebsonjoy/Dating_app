@@ -9,7 +9,6 @@ import { useDispatch } from "react-redux";
 import { useUpdateUserPersonalInfoMutation } from "../../slices/apiUserSlice";
 import { useUpdateUserDatingInfoMutation } from "../../slices/apiUserSlice";
 import { toast } from "react-toastify";
-// const PROFILE_IMAGE_DIR_PATH = "http://localhost:5000/UserProfileImages/";
 import { useNavigate } from 'react-router-dom';
 import SkeletonLoader from '../../components/skeletonLoader';
 

@@ -79,13 +79,4 @@ export class PlanRepository implements IPlanRepository {
     }
   }
 
-  // async getUserPlans(): Promise<IPlanDocument[]> {
-  //   try {
-  //     const activePlans = await this.model.find({ status: true });
-  //     return activePlans;
-  //   } catch (error) {
-  //     console.error("Error fetching active user plans:", error);
-  //     throw new Error("Failed to retrieve active user plans");
-  //   }
-  // }
 }

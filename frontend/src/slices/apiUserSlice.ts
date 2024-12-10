@@ -8,7 +8,7 @@ import {
   IChatHistory 
 } from '../types/message.types';
 
-import { IVideoCall } from "../types/videoCall.types";
+import { ICallHistory } from "../types/videoCall.types";
 
 
 interface LoginData {
@@ -286,6 +286,10 @@ export const usersApiSlice = apiSlice.injectEndpoints({
       query: (userId) => `${USERS_URL}/getUserProfile/${userId}`,
     }),
 
+    getUserDetails : builder.query<UserProfile[], string>({
+      query:(userId)=> `${USERS_URL}/getUserDetails/${userId}`
+    }),
+
     updateUserPersonalInfo: builder.mutation<RegisterResponse,UpdateUserPersonalInfoArgs>({
       query: ({ userId,data }) => ({
         url: `${USERS_URL}/updatePersonalInfo/${userId}`,
@@ -368,9 +372,9 @@ export const usersApiSlice = apiSlice.injectEndpoints({
     }),
     //video call 
 
-    createVideoCall: builder.mutation<IVideoCall, IVideoCall>({
+    createVideoCall: builder.mutation<void, ICallHistory>({
       query: (data) => ({
-        url: `${USERS_URL}/createVideoCall`,
+        url: `${MESSAGES_URL}/createCallHistory`,
         method: "POST",
         body: data,
       }),
@@ -407,5 +411,6 @@ export const {
   useSendMessageMutation, 
   useGetChatHistoryQuery,
   useCreateVideoCallMutation,
+  useGetUserDetailsQuery,
 
 } = usersApiSlice;

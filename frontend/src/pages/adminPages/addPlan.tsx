@@ -33,16 +33,27 @@ const AddPlan: React.FC = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [currentFeatures, setCurrentFeatures] = useState<string[]>(['', '', '']);
 
-   
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setPlanDetails({
-            ...planDetails,
-            [e.target.name]: e.target.value.trim(),
-        });
-        setErrors({ ...errors, [e.target.name]: '' }); 
+        const { name, value } = e.target;
+        
+        if (name === 'durationValue' || name === 'durationType') {
+            const durationValue = name === 'durationValue' ? value : planDetails.duration.split(' ')[0];
+            const durationType = name === 'durationType' ? value : planDetails.duration.split(' ')[1];
+            
+            setPlanDetails(prev => ({
+                ...prev,
+                duration: `${durationValue} ${durationType}`.trim()
+            }));
+        } else {
+            setPlanDetails(prev => ({
+                ...prev,
+                [name]: value.trim()
+            }));
+        }
+        
+        setErrors(prev => ({ ...prev, [name]: '' }));
     };
 
- 
     const validateFields = () => {
         const newErrors = {
             planName: '',
@@ -54,24 +65,37 @@ const AddPlan: React.FC = () => {
             features: '',
         };
 
-        
+        // Validate Plan Name
         if (!planDetails.planName) newErrors.planName = 'Plan Name is required.';
         else if (!/^[A-Za-z\s]+$/.test(planDetails.planName)) newErrors.planName = 'Plan Name must contain only letters.';
 
-        if (!planDetails.duration) newErrors.duration = 'Duration is required.';
+        // Validate Duration
+        const [durationValue, durationType] = planDetails.duration.split(' ');
+        if (!durationValue) {
+            newErrors.duration = 'Duration value is required.';
+        } else if (isNaN(Number(durationValue)) || Number(durationValue) <= 0) {
+            newErrors.duration = 'Duration value must be a positive number.';
+        }
 
+        if (!durationType) {
+            newErrors.duration = 'Duration type is required.';
+        }
+
+        // Validate Offer Percentage
         if (!planDetails.offerPercentage) {
             newErrors.offerPercentage = 'Offer Percentage is required.';
         } else if (isNaN(Number(planDetails.offerPercentage)) || Number(planDetails.offerPercentage) < 1 || Number(planDetails.offerPercentage) > 100) {
             newErrors.offerPercentage = 'Offer Percentage must be a number between 1 and 100.';
         }
 
+        // Validate Actual Price
         if (!planDetails.actualPrice) {
             newErrors.actualPrice = 'Actual Price is required.';
         } else if (isNaN(Number(planDetails.actualPrice)) || Number(planDetails.actualPrice) <= 0) {
             newErrors.actualPrice = 'Actual Price must be a positive number.';
         }
 
+        // Validate Offer Price
         if (!planDetails.offerPrice) {
             newErrors.offerPrice = 'Offer Price is required.';
         } else if (isNaN(Number(planDetails.offerPrice)) || Number(planDetails.offerPrice) <= 0) {
@@ -80,23 +104,25 @@ const AddPlan: React.FC = () => {
             newErrors.offerPrice = 'Offer Price must be less than or equal to Actual Price.';
         }
 
+        // Validate Offer Name
         if (!planDetails.offerName) newErrors.offerName = 'Offer Name is required.';
         else if (!/^[A-Za-z\s]+$/.test(planDetails.offerName)) newErrors.offerName = 'Offer Name must contain only letters.';
 
+        // Validate Features
         if (planDetails.features.length < 3) {
             newErrors.features = 'You must add at least 3 features.';
         }
 
         setErrors(newErrors);
-        return Object.values(newErrors).every(x => x === ''); 
+        return Object.values(newErrors).every(x => x === '');
     };
 
-    // Handle form submission
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!validateFields()) return;
-        console.log(planDetails)
+        console.log('Plan added successfullyyyyyyyyyyyy:', planDetails);
+
 
         try {
             const response = await addPlan(planDetails).unwrap();
@@ -115,8 +141,7 @@ const AddPlan: React.FC = () => {
             });
             navigate('/admin/subscriptionPlans?refresh=true');
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (error:any) {
+        } catch (error: any) {
             console.error('Failed to add plan:', error);
             if (error?.data?.errors && Array.isArray(error.data.errors)) {
                 error.data.errors.forEach((errMsg: string) => {
@@ -132,7 +157,6 @@ const AddPlan: React.FC = () => {
     const closeModal = () => setModalOpen(false);
 
     const saveFeatures = () => {
-        
         if (currentFeatures.filter(f => f.trim() !== '').length < 3) {
             toast.error('Please add at least 3 features.');
             return;
@@ -167,21 +191,36 @@ const AddPlan: React.FC = () => {
                                 {errors.planName && <p className="text-red-500 text-sm">{errors.planName}</p>}
                             </div>
     
-                            {/* Duration */}
-                            <div className="sm:col-span-1">
-                                <label htmlFor="duration" className="mb-1 font-semibold text-gray-700">Duration</label>
-                                <input
-                                    type="text"
-                                    name="duration"
-                                    id="duration"
-                                    value={planDetails.duration}
-                                    onChange={handleChange}
-                                    className={`border ${errors.duration ? 'border-red-500' : 'border-gray-300'} p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-600 bg-gray-800 text-white`}
-                                    placeholder="Enter duration (e.g., 1 month)"
-                                    required
-                                />
-                                {errors.duration && <p className="text-red-500 text-sm">{errors.duration}</p>}
-                            </div>
+<div className="sm:col-span-1">
+    <label htmlFor="duration" className="mb-1 font-semibold text-gray-700">Duration</label>
+    <div className="flex space-x-2">
+        <input
+            type="number"
+            name="durationValue"
+            id="durationValue"
+            value={planDetails.duration.split(' ')[0] || ''}
+            onChange={handleChange}
+            className={`border ${errors.duration ? 'border-red-500' : 'border-gray-300'} p-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-600 bg-gray-800 text-white`}
+            placeholder="Enter duration value (e.g., 3)"
+            required
+        />
+        <select
+            name="durationType"
+            id="durationType"
+            value={planDetails.duration.split(' ')[1] || ''}
+            onChange={handleChange}
+            className={`border ${errors.duration ? 'border-red-500' : 'border-gray-300'} p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-600 bg-gray-800 text-white`}
+        >
+            <option value="">Select Duration Type</option>
+            <option value="days">Days</option>
+            <option value="weeks">Weeks</option>
+            <option value="months">Months</option>
+            <option value="years">Years</option>
+        </select>
+    </div>
+    {errors.duration && <p className="text-red-500 text-sm">{errors.duration}</p>}
+</div>
+
     
                             {/* Offer Percentage */}
                             <div className="sm:col-span-1">

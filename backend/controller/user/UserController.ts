@@ -16,31 +16,6 @@ export class UserController {
     ){}
 
 
-
-    // authUser = asyncHandler(async (req: Request, res: Response) => {
-    //     try {
-    //         const { email, password } = req.body;
-    //         const user = await this.userService.authenticateUser(email, password);
-    //         if (!user) {
-    //             res.status(HttpStatusCode.NOT_FOUND).json({ message: StatusMessage.NOT_FOUND });
-    //             return;
-    //         }
-    //         if (user.status === false) {
-    //             res.status(HttpStatusCode.FORBIDDEN).json({ message: StatusMessage.FORBIDDEN });
-    //             return;
-    //         }
-    //         generateToken(res, user._id.toString());
-    //         res.status(HttpStatusCode.OK).json({
-    //             _id: user._id,
-    //             name: user.name,
-    //             email: user.email,
-    //         });
-    //     } catch (error) {
-    //         console.log(error)
-    //         res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
-    //     }
-    // });
-
     authUser = asyncHandler(async (req: Request, res: Response) => {
         try {
             const { email, password } = req.body;
@@ -72,17 +47,6 @@ export class UserController {
         }
     });
     
-
-
-    // logoutUser = asyncHandler(async (req: Request, res: Response) => {
-    //     try {
-    //         res.cookie("jwt", "", { httpOnly: true, expires: new Date(0) });
-    //         res.status(HttpStatusCode.OK).json({ message: StatusMessage.SUCCESS });
-    //     } catch (error) {
-    //         console.log(error);
-    //         res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
-    //     }
-    // });
 
     logoutUser = asyncHandler(async (req: Request, res: Response) => {
         try {
@@ -286,6 +250,7 @@ export class UserController {
         try {
             const matchedUsers = await this.userService.getMatchedUsers(userId);
             res.status(HttpStatusCode.OK).json(matchedUsers);
+            // console.log(matchedUsers)
         } catch (error: unknown) {
             console.log(error);
             res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
@@ -307,11 +272,20 @@ export class UserController {
         }
     });
     
+    getUserDetails = asyncHandler(async (req: Request, res: Response) => {
+        const userId = req.params.userId;
+        try {
+            const matchedUsers = await this.userService.getUserDetails(userId);
+            res.status(HttpStatusCode.OK).json(matchedUsers);
+        } catch (error: unknown) {
+            console.log(error);
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
+        }
+    });
 
     updatedPersonalInfo = asyncHandler(async (req: Request, res: Response) => {
         const { userId } = req.params;
         const userPeronalData = req.body;
-        console.log(userPeronalData)
         try {
             const updatedPersonalInfo = await this.userService.updateUserPersonalInfo(userId, userPeronalData);
     
@@ -474,28 +448,5 @@ export class UserController {
             res.status(500).json({ message: "Failed to fetch received likes count" });
         }
     })
-
-
-    //video call
-
-    // createVideoCallHistory = asyncHandler(async (req: Request, res: Response) => {
-    //     const {videoCallHistory} = req.body
-
-    //     console.log('controoooooooooooooooooooooo',videoCallHistory)
-
-    //     if (!videoCallHistory) {
-    //       res.status(HttpStatusCode.BAD_REQUEST).json({
-    //           message: "videoCallHistory is required in the request body.",
-    //         });
-    //         return 
-    //       }
-    //     try {
-    //         const videoCall = await this.userService.createVideoCallHistory(videoCallHistory);
-    //         res.status(HttpStatusCode.OK).json(videoCall);
-    //     } catch (error: unknown) {
-    //         console.log(error);
-    //         res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
-    //     }
-    // });
     
 }

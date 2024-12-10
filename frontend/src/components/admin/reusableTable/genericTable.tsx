@@ -1,20 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 
-// Generic type for table data
+
 interface TableData {
   [key: string]: any;
   _id: string;
 }
 
-// Column definition interface
+
 interface Column<T> {
   key: keyof T;
   label: string;
   render?: (value: any, row: T) => React.ReactNode;
 }
 
-// Props interface for the table
 interface GenericTableProps<T extends TableData> {
   data: T[];
   columns: Column<T>[];
@@ -36,13 +35,13 @@ function GenericTable<T extends TableData>({
   const [search, setSearch] = useState('');
   const [filteredData, setFilteredData] = useState<T[]>(data);
 
-  // Reset current page when data changes
+
   useEffect(() => {
     setFilteredData(data);
     setCurrentPage(1);
   }, [data]);
 
-  // Search and filter logic
+
   useEffect(() => {
     const filtered = data.filter(item => 
       searchKeys.some(key => 
@@ -53,13 +52,13 @@ function GenericTable<T extends TableData>({
     setCurrentPage(1);
   }, [search, data]);
 
-  // Pagination calculations
+
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
 
-  // Pagination handlers
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
@@ -77,7 +76,6 @@ function GenericTable<T extends TableData>({
         />
       </div>
 
-      {/* Responsive Table */}
       <div className="overflow-x-auto">
         {/* Desktop Table */}
         <table className="hidden md:table w-full table-auto">
@@ -112,7 +110,7 @@ function GenericTable<T extends TableData>({
           </tbody>
         </table>
 
-        {/* Mobile Card Layout */}
+   
         <div className="block md:hidden">
           {currentItems.map((row) => (
             <div key={row._id} className="bg-white shadow-md rounded-md mb-4 p-4">
@@ -135,7 +133,7 @@ function GenericTable<T extends TableData>({
         </div>
       </div>
 
-      {/* Pagination */}
+     
       <div className="flex justify-center mt-4">
         <div className="space-x-2">
           {Array.from({ length: totalPages }, (_, index) => (

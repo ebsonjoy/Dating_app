@@ -4,7 +4,7 @@ import { UserInfoUpdate } from "../../types/userInfo.types";
 import { IPlan, IPlanDocument } from "../../types/plan.types";
 import { ILike, ILikeData } from "../../types/like.types";
 import {IMatch} from '../../types/match.types'
-// import { IVideoCall } from "../../types/videoCall.types";
+import { IPaymentCreate } from "../../types/payment.types";
 
 
 export interface IUserRepository {
@@ -30,12 +30,11 @@ export interface IUserRepository {
     findReceivedLikes(likedUserId: string): Promise<ILikeData[]>;
     findMatchedProfileById(user1Id:string):Promise<IMatch[]>;
     userReceivedLikesCount(user1Id:string):Promise<number>;
+    createPayment(paymentData:IPaymentCreate) : Promise<void | null>
+    paymentsCount():Promise<number | null>
 
-    //videocall
-    // create(videoCallHistory: Partial<IVideoCall>): Promise<IVideoCall>;
-    // findByUserId(userId: string, limit?: number): Promise<IVideoCall[]>;
 
-    
 
-   
+
+
 }

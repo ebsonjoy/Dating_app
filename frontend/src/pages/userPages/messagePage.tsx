@@ -35,7 +35,7 @@ interface CallState {
 }
 
 const MatchesAndChat: React.FC = () => {
-  const { socket } = useSocketContext();
+  const { socket,onlineUsers } = useSocketContext();
   const [sendMessageMutation] = useSendMessageMutation();
   const { userInfo } = useSelector((state: RootState) => state.auth);
   const userId = userInfo?._id;
@@ -184,7 +184,7 @@ const MatchesAndChat: React.FC = () => {
         senderId: userId,
         receiverId: selectedMatch,
         message: messageInput,
-        createdAt: new Date().toISOString(), // Add timestamp when sending
+        createdAt: new Date().toISOString(), 
       };
 
       await sendMessageMutation(newMessage).unwrap();
@@ -207,7 +207,7 @@ const MatchesAndChat: React.FC = () => {
   // Handle match selection
   const handleMatchSelect = (matchId: string) => {
     setSelectedMatch(matchId);
-    refetchChatHistory(); // Fetch latest messages when selecting a match
+    refetchChatHistory();
   };
 
   const handleVideoCall = () => {
@@ -274,26 +274,35 @@ const MatchesAndChat: React.FC = () => {
                     filteredMatches.map(
                       (match: MatchProfile, index: number) => (
                         <div
-                          key={index}
-                          onClick={() => handleMatchSelect(match.id)}
-                          className={`flex items-center p-2 rounded-lg hover:bg-pink-50 transition-all cursor-pointer ${
-                            selectedMatch === match.id ? "bg-pink-100" : ""
-                          }`}
-                        >
-                          <img
-                            src={match.image[0]}
-                            alt={match.name}
-                            className="w-10 h-10 rounded-full object-cover border-2 border-pink-500"
-                          />
-                          <div className="ml-3 overflow-hidden">
-                            <h3 className="font-semibold text-gray-800 truncate">
-                              {match.name}
-                            </h3>
-                            <p className="text-xs text-gray-600 truncate">
-                              {calculateAge(match.age)} years • {match.place}
-                            </p>
-                          </div>
-                        </div>
+    key={index}
+    onClick={() => handleMatchSelect(match.id)}
+    className={`flex items-center p-2 rounded-lg hover:bg-pink-50 transition-all cursor-pointer ${
+      selectedMatch === match.id ? "bg-pink-100" : ""
+    }`}
+  >
+    <div className="relative">
+      <img
+        src={match.image[0]}
+        alt={match.name}
+        className="w-10 h-10 rounded-full object-cover border-2 border-pink-500"
+      />
+      {/* Online status indicator */}
+      {onlineUsers.includes(match.id) && (
+        <div 
+          className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" 
+          title="Online"
+        />
+      )}
+    </div>
+    <div className="ml-3 overflow-hidden">
+      <h3 className="font-semibold text-gray-800 truncate">
+        {match.name}
+      </h3>
+      <p className="text-xs text-gray-600 truncate">
+        {calculateAge(match.age)} years • {match.place}
+      </p>
+    </div>
+  </div>
                       )
                     )
                   )}

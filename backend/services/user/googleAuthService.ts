@@ -2,7 +2,6 @@ import { OAuth2Client } from 'google-auth-library';
 import { IUser } from '../../types/user.types';
 import User from '../../models/User';
 import crypto from 'crypto';
-// import UserInfo from '../../models/UserInfo';
 export class GoogleAuthService {
   private client: OAuth2Client;
 

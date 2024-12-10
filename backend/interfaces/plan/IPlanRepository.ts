@@ -6,5 +6,4 @@ export interface IPlanRepository {
   create(plan: Partial<IPlanDocument>): Promise<IPlanDocument>;
   update(id: string, plan: Partial<IPlanDocument>): Promise<IPlanDocument | null>;
   updateStatus(id: string, status: boolean): Promise<IPlanDocument | null>;
-  // getUserPlans(): Promise<IPlanDocument[]>;
 }

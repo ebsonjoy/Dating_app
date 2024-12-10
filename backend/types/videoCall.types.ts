@@ -46,3 +46,13 @@ export interface ICallHistory {
   createdAt?: Date;
 }
 
+export interface ICallHistoryResponse {
+  _id:Types.ObjectId;
+  callerId: Types.ObjectId; 
+  receiverId: Types.ObjectId;
+  type: 'video-call' | 'missed-call' | 'rejected-call';
+  duration?: number;
+  status: 'started' | 'ended' | 'rejected' | 'missed';
+  createdAt?: Date;
+}
+

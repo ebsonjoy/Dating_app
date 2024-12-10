@@ -37,6 +37,12 @@ const LikesPage: React.FC = () => {
     }
     return age;
   };
+console.log('ddddddddddddddddddddddddd',displayedData)
+  
+  const handleMatchClick = (partnerUserId: string) => {
+    console.log('iiiiiiiiiiiiiidddddddd',partnerUserId)
+    navigate("/userDetails", { state: { partnerUserId } });
+  };
 
   
   if (isLoading) return <SkeletonLoader />;
@@ -115,7 +121,7 @@ const LikesPage: React.FC = () => {
             ) : (
               <div className="flex items-center gap-2">
                 <Send className="text-blue-500" size={32} />
-                <span>Sent Likes</span>
+                <span>Requested Likes</span>
               </div>
             )}
           </h1>
@@ -174,7 +180,7 @@ const LikesPage: React.FC = () => {
                 </div>
                 
                 <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <button className="w-full py-2 bg-white/90 rounded-full text-gray-800 font-medium hover:bg-white transition-colors duration-200">
+                  <button className="w-full py-2 bg-white/90 rounded-full text-gray-800 font-medium hover:bg-white transition-colors duration-200" onClick={() => handleMatchClick(profile.id)}>
                     View Profile
                   </button>
                 </div>
