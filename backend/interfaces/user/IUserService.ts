@@ -4,6 +4,7 @@ import { IUserProfile } from "../../types/user.types";
 import { ISubscriptionDetails } from "../../types/user.types";
 import { IPlan, IPlanDocument } from "../../types/plan.types";
 import { ILikeData,ILikeProfile } from "../../types/like.types";
+import { IAdviceCategory, IArticle } from "../../types/advice.types";
 
 
 export interface IUserService {
@@ -31,5 +32,10 @@ export interface IUserService {
     getReceivedLikesProfiles(userId: string): Promise<ILikeProfile[] | null>;
     getmatchProfile(userId:string) : Promise<ILikeProfile[]>
     getReceivedLikesCount(user1Id:string) :Promise<number>;
+
+     getAdviceCategory():Promise<IAdviceCategory[] | null>
+     getArticleByCategoryId(categoryId:string) : Promise<IArticle[] | null>
+     getArticleById(articleId:string) : Promise<IArticle | null>
+
 
 }

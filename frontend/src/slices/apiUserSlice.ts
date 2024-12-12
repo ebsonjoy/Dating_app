@@ -198,6 +198,23 @@ interface ILikesCount{
   count: number
 }
 
+interface IAdviceCategory {
+  _id: string;
+  name: string;
+  description: string;
+  image: string;
+  isBlock: boolean;
+}
+
+interface IArticle {
+  _id: string;
+  title: string;
+  content: string;
+  image: string;
+  categoryId: string;
+  isBlock: boolean;
+}
+
 export const usersApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation<{ token: string }, LoginData>({
@@ -380,6 +397,18 @@ export const usersApiSlice = apiSlice.injectEndpoints({
       }),
     }),
 
+    // advice
+
+    getAdviceCategories: builder.query<IAdviceCategory[], void>({
+      query: () => `${USERS_URL}/getAdviceCategory`,
+    }),
+    getArticlesByCategory: builder.query<IArticle[], string>({
+      query: (categoryId) =>  `${USERS_URL}/getArticleByCategoryId/${categoryId}`,
+    }),
+    getArticleById: builder.query<IArticle, string>({
+      query: (articleId) =>  `${USERS_URL}/getArticleById/${articleId}`,
+    }),
+
   }),
 });
 
@@ -412,5 +441,9 @@ export const {
   useGetChatHistoryQuery,
   useCreateVideoCallMutation,
   useGetUserDetailsQuery,
+
+  useGetAdviceCategoriesQuery, 
+  useGetArticlesByCategoryQuery,
+  useGetArticleByIdQuery 
 
 } = usersApiSlice;

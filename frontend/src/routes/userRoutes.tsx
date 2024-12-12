@@ -21,9 +21,9 @@ import NotFound from '../components/user/notFoundPage';
 import MessagesPage from '../pages/userPages/messagePage';
 import UserDetails from '../pages/userPages/userDetailsPage';
 
-import AdvicePage from '../pages/userPages/advicePage';
 
 import GamePage from '../pages/userPages/gamePage'
+import AdviceCategories from '../pages/userPages/AdviceCategories';
 
 
 const userRoutes = (
@@ -52,7 +52,7 @@ const userRoutes = (
       <Route path="/userDetails" element={<UserDetails />} />
 
 
-      <Route path="/advice" element={<AdvicePage />} />
+      <Route path="/dating-advice" element={<AdviceCategories />} />
       <Route path="/game-zone" element={<GamePage />} />
 
 

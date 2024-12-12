@@ -448,5 +448,36 @@ export class UserController {
             res.status(500).json({ message: "Failed to fetch received likes count" });
         }
     })
+
+    getCategories = asyncHandler(async(req: Request,res:Response)=>{
+        try{
+            const category = await this.userService.getAdviceCategory()
+            res.status(HttpStatusCode.OK).json(category)
+        }catch(error){
+            console.log(error)
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: "Failed to fetch category" });
+        }
+    })
     
+    getArticleByCategoryId = asyncHandler(async(req: Request,res:Response)=>{
+        const {categoryId} = req.params
+        try{
+            const article = await this.userService.getArticleByCategoryId(categoryId)
+            res.status(HttpStatusCode.OK).json(article)
+        }catch(error){
+            console.log(error)
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: "Failed to fetch article" });
+        }
+    })
+
+    getArticleById = asyncHandler(async(req: Request,res:Response)=>{
+        const {articleId} = req.params
+        try{
+            const article = await this.userService.getArticleById(articleId)
+            res.status(HttpStatusCode.OK).json(article)
+        }catch(error){
+            console.log(error)
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: "Failed to fetch article" });
+        }
+    })
 }

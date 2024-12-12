@@ -8,6 +8,8 @@ import SubscriptionPlans from '../pages/adminPages/subscriptionPlans';
 import AddPlan from '../pages/adminPages/addPlan';
 import EditPlan from '../pages/adminPages/editSubscriptionPlan';
 import PaymentDetails from '../pages/adminPages/paymentDetails';
+import AdviceManagement from '../pages/adminPages/adviceCategoryPage';
+import ArticleManagement from '../pages/adminPages/articlePage';
 
 const adminRoutes = (
   <Route path="/" element={<App />}>
@@ -18,6 +20,15 @@ const adminRoutes = (
     <Route path="/admin/addPlans" element={<AddPlan />} />
     <Route path="/admin/editPlan/:planId" element={<EditPlan />} />
     <Route path="/admin/paymentDetails" element={<PaymentDetails />} />
+    <Route path="/admin/adviceCatergory" element={<AdviceManagement />} />
+    <Route path="/admin/editAdviceCatergory/:categoryId" element={<AdviceManagement />} />
+
+
+    <Route path="/admin/article" element={<ArticleManagement />} />
+    <Route path="/admin/editArticle/:articleId" element={<ArticleManagement />} />
+
+
+
   </Route>
 );
 

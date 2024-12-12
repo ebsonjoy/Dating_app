@@ -30,7 +30,7 @@ const Navbar: React.FC = () => {
     { name: 'Dashboard', path: '/admin/Dashboard', icon: FiGrid },
     { name: 'Users', path: '/admin/usersList', icon: FiUsers },
     { name: 'Matches', path: '/admin/matches', icon: FiHeart },
-    { name: 'Advice', path: '/admin/advice', icon: FiBookOpen },
+    { name: 'Advice', path: '/admin/adviceCatergory', icon: FiBookOpen },
     { name: 'Subscription', path: '/admin/subscriptionPlans', icon: BiRupee },
   ];
 

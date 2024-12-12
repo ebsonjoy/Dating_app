@@ -51,5 +51,11 @@ router.get('/getReceivedLikesCount/:userId',userProtect,userController.getReceiv
 //MATCH
 router.get('/getMathProfiles/:userId',userProtect,userController.getMathProfiles)
 
+//ADVICE
+router.get('/getAdviceCategory',userProtect,userController.getCategories)
+router.get('/getArticleByCategoryId/:categoryId',userProtect,userController.getArticleByCategoryId)
+router.get('/getArticleById/:articleId',userProtect,userController.getArticleById)
+
+
 
 export default router;

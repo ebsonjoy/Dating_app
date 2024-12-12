@@ -1,5 +1,7 @@
 import { Server, Socket } from "socket.io";
 import http from "http";
+// import User from "../models/User";
+// import Match from "../models/MatchModel";
 
 interface PlayerOne {
   p1name: string;
@@ -125,7 +127,7 @@ socket.on("find", (e: { name: string }) => {
         p1: p1obj,
         p2: p2obj,
         sum: 0,
-        board: Array(9).fill(""), // Initialize an empty board
+        board: Array(9).fill(""),
       };
       playingArray.push(obj);
 

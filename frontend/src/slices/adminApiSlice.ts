@@ -70,6 +70,44 @@ export interface IDashboardMasterData{
   premiumUsers : number;
 }
 
+export interface IAdviceCategory{
+  name: string;
+  description: string;
+  image: string; 
+  isBlock : boolean
+}
+
+export interface IArticle {
+  title: string;
+  image: string;
+  content: string; 
+  categoryId:string; 
+  isBlock : boolean
+}
+interface IBlockAdviceCategory{
+  categoryId:string;
+  newStatus:boolean;
+}
+
+interface IBlockArticle{
+  articleId:string;
+  newStatus:boolean;
+}
+
+interface IAdviceCategoryUpdate{
+  categoryId: string
+  name: string;
+  description: string;
+  image: File
+}
+
+export interface IArticleUpdate {
+  articleId: string
+  title: string;
+  image: File
+  content: string; 
+  categoryId:string; 
+}
 
 
 export const adminApiSlice = apiSlice.injectEndpoints({
@@ -159,6 +197,77 @@ export const adminApiSlice = apiSlice.injectEndpoints({
         method: "GET",
       }),
     }),
+
+    //Advice
+    // category
+
+    getAdviceCategories : builder.query<IAdviceCategory[], void>({
+      query: () => ({
+        url: `${ADMIN_URL}/getAdviceCategories`,
+        method: "GET",
+      }),
+    }),
+    addAdviceCategory: builder.mutation<{ message: string }, IAdviceCategory>({
+      query: (data) => ({
+        url: `${ADMIN_URL}/createAdviceCategory`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+    blockAdviceCategory: builder.mutation<void, IBlockAdviceCategory>({
+      query: ({ categoryId, newStatus }) => ({
+        url: `${ADMIN_URL}/blockAdviceCategory/${categoryId}`,
+        method: "PUT",
+        body: {newStatus }, 
+      }),
+    }),
+    getSingleAdviceCategory: builder.query<IAdviceCategory, string>({
+      query: (categoryId) => `${ADMIN_URL}/getSingleAdviceCategory/${categoryId}`,
+    }),
+
+    updateAdviceCategory: builder.mutation<{ message: string }, IAdviceCategoryUpdate>({
+      query: ({ categoryId,formData }) => ({
+        url: `${ADMIN_URL}/updateAdviceCategory/${categoryId}`,
+        method: "PUT",
+        body: formData,
+      }),
+    }),
+
+    //Article
+
+    addArticle: builder.mutation<{ message: string }, IArticle>({
+      query: (data) => ({
+        url: `${ADMIN_URL}/createArticle`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+    getArticles : builder.query<IArticle[], void>({
+      query: () => ({
+        url: `${ADMIN_URL}/getArticles`,
+        method: "GET",
+      }),
+    }),
+
+    blockArticle: builder.mutation<void, IBlockArticle>({
+      query: ({ articleId, newStatus }) => ({
+        url: `${ADMIN_URL}/blockArticle/${articleId}`,
+        method: "PUT",
+        body: {newStatus }, 
+      }),
+    }),
+    getSingleArticle: builder.query<IArticle, string>({
+      query: (articleId) => `${ADMIN_URL}/getSingleArticle/${articleId}`,
+    }),
+
+    updateArticle: builder.mutation<{ message: string }, IArticleUpdate>({
+      query: ({ articleId,formData }) => ({
+        url: `${ADMIN_URL}/updateArticle/${articleId}`,
+        method: "PUT",
+        body: formData,
+      }),
+    }),
+
   }),
 });
 
@@ -176,5 +285,16 @@ export const {
   useUpdatePlanMutation,
   useUpdatePlanStatusMutation,
   useGetPaymentQuery,
-  useGetDashBoardMasterDataQuery
+  useGetDashBoardMasterDataQuery,
+  useGetAdviceCategoriesQuery,
+  useGetArticlesQuery,
+  useAddAdviceCategoryMutation,
+  useAddArticleMutation,
+  useBlockAdviceCategoryMutation,
+  useGetSingleAdviceCategoryQuery,
+  useUpdateAdviceCategoryMutation,
+  useBlockArticleMutation,
+  useGetSingleArticleQuery,
+  useUpdateArticleMutation,
+
 } = adminApiSlice;

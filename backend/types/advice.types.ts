@@ -3,20 +3,29 @@ import mongoose, { Document } from "mongoose";
 
 export interface IAdviceCategory extends Document {
   name: string;
-  image: string; // URL for category image
+  description: string;
+  image: string; 
+  isBlock: boolean;
 }
-
-
-export interface IAdviceSubcategory extends Document {
-    name: string;
-    image: string;
-    previewPoints: string[]; // Three points for preview
-    categoryId: mongoose.Types.ObjectId; // Reference to parent category
-  }
 
   export interface IArticle extends Document {
     title: string;
-    image: string[];
-    content: string; // Detailed explanation
-    subcategoryId: mongoose.Types.ObjectId; // Reference to parent subcategory
+    image: string;
+    content: string; 
+    categoryId: mongoose.Types.ObjectId; 
+    isBlock: boolean;
+  }
+
+  export interface ICreateAdviceCategory{
+    name: string;
+    description: string;
+    image: string; 
+  }
+
+
+  export interface ICreateArticle {
+    title: string;
+    image: string;
+    content: string; 
+    categoryId: mongoose.Types.ObjectId; 
   }

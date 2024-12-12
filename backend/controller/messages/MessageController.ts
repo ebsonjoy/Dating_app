@@ -14,11 +14,7 @@ export class MessageController {
 
     sendMessage = asyncHandler(async (req: Request, res: Response): Promise<void> => {
         const receiverId = req.params.userId
-     console.log('message sending receiviverId', receiverId)
         const { senderId, ...messageData } = req.body;
-     console.log('message sending senderId', senderId)
-     console.log('message sending message Dataaaaaa', messageData)
-
         try {
             const newMessage = await this.messageService.sendMessage(senderId,receiverId, messageData);
             

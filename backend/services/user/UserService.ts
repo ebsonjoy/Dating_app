@@ -15,6 +15,7 @@ import { IPlan, IPlanDocument } from "../../types/plan.types";
 import { deleteImageFromS3 } from "../../config/multer";
 import { ILikeData, ILikeProfile } from "../../types/like.types";
 import { calculateExpiryDate } from "../../utils/calculateExpDate";
+import { IAdviceCategory, IArticle } from "../../types/advice.types";
 // import { IPayment,CreatePaymentInput } from "../../types/payment.types";
 
 
@@ -567,6 +568,19 @@ async handleHomeLikes(likesIds: ILikeData): Promise<{ match: boolean; message: s
     return matchedProfiles.filter((profile) => profile !== null) as unknown as ILikeProfile[];
 
   }
+
+    async getAdviceCategory(): Promise<IAdviceCategory[] | null> {
+      return await this.userRepository.getAdviceCategory()
+  }
+  async getArticleByCategoryId(categoryId: string): Promise<IArticle[] | null> {
+      return await this.userRepository.getArticleByCategoryId(categoryId)
+  }
+
+  async getArticleById(articleId: string): Promise<IArticle | null> {
+      return await this.userRepository.getArticleById(articleId)
+  }
+
+
 
 }
 

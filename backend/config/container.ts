@@ -35,11 +35,18 @@ import Message from '../models/MessageModel';
 import Conversation from '../models/conversationModel';
 import CallHistory from '../models/videoCall';
 
+//Advice
+import { IAdviceRepository } from '../interfaces/advice/IAdviceRepository';
+import { IAdviceService } from '../interfaces/advice/IAdviceService';
+import { AdviceRepository } from '../repositories/advice/AdviceRepository';
+import { AdviceService } from '../services/advice/AdviceService';
+import { AdviceController } from '../controller/advice/AdviceController';
+import AdviceCategory from '../models/AdviceCategory';
+import Article from '../models/Article';
+
 const container = new Container();
 
 // PLAN Container
-
-
 container.bind<IPlanRepository>('IPlanRepository').toDynamicValue(() => {
     return new PlanRepository(Plan);
 }).inSingletonScope();
@@ -48,7 +55,6 @@ container.bind<PlanController>('PlanController').to(PlanController).inSingletonS
 
 
 // Admin Container
-
 container.bind<IAdminRepository>('IAdminRepository').toDynamicValue(() => {
     return new AdminRepository(Admin, User);
 }).inSingletonScope();
@@ -64,11 +70,17 @@ container.bind<IUserService>('IUserService').to(UserService).inSingletonScope();
 container.bind<UserController>('UserController').to(UserController).inSingletonScope();
 
 // Message Container
-
 container.bind<IMessageRepository>('IMessageRepository').toDynamicValue(()=>{
     return new MessageRepository(Message,Conversation,CallHistory)
 }).inSingletonScope()
 container.bind<IMessageService>('IMessageService').to(MessageService).inSingletonScope();
 container.bind<MessageController>('MessageController').to(MessageController).inSingletonScope();
+
+//Advice Container
+container.bind<IAdviceRepository>('IAdviceRepository').toDynamicValue(() => {
+    return new AdviceRepository(AdviceCategory,Article);
+}).inSingletonScope();
+container.bind<IAdviceService>('IAdviceService').to(AdviceService).inSingletonScope();
+container.bind<AdviceController>('AdviceController').to(AdviceController).inSingletonScope();
 
 export { container };

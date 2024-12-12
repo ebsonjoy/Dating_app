@@ -13,6 +13,9 @@ import { IPlan, IPlanDocument } from "../../types/plan.types";
 import { ILikeData,ILike} from "../../types/like.types";
 import { IMatch } from "../../types/match.types";
 import {IPaymentCreate } from "../../types/payment.types";
+import Article from "../../models/Article";
+import AdviceCategory from "../../models/AdviceCategory";
+import { IAdviceCategory, IArticle } from "../../types/advice.types";
 
 
 
@@ -26,6 +29,8 @@ export class UserRepository  implements IUserRepository {
         private readonly MatchModel = Match,
         private readonly PlanModel = Plan,
         private readonly PaymentModel = Payment,
+        private readonly AdviceCategoryModel = AdviceCategory,
+        private readonly ArticleModel = Article,
     ){}
    
     async findByEmail(email: string): Promise<IUser | null> {
@@ -242,6 +247,18 @@ export class UserRepository  implements IUserRepository {
 
     async paymentsCount():Promise<number>{
         return await this.PaymentModel.countDocuments()
+    }
+
+     async getAdviceCategory(): Promise<IAdviceCategory[] | null> {
+        return await this.AdviceCategoryModel.find({isBlock:false})
+    }
+
+     async getArticleByCategoryId(categoryId: string): Promise<IArticle[] | null> {
+        return await this.ArticleModel.find({ categoryId,isBlock:false}).exec();
+    }
+
+    async getArticleById(articleId: string): Promise<IArticle | null> {
+        return await  this.ArticleModel.findById({ articleId,isBlock:false}).exec();
     }
 
 
