@@ -147,7 +147,7 @@ const SubscriptionPage: React.FC = () => {
 
 
     return (
-        <div className="flex flex-col min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-red-50">
+        <div className="flex flex-col min-h-screen bg-gradient-to-b from-rose-50 to-pink-50">
             <Navbar />
             <div className="flex-grow container mx-auto px-4 py-16">
                 <div className="text-center mb-16">

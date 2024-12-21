@@ -9,4 +9,9 @@ export interface IAdminService {
     toggleUserStatus(userId: string, newStatus: boolean): Promise<IUser | null>;
     getPayments():Promise<IPayment[]>
     dashBoardMasterData():Promise<IDashboardMasterData>
+    getUserChartData(
+        timeRange: 'day'|'month'|'year'
+      ): Promise<{ totalUsers: number; userGrowthData: { date: Date; count: number }[] }>
+    getPaymentChartData(timeRange: 'day'|'month'|'year'
+    ):Promise<{totalPayments:number;paymentGrowthData:{ date: Date; amount: number }[]}>
 }

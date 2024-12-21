@@ -45,9 +45,6 @@ createPlan = asyncHandler(async (req: Request, res: Response) => {
   }
 });
 
-
-
-
 getOnePlan = asyncHandler(async (req: Request, res: Response) => {
   const { planId } = req.params;
   try {
@@ -105,7 +102,4 @@ updatePlanStatus = asyncHandler(async (req: Request, res: Response) => {
       res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
   }
 });
-
-
-
 }

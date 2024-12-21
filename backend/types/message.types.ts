@@ -5,6 +5,7 @@ export interface IMessage extends Document {
   senderId: mongoose.Types.ObjectId; 
   receiverId: mongoose.Types.ObjectId;
   message: string;
+  isRead: boolean;
   callHistory?: mongoose.Types.ObjectId
   createdAt?: Date; 
   updatedAt?: Date;
@@ -14,5 +15,6 @@ export interface IMessageData {
     senderId: string;
     receiverId: string;
     message: string;
+    isRead?: boolean;
     callHistoryId?:string;
 }

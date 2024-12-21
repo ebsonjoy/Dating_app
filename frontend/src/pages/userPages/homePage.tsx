@@ -7,10 +7,11 @@ import { RootState } from '../../store';
 import { useNavigate } from 'react-router-dom';
 import SkeletonLoader from '../../components/skeletonLoader';
 import MatchesSection from './matchProfiles';
-// import LazyImage from '../../components/lazyLoading/LazyImage';
+import { useSocketContext } from "../../context/SocketContext";
+import { toast } from 'react-toastify';
 
 
-// Custom Card Component
+
 const Card = ({ children, className = '' }) => {
   return (
     <div className={`bg-white rounded-xl shadow-lg ${className}`}>
@@ -24,6 +25,7 @@ const Home: React.FC = () => {
   const [imageIndex, setImageIndex] = useState(0);
   const navigate = useNavigate();
   const [loading, setLoading] = useState<boolean>(true);
+  const { socket} = useSocketContext();
 
   const { userInfo } = useSelector((state: RootState) => state.auth);
   const userId = userInfo?._id;
@@ -83,7 +85,19 @@ const Home: React.FC = () => {
   const handleLike = async () => {
     try {
       if (userId && currentUser?.userId) {
+        const name = userInfo.name
         const res = await likes({ likerId: userId, likedUserId: currentUser.userId }).unwrap();
+        console.log(res)
+        if(res.match){
+          socket?.emit("notifyMatch", {
+            user1Id:currentUser.userId,
+            user2Id:userId,
+          });
+        }
+        socket?.emit("notifyLike", {
+          name,
+          likedUserId: currentUser.userId,
+        });
 
         console.log('Liker ID:', userId);
         console.log('Liked User ID:', currentUser.userId);
@@ -94,7 +108,13 @@ const Home: React.FC = () => {
         console.error("User ID or current user is missing.");
       }
     } catch (error) {
-      console.error("Error while liking the user:", error);
+      if (error?.status === 403 && error?.data?.code === 'SUBSCRIPTION_EXPIRED') {    
+        toast.error(error?.data?.message || 'Your subscription has expired. Please subscribe.');
+        navigate('/userPlanDetails'); 
+    } else {
+        console.error("Error while liking the user:", error);
+        toast.error('An error occurred. Please try again.');
+    }
     }
   };
 
@@ -140,31 +160,12 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-pink-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-rose-50 to-pink-50">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Matches Section */}
-        
            <MatchesSection matchProfiles={matchProfiles} />
-          {/* <Card className="lg:w-1/4 w-full bg-white/80 backdrop-blur-sm p-6">
-            <h2 className="text-2xl font-bold text-center mb-4 bg-gradient-to-r from-pink-500 to-purple-500 text-transparent bg-clip-text">
-              Your Matches
-            </h2>
-            <div className="text-center mt-4">
-              {users.length === 0 ? (
-                <p className="text-gray-600">No matches yet</p>
-              ) : (
-                
-            
-                <div className="space-y-4">
-                  <p className="text-gray-700 font-medium">Discover Your Perfect Match</p>
-                  <div className="w-16 h-1 bg-gradient-to-r from-pink-500 to-purple-500 mx-auto rounded-full"></div>
-                </div>
-              )}
-            </div>
-          </Card> */}
-
           {/* Profile Section */}
           <div className="lg:w-3/4 w-full">
             {currentUser ? (

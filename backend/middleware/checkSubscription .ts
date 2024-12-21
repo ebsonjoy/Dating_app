@@ -25,17 +25,16 @@ export const checkSubscription = async (req: Request, res: Response, next: NextF
             return;
         }
 
-        // Ensure subscription object exists
         const subscription = user.subscription || {};
         const { isPremium, planExpiryDate } = subscription;
         const now = new Date();
 
         if (isPremium || (planExpiryDate && new Date(planExpiryDate) > now)) {
-            next(); // Allow access
+            next(); 
             return;
         }
-
         res.status(403).json({
+            code: 'SUBSCRIPTION_EXPIRED',
             message: 'Your free access has expired. Please subscribe to continue using premium features.',
         });
     } catch (error) {

@@ -43,7 +43,7 @@ const AdvicePage: React.FC = () => {
   // Render loading state
   if (loadingCategories) {
     return (
-      <div className="flex flex-col h-screen bg-gradient-to-br from-indigo-50 to-purple-100 overflow-hidden">
+      <div className="flex flex-col h-screen bg-gradient-to-b from-rose-50 to-pink-50 overflow-hidden">
         <Navbar />
         <div className="flex-grow flex items-center justify-center">
           <div className="flex flex-col items-center space-y-4 p-8 bg-white/70 rounded-xl shadow-2xl">
@@ -63,7 +63,7 @@ const AdvicePage: React.FC = () => {
   // Render full article view
   if (selectedArticle) {
     return (
-      <div className="flex flex-col h-screen bg-gradient-to-br from-indigo-50 to-purple-100 overflow-hidden">
+      <div className="flex flex-col h-screen bg-gradient-to-b from-rose-50 to-pink-50 overflow-hidden">
         <Navbar />
         <div className="flex-grow flex shadow-2xl">
           {/* Image Section */}
@@ -180,7 +180,7 @@ const AdvicePage: React.FC = () => {
 
   // Render categories view
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-indigo-50 to-purple-100 overflow-hidden">
+    <div className="flex flex-col h-screen bg-gradient-to-b from-rose-50 to-pink-50 overflow-hidden">
       <Navbar />
       <div className="flex-grow p-8">
         <h1 className="text-5xl font-bold mb-12 text-center text-gray-800 tracking-wide">

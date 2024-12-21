@@ -23,6 +23,8 @@ router.post('/logoutAdmin',adminControllerr.logout)
 router.post('/create',adminControllerr.register)
 router.get('/paymentDetails',adminControllerr.fetchPayments)
 router.get('/dashBoardMasterData',adminControllerr.getDashboardMasterData)
+router.get('/dashboard/users',adminControllerr.getUserChartData)
+router.get('/dashboard/payments',adminControllerr.getPaymentChartData)
 
 //contaner Plan
 router.get('/getAllPlans',planController.getPlans)
@@ -47,7 +49,6 @@ router.put('/blockArticle/:articleId',adviceController.blockArticle)
 router.get('/getSingleArticle/:articleId',adviceController.getSingleArticle)
 router.put('/updateArticle/:articleId',multerUploadUserImg.single("image"),adviceController.updateArticle)
 router.delete('/deleteArtilce/:articleId',adviceController.deleteArticle)
-
 router.get('/fetchArtilceByCategory/:categoryId',adviceController.getArticlesByCategory)
 
 

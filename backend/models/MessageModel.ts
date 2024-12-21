@@ -17,6 +17,10 @@ const messageSchema = new Schema<IMessage>(
       type: String,
       required: true,
     },
+    isRead: {
+      type: Boolean,
+      default: false,
+    },
     callHistory: {
       type: Schema.Types.ObjectId,
       ref: "CallHistory",

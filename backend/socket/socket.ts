@@ -1,7 +1,7 @@
 import { Server, Socket } from "socket.io";
 import http from "http";
-// import User from "../models/User";
-// import Match from "../models/MatchModel";
+import Notification from "../models/Notifications";
+
 
 interface PlayerOne {
   p1name: string;
@@ -49,6 +49,17 @@ export const initializeSocket = (server: http.Server): void => {
     // Existing online users functionality
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
+    // Handle message read status
+    // socket.on("markMessageRead", ({ messageId, senderId, readerId }) => {
+    //   const senderSocketId = userSocketMap[senderId];
+    //   if (senderSocketId) {
+    //     io.to(senderSocketId).emit("messageRead", {
+    //       messageId,
+    //       readerId
+    //     });
+    //   }
+    // });
+
     // Existing messaging functionality
     socket.on("sendMessage", ({ receiverId, message }) => {
       const receiverSocketId = userSocketMap[receiverId];
@@ -61,7 +72,50 @@ export const initializeSocket = (server: http.Server): void => {
       }
     });
 
-    // Existing video call functionality
+    //Notification
+
+  socket.on("notifyLike", async ({ name, likedUserId }) => {
+    const receiverSocketId = getReceiverSocketId(likedUserId);
+    const notification = {
+      userId: likedUserId,
+      type: "like",
+      message: `${name} liked your profile.`,
+    };
+    await Notification.create(notification);
+  
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("notification", notification);
+    }
+  });
+
+  socket.on("notifyMessage",async ({name,likedUserId }) => {
+    const receiverSocketId = getReceiverSocketId(likedUserId);
+         const notification = {
+      userId: likedUserId,
+      type: "message",
+      message:`${name} sent you a message:`,
+    };
+    await Notification.create(notification);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("notification", notification);
+    }
+  });
+
+  socket.on("notifyMatch",async ({ user1Id, user2Id }) => {
+    [user1Id, user2Id].forEach(async (userId) => {
+      const receiverSocketId = getReceiverSocketId(userId);
+      const notification = {
+        userId,
+        type: "match",
+        message:`"You have a new match!"`,
+      };
+      await Notification.create(notification);
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("notification", notification);
+      }
+    });
+  });
+
     socket.on("call-user", ({ to, offer, from }) => {
       const receiverSocketId = userSocketMap[to];
       if (receiverSocketId) {
@@ -106,8 +160,11 @@ export const initializeSocket = (server: http.Server): void => {
       }
     });
 
+  
+
     // Tic-Tac-Toe functionality
-socket.on("find", (e: { name: string }) => {
+socket.on("find", (e: { name: string,userId : string }) => {
+  console.log('uuuuuuuuuuu',e.userId)
   if (e.name) {
     arr.push(e.name);
 
@@ -137,6 +194,7 @@ socket.on("find", (e: { name: string }) => {
     }
   }
 });
+ 
 
 socket.on("playing", (e: { value: string; id: string; name: string }) => {
   const objToCheck = playingArray.find(
@@ -146,11 +204,9 @@ socket.on("playing", (e: { value: string; id: string; name: string }) => {
   if (objToCheck) {
     const index = parseInt(e.id.replace("btn", "")) - 1;
     if (objToCheck.board[index] === "") {
-      objToCheck.board[index] = e.value; // Update the board state
-      objToCheck.sum++; // Increment the sum (move count)
+      objToCheck.board[index] = e.value; 
+      objToCheck.sum++; 
     }
-
-    // Check for a winner
     const winConditions = [
       [0, 1, 2],
       [3, 4, 5],
@@ -192,21 +248,30 @@ socket.on("playing", (e: { value: string; id: string; name: string }) => {
   }
 });
 
+socket.on("resetGame", (e: { name: string }) => {
+  playingArray = playingArray.filter(
+    (obj) => obj.p1.p1name !== e.name && obj.p2.p2name !== e.name
+  );
+  io.emit("playing", { allPlayers: playingArray });
+});
+
+
 socket.on("gameOver", (e: { name: string }) => {
   playingArray = playingArray.filter((obj) => obj.p1.p1name !== e.name);
 });
 
-    // Disconnect handler
-    socket.on("disconnect", () => {
-      console.log("User disconnected", socket.id);
-      if (userId) {
-        delete userSocketMap[userId];
-      }
-      io.emit("getOnlineUsers", Object.keys(userSocketMap));
+   
+      socket.on("disconnect", () => {
+        console.log("User disconnected", socket.id);
+        if (userId) {
+          delete userSocketMap[userId];
+        }
+        io.emit("getOnlineUsers", Object.keys(userSocketMap));
+      });
     });
-  });
-};
+  };
 
-export const getReceiverSocketId = (receiverId: string): string | undefined => {
-  return userSocketMap[receiverId];
-};
+  export const getReceiverSocketId = (receiverId: string): string | undefined => {
+    return userSocketMap[receiverId];
+    
+  };

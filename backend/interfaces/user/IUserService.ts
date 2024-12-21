@@ -5,6 +5,7 @@ import { ISubscriptionDetails } from "../../types/user.types";
 import { IPlan, IPlanDocument } from "../../types/plan.types";
 import { ILikeData,ILikeProfile } from "../../types/like.types";
 import { IAdviceCategory, IArticle } from "../../types/advice.types";
+import { INotification } from "../../types/notification.types";
 
 
 export interface IUserService {
@@ -18,9 +19,7 @@ export interface IUserService {
     createUserInfo(userInfoData: IUserInfo): Promise<IUserInfo | null>;
     getMatchedUsers(userId: string): Promise<IUserProfile[] | null>;
     getUserProfile(userId: string): Promise<{ user: IUser | null; userInfo: IUserInfo|null; }>;
-
     getUserDetails(userId: string): Promise<IUserProfile[] | null>;
-
     updateUserPersonalInfo(userId: string, data: IUser): Promise<IUser | null>;
     updateUserSubscription(userId: string, subscriptionData: ISubscriptionDetails): Promise<IUser | null>;
     updateUserDatingInfo(userId: string, data: IUserInfo, files: Express.Multer.File[]): Promise<IUserInfo | null>;
@@ -32,10 +31,11 @@ export interface IUserService {
     getReceivedLikesProfiles(userId: string): Promise<ILikeProfile[] | null>;
     getmatchProfile(userId:string) : Promise<ILikeProfile[]>
     getReceivedLikesCount(user1Id:string) :Promise<number>;
-
-     getAdviceCategory():Promise<IAdviceCategory[] | null>
-     getArticleByCategoryId(categoryId:string) : Promise<IArticle[] | null>
-     getArticleById(articleId:string) : Promise<IArticle | null>
-
+    getAdviceCategory():Promise<IAdviceCategory[] | null>
+    getArticleByCategoryId(categoryId:string) : Promise<IArticle[] | null>
+    getArticleById(articleId:string) : Promise<IArticle | null>
+    createNotification(notification:INotification):Promise<INotification>
+    getNotifications(userId:string):Promise<INotification[]>
+    clearNotifications(userId:string):Promise<string>
 
 }

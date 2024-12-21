@@ -44,8 +44,8 @@ router.put('/cancelUserPlan/:userId',userProtect,userController.cancelSubscripti
 
 //LIKE
 router.post('/handleHomeLikes',userProtect,checkSubscription,userController.handleHomeLikes)
-router.get("/sentLikes/:userId",userProtect,checkSubscription,userController.getSentLikesProfiles);
-router.get("/receivedLikes/:userId",userProtect,checkSubscription, userController.getReceivedLikesProfiles);
+router.get("/sentLikes/:userId",userProtect,userController.getSentLikesProfiles);
+router.get("/receivedLikes/:userId",userProtect, userController.getReceivedLikesProfiles);
 router.get('/getReceivedLikesCount/:userId',userProtect,userController.getReceivedLikesCount)
 
 //MATCH
@@ -55,6 +55,11 @@ router.get('/getMathProfiles/:userId',userProtect,userController.getMathProfiles
 router.get('/getAdviceCategory',userProtect,userController.getCategories)
 router.get('/getArticleByCategoryId/:categoryId',userProtect,userController.getArticleByCategoryId)
 router.get('/getArticleById/:articleId',userProtect,userController.getArticleById)
+
+//NOTIFICATION
+router.post('/createNotification',userProtect,userController.createNotification)
+router.get('/getNotifications/:userId',userProtect,userController.getNotification)
+router.delete('/clearNotifications/:userId',userProtect,userController.clearNotifications)
 
 
 

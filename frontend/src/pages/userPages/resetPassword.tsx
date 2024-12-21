@@ -1,112 +1,188 @@
-// ResetPassword.tsx
 import React, { useState } from 'react';
-import { useParams,useNavigate  } from 'react-router-dom';
-import {useResetPasswordMutation} from '../../slices/apiUserSlice'
-import { toast } from "react-toastify";
+import { useParams, useNavigate } from 'react-router-dom';
+import { useResetPasswordMutation } from '../../slices/apiUserSlice';
+import { Eye, EyeOff, Lock } from 'lucide-react';
+import Loader from "../../components/user/loader";
 
 
 const ResetPassword: React.FC = () => {
-    const [password, setPassword] = useState<string>('');
-    const [confirmPassword, setConfirmPassword] = useState<string>('');
-    const [error, setError] = useState<string>('');
-    const { token } = useParams<{ token: string }>(); 
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [formFocus, setFormFocus] = useState({ password: false, confirmPassword: false });
+    const [passwordError, setPasswordError] = useState('');
+    const [confirmPasswordError, setConfirmPasswordError] = useState('');
+
+    const { token } = useParams<{ token: string }>();
     const navigate = useNavigate();
     const [resetPassword] = useResetPasswordMutation();
+
+    const validatePassword = (password: string) => {
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{8,}$/;
+        return passwordRegex.test(password);
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
-     
-        if (!password || !confirmPassword) {
-            setError('Please fill in all fields.');
-            return;
+
+        let valid = true;
+        setPasswordError('');
+        setConfirmPasswordError('');
+
+        if (!password) {
+            setPasswordError('Please enter your password.');
+            valid = false;
+        } else if (!validatePassword(password)) {
+            setPasswordError(
+                'Password must include at least 1 uppercase, 1 lowercase, 1 digit, 1 special character, and be at least 8 characters long.'
+            );
+            valid = false;
         }
 
-        if (password !== confirmPassword) {
-            setError('Passwords do not match.');
-            return;
+        if (!confirmPassword) {
+            setConfirmPasswordError('Please confirm your password.');
+            valid = false;
+        } else if (password !== confirmPassword) {
+            setConfirmPasswordError('Passwords do not match.');
+            valid = false;
         }
+
+        if (!valid) return;
+
         if (!token) {
-            toast.error('Invalid or missing token.');
+            setPasswordError('Invalid or missing token.');
             return;
-          }
+        }
 
-        try{
-            await resetPassword({ data: { password }, token }); 
-            toast.success("Password reset successful!");
+        try {
+            setIsLoading(true);
+            await resetPassword({ data: { password }, token });
             setTimeout(() => {
                 navigate('/login');
-              }, 3000); 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } catch (error: any) {
-                toast.error('Error resetting password.');
-                console.log(error);
-                
-            }
-        
-
-        
-        setError('');
-
-        
-        console.log('Token:', token);
-        console.log('Password successfully updated!');
-
-       
+            }, 3000);
+        } catch (error: any) {
+            setPasswordError(error?.data?.message || 'Error resetting password.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
-        <div className="bg-gray-100 h-screen flex items-center justify-center">
-            <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-md">
-                <h2 className="text-2xl font-semibold text-gray-800 text-center mb-6">Reset Password</h2>
-                
-                <form onSubmit={handleSubmit}>
-                    {/* New Password Field */}
-                    <div className="mb-4">
-                        <label htmlFor="password" className="block text-gray-700 text-sm font-bold mb-2">New Password</label>
-                        <input
-                            type="password"
-                            id="password"
-                            name="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Enter new password"
-                            required
-                        />
+        <div className="min-h-screen bg-gradient-to-br from-purple-100 via-rose-100 to-pink-100 flex items-center justify-center p-4 relative overflow-hidden">
+            {/* Animated background elements */}
+            <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute w-64 h-64 bg-pink-300/20 rounded-full -top-12 -left-12 animate-pulse" />
+                <div className="absolute w-96 h-96 bg-purple-300/20 rounded-full -bottom-24 -right-24 animate-pulse delay-700" />
+            </div>
+
+            <div className="w-full max-w-md relative z-10">
+                <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8 transform transition duration-500 hover:shadow-rose-200/50">
+                    <div className="text-center space-y-2 mb-8">
+                        <h2 className="text-3xl font-bold text-gray-800">Reset Password</h2>
+                        <p className="text-gray-600">Enter your new password below</p>
                     </div>
 
-                    {/* Confirm Password Field */}
-                    <div className="mb-4">
-                        <label htmlFor="confirm-password" className="block text-gray-700 text-sm font-bold mb-2">Confirm Password</label>
-                        <input
-                            type="password"
-                            id="confirm-password"
-                            name="confirm-password"
-                            value={confirmPassword}
-                            onChange={(e) => setConfirmPassword(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Confirm new password"
-                            required
-                        />
-                    </div>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {/* New Password Field */}
+                        <div className="relative">
+                            <label
+                                htmlFor="password"
+                                className={`text-sm font-medium transition-all duration-200 ${
+                                    formFocus.password ? 'text-rose-600' : 'text-gray-700'
+                                }`}
+                            >
+                                New Password
+                            </label>
+                            <div className="relative mt-1">
+                                <Lock
+                                    className={`absolute left-3 top-3 w-5 h-5 transition-colors duration-200 ${
+                                        formFocus.password ? 'text-rose-500' : 'text-gray-400'
+                                    }`}
+                                />
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    id="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    onFocus={() => setFormFocus((prev) => ({ ...prev, password: true }))}
+                                    onBlur={() => setFormFocus((prev) => ({ ...prev, password: false }))}
+                                    required
+                                    className="block w-full pl-12 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-transparent transition duration-200 bg-white/90 text-gray-900"
+                                    placeholder="Enter new password"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 transition duration-200"
+                                >
+                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
+                            </div>
+                            {passwordError && <p className="text-sm text-rose-600 mt-2">{passwordError}</p>}
+                        </div>
 
-                    {/* Error Message */}
-                    {error && <p className="text-red-500 text-xs mb-4">{error}</p>}
+                        {/* Confirm Password Field */}
+                        <div className="relative">
+                            <label
+                                htmlFor="confirm-password"
+                                className={`text-sm font-medium transition-all duration-200 ${
+                                    formFocus.confirmPassword ? 'text-rose-600' : 'text-gray-700'
+                                }`}
+                            >
+                                Confirm Password
+                            </label>
+                            <div className="relative mt-1">
+                                <Lock
+                                    className={`absolute left-3 top-3 w-5 h-5 transition-colors duration-200 ${
+                                        formFocus.confirmPassword ? 'text-rose-500' : 'text-gray-400'
+                                    }`}
+                                />
+                                <input
+                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    id="confirm-password"
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    onFocus={() => setFormFocus((prev) => ({ ...prev, confirmPassword: true }))}
+                                    onBlur={() => setFormFocus((prev) => ({ ...prev, confirmPassword: false }))}
+                                    required
+                                    className="block w-full pl-12 pr-12 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-transparent transition duration-200 bg-white/90 text-gray-900"
+                                    placeholder="Confirm new password"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 transition duration-200"
+                                >
+                                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
+                            </div>
+                            {confirmPasswordError && (
+                                <p className="text-sm text-rose-600 mt-2">{confirmPasswordError}</p>
+                            )}
+                        </div>
 
-                    {/* Submit Button */}
-                    <div className="flex justify-center">
+                        {isLoading && <Loader />}
+
                         <button
                             type="submit"
-                            className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+                            disabled={isLoading}
+                            className="w-full py-3 bg-gradient-to-r from-purple-600 via-rose-500 to-pink-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition duration-300 transform hover:-translate-y-0.5 disabled:opacity-50"
                         >
-                            Submit
+                            {isLoading ? 'Resetting Password...' : 'Reset Password'}
                         </button>
-                    </div>
-                </form>
 
-                {/* Back to login link */}
-                <div className="mt-4 text-center">
-                    <a href="/login" className="text-blue-500 hover:underline">Back to Login</a>
+                        <div className="text-center">
+  <button
+    onClick={() => navigate('/login')}
+    className="text-sm text-gray-600 hover:text-rose-600 transition duration-200"
+  >
+    Back to Login
+  </button>
+</div>
+
+                    </form>
                 </div>
             </div>
         </div>

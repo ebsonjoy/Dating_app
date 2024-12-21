@@ -13,5 +13,11 @@ export interface IMessageRepository {
   addMessageToConversation(conversationId: string, messageId: string): Promise<void>;
   createCallHistory(CallHistory:ICallHistory):Promise<ICallHistoryResponse>;
   createMessageCallHistory(messageData: IMessageData): Promise<IMessage>;
+  // markMessagesAsRead(userId: string, senderId: string): Promise<void>
+  getUnreadMessageCount(userId: string): Promise<{ [key: string]: number }>
+
+  findMessage(userId1: string, userId2: string,status:boolean): Promise<IMessage[]>;
+  updateMessage(userId1: string, senderId: string,status:boolean): Promise<void>;
+
   
 }

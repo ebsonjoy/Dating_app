@@ -97,5 +97,40 @@ export class AdminController{
             res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
           }
     })
+
+
+    getUserChartData = asyncHandler(async(req: Request, res: Response) => {
+        try {
+          const { timeRange } = req.query;
+          
+          if (!timeRange || !['day', 'month', 'year'].includes(timeRange as string)) {
+            res.status(400).json({ message: 'Invalid time range' });
+            return 
+          }
     
+          const data = await this.adminService.getUserChartData(timeRange as 'day' | 'month' | 'year');
+          res.status(200).json(data);
+          console.log('user data',data)
+
+        } catch (error) {
+          res.status(500).json({ message: 'Error fetching user chart data', error });
+        }
+      })
+    
+      getPaymentChartData = asyncHandler(async(req: Request, res: Response) => {
+        try {
+          const { timeRange } = req.query;
+          
+          if (!timeRange || !['day', 'month', 'year'].includes(timeRange as string)) {
+             res.status(400).json({ message: 'Invalid time range' });
+             return
+          }
+    
+          const data = await this.adminService.getPaymentChartData(timeRange as 'day' | 'month' | 'year');
+          console.log('payment data',data)
+          res.status(200).json(data);
+        } catch (error) {
+          res.status(500).json({ message: 'Error fetching payment chart data', error });
+        }
+      })
 }

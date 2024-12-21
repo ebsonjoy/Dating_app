@@ -6,6 +6,7 @@ import Like from "../../models/LikesModel";
 import Match from "../../models/MatchModel";
 import Plan from "../../models/PlanModel";
 import Payment from "../../models/PaymentModel";
+import Notification from "../../models/Notifications";
 import { IUserRepository } from "../../interfaces/user/IUserRepository";
 import { IUser } from "../../types/user.types";
 import { IUserInfo, ILocation } from "../../types/userInfo.types";
@@ -16,6 +17,7 @@ import {IPaymentCreate } from "../../types/payment.types";
 import Article from "../../models/Article";
 import AdviceCategory from "../../models/AdviceCategory";
 import { IAdviceCategory, IArticle } from "../../types/advice.types";
+import { INotification } from "../../types/notification.types";
 
 
 
@@ -31,6 +33,7 @@ export class UserRepository  implements IUserRepository {
         private readonly PaymentModel = Payment,
         private readonly AdviceCategoryModel = AdviceCategory,
         private readonly ArticleModel = Article,
+        private readonly NotificationModel = Notification,
     ){}
    
     async findByEmail(email: string): Promise<IUser | null> {
@@ -261,6 +264,19 @@ export class UserRepository  implements IUserRepository {
         return await  this.ArticleModel.findById({ articleId,isBlock:false}).exec();
     }
 
+    async createNotification(notification:INotification): Promise<INotification> {
+        return await this.NotificationModel.create(notification)
+    }
 
+    async getNotifications(userId: string): Promise<INotification[]> {
+        return await this.NotificationModel.find({userId})
+    }
+
+    async clearNotifications(userId: string): Promise<string> {
+        const result = await this.NotificationModel.deleteMany({ userId });
+    return result.deletedCount > 0 
+        ? "Notifications successfully deleted." 
+        : "No notifications found to delete.";
+    }
 }
 

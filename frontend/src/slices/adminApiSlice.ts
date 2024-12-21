@@ -109,6 +109,17 @@ export interface IArticleUpdate {
   categoryId:string; 
 }
 
+interface UserChartData {
+  userGrowthData: { date: Date; count: number }[];
+  totalUsers: number;
+}
+
+interface PaymentChartData {
+  paymentGrowthData: { date: Date; amount: number }[];
+  totalPayments: number;
+}
+
+
 
 export const adminApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -201,7 +212,7 @@ export const adminApiSlice = apiSlice.injectEndpoints({
     //Advice
     // category
 
-    getAdviceCategories : builder.query<IAdviceCategory[], void>({
+    getAdminAdviceCategories : builder.query<IAdviceCategory[], void>({
       query: () => ({
         url: `${ADMIN_URL}/getAdviceCategories`,
         method: "GET",
@@ -268,6 +279,23 @@ export const adminApiSlice = apiSlice.injectEndpoints({
       }),
     }),
 
+    getUserChartData: builder.query<UserChartData, { timeRange: 'day' | 'month' | 'year' }>({
+      query: ({ timeRange }) => ({
+        url: `${ADMIN_URL}/dashboard/users`,
+        method: "GET",
+        params: { timeRange }
+      }),
+    }),
+    getPaymentChartData: builder.query<PaymentChartData, { timeRange: 'day' | 'month' | 'year' }>({
+      query: ({ timeRange }) => ({
+        url: `${ADMIN_URL}/dashboard/payments`,
+        method: "GET",
+        params: { timeRange }
+      }),
+    })
+
+    
+
   }),
 });
 
@@ -286,7 +314,7 @@ export const {
   useUpdatePlanStatusMutation,
   useGetPaymentQuery,
   useGetDashBoardMasterDataQuery,
-  useGetAdviceCategoriesQuery,
+  useGetAdminAdviceCategoriesQuery,
   useGetArticlesQuery,
   useAddAdviceCategoryMutation,
   useAddArticleMutation,
@@ -296,5 +324,8 @@ export const {
   useBlockArticleMutation,
   useGetSingleArticleQuery,
   useUpdateArticleMutation,
+
+  useGetUserChartDataQuery,
+  useGetPaymentChartDataQuery
 
 } = adminApiSlice;

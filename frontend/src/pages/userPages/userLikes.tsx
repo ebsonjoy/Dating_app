@@ -46,7 +46,8 @@ console.log('ddddddddddddddddddddddddd',displayedData)
 
   
   if (isLoading) return <SkeletonLoader />;
-  if (error) return <div>Failed to load subscription details.</div>;
+  console.log(error)
+  if (error) return <div>Failed to load like details.</div>;
 
 
   const EmptyStateReceived = () => (

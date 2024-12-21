@@ -3,7 +3,7 @@ import Navbar from "../../components/admin/adminNavBar";
 import Header from "../../components/admin/adminHeader";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
-  useGetAdviceCategoriesQuery,
+  useGetAdminAdviceCategoriesQuery,
   useAddAdviceCategoryMutation,
   useBlockAdviceCategoryMutation,
   useGetSingleAdviceCategoryQuery,
@@ -19,7 +19,8 @@ const AdviceManagement: React.FC = () => {
     isLoading,
     error,
     refetch,
-  } = useGetAdviceCategoriesQuery();
+  } = useGetAdminAdviceCategoriesQuery();
+  console.log('cccccccccsterrrrrr',categories)
   const { data: singleCategory } = useGetSingleAdviceCategoryQuery(
     categoryId || "",
     {
@@ -129,9 +130,9 @@ const AdviceManagement: React.FC = () => {
   // No categories found
   if (!categories || categories.length === 0) {
     return (
-      <div className="flex flex-col md:flex-row h-screen">
+      <div className="flex flex-col lg:flex-row h-screen">
         <Navbar />
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col overflow-y-auto">
           <Header title="Advice Management" />
           <div className="flex-1 bg-gray-100 flex items-center justify-center">
             <div className="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-md text-center">
@@ -146,9 +147,9 @@ const AdviceManagement: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col md:flex-row h-screen">
+    <div className="flex flex-col lg:flex-row h-screen">
       <Navbar />
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-y-auto">
         <Header title={categoryId ? "Edit Category" : "Advice Management"} />
         <div className="flex-1 bg-gray-100">
           <div className="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-md">

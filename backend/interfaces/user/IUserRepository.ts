@@ -6,6 +6,8 @@ import { ILike, ILikeData } from "../../types/like.types";
 import {IMatch} from '../../types/match.types'
 import { IPaymentCreate } from "../../types/payment.types";
 import { IAdviceCategory, IArticle } from "../../types/advice.types";
+import { INotification } from "../../types/notification.types";
+
 
 
 export interface IUserRepository {
@@ -33,14 +35,11 @@ export interface IUserRepository {
     userReceivedLikesCount(user1Id:string):Promise<number>;
     createPayment(paymentData:IPaymentCreate) : Promise<void | null>
     paymentsCount():Promise<number | null>
-
     getAdviceCategory():Promise<IAdviceCategory[] | null>
     getArticleByCategoryId(categoryId:string) : Promise<IArticle[] | null>
     getArticleById(articleId:string) : Promise<IArticle | null>
-
-
-
-
-
+    createNotification(notication:INotification):Promise<INotification>
+    getNotifications(userId:string):Promise<INotification[]>
+    clearNotifications(userId:string):Promise<string>
 
 }

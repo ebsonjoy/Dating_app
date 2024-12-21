@@ -9,7 +9,7 @@ import {
   useBlockArticleMutation,
   useGetSingleArticleQuery,
   useUpdateArticleMutation,
-  useGetAdviceCategoriesQuery
+  useGetAdminAdviceCategoriesQuery
 } from "../../slices/adminApiSlice";
 
 interface ArticleFormData {
@@ -24,7 +24,7 @@ const ArticleManagement: React.FC = () => {
   const { articleId } = useParams<{ articleId: string }>();
   
   const { data: articles, isLoading, error, refetch } = useGetArticlesQuery();
-  const { data: categories } = useGetAdviceCategoriesQuery();
+  const { data: categories } = useGetAdminAdviceCategoriesQuery();
   const { data: singleArticle } = useGetSingleArticleQuery(articleId || '', {
     skip: !articleId
   });
@@ -135,9 +135,9 @@ const ArticleManagement: React.FC = () => {
   // No articles found
   if (!articles || articles.length === 0) {
     return (
-      <div className="flex flex-col md:flex-row h-screen">
+      <div className="flex flex-col lg:flex-row h-screen">
         <Navbar />
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col overflow-y-auto">
           <Header title="Article Management" />
           <div className="flex-1 bg-gray-100 flex items-center justify-center">
             <div className="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-md text-center">
@@ -150,9 +150,9 @@ const ArticleManagement: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col md:flex-row h-screen">
+    <div className="flex flex-col lg:flex-row h-screen">
       <Navbar />
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-y-auto">
         <Header title={articleId ? "Edit Article" : "Article Management"} />
         <div className="flex-1 bg-gray-100">
           <div className="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-md">

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { X, Mic, MicOff, Camera, CameraOff, PhoneOff } from 'lucide-react';
+import { useCreateVideoCallMutation } from '../../slices/apiUserSlice';
 
 interface VideoCallProps {
   userId: string;
@@ -25,11 +26,12 @@ const VideoCall: React.FC<VideoCallProps> = ({
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
   const iceCandidatesRef = useRef<RTCIceCandidate[]>([]);
+  const callStartTimeRef = useRef<number | null>(null);
+  const [createVideoCall] = useCreateVideoCallMutation();
 
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
   const [connectionStatus, setConnectionStatus] = useState<string>('Initializing...');
-
   const configuration: RTCConfiguration = {
     iceServers: [
       { urls: 'stun:stun.l.google.com:19302' },
@@ -145,6 +147,9 @@ const VideoCall: React.FC<VideoCallProps> = ({
 
       pc.onconnectionstatechange = () => {
         setConnectionStatus(pc.connectionState);
+        if (pc.connectionState === 'connected') {
+          callStartTimeRef.current = Date.now();
+        }
         if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
           handleCallEnd();
         }
@@ -182,6 +187,25 @@ const VideoCall: React.FC<VideoCallProps> = ({
   };
 
   const handleCallEnd = () => {
+  
+    // Calculate call duration
+    const callEndTime = Date.now();
+    const duration = callStartTimeRef.current 
+      ? Math.floor((callEndTime - callStartTimeRef.current) / 1000) 
+      : 0;
+
+    // Determine call status
+    const callStatus = (duration !== 0 ? 'ended' : 'missed')
+
+    // Create call history
+    createVideoCall({
+      callerId: userId,
+      receiverId: matchId,
+      type: "video-call",
+      duration,
+      status: callStatus
+    });
+
     socket.emit('end-call', { to: matchId });
     cleanup();
     onClose();

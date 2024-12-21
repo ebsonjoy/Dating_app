@@ -16,6 +16,7 @@ import { deleteImageFromS3 } from "../../config/multer";
 import { ILikeData, ILikeProfile } from "../../types/like.types";
 import { calculateExpiryDate } from "../../utils/calculateExpDate";
 import { IAdviceCategory, IArticle } from "../../types/advice.types";
+import { INotification } from "../../types/notification.types";
 // import { IPayment,CreatePaymentInput } from "../../types/payment.types";
 
 
@@ -70,8 +71,8 @@ export class UserService implements IUserService {
                     subscription: {
                         isPremium: true,
                         planId: currentPlan._id ? new mongoose.Types.ObjectId(planId) : null,
-                        // planExpiryDate: calculateExpiryDate(currentPlan.duration),
-                        planExpiryDate:  new Date(Date.now() + 2 * 60 * 1000),
+                        planExpiryDate: calculateExpiryDate(currentPlan.duration),
+                        // planExpiryDate:  new Date(Date.now() + 2 * 60 * 1000),
                         planStartingDate: new Date(),
                     },
                 };
@@ -267,19 +268,16 @@ export class UserService implements IUserService {
 
     async getUserDetails(userId: string): Promise<IUserProfile[]> {
         try {
-          // Fetch the user's basic information
           const user = await this.userRepository.findById(userId);
           if (!user) {
-            return []; // Return an empty array if the user is not found
+            return [];
           }
       
-          // Fetch user's extended profile information
           const userInfo = await this.userRepository.findUserInfo(userId);
           if (!userInfo) {
-            return []; // Return an empty array if extended profile info is not found
+            return []; 
           }
       
-          // Combine the user's basic and extended profile information
           const matchedUsersWithDetails = [
               {
                   userId: userId,
@@ -297,9 +295,9 @@ export class UserService implements IUserService {
                   drinking: userInfo.drinking || 'Not specified',
                   place: userInfo.place || 'Not specified',
               },
-          ] as unknown as IUserProfile[]; // Ensure this is typed correctly as an array
+          ] as unknown as IUserProfile[]; 
       
-          return matchedUsersWithDetails; // Return the array containing one user
+          return matchedUsersWithDetails;
         } catch (error) {
           console.error(error);
           throw new Error('Failed to get user details');
@@ -578,6 +576,16 @@ async handleHomeLikes(likesIds: ILikeData): Promise<{ match: boolean; message: s
 
   async getArticleById(articleId: string): Promise<IArticle | null> {
       return await this.userRepository.getArticleById(articleId)
+  }
+
+  async createNotification(notification: INotification): Promise<INotification> {
+      return await this.userRepository.createNotification(notification)
+  }
+   async getNotifications(userId: string): Promise<INotification[]> {
+      return await this.userRepository.getNotifications(userId)
+  }
+  async clearNotifications(userId: string): Promise<string> {
+      return await this.userRepository.clearNotifications(userId)
   }
 
 

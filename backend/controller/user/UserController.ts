@@ -386,9 +386,6 @@ export class UserController {
         }
       });
 
-
-
-
     handleHomeLikes = asyncHandler(async(req:Request, res:Response)=>{
         const {likerId,likedUserId} = req.body
         try {
@@ -437,7 +434,6 @@ export class UserController {
         }
       })
 
-
       getReceivedLikesCount = asyncHandler(async(req: Request,res:Response)=>{
         const {userId} = req.params
         try {
@@ -478,6 +474,42 @@ export class UserController {
         }catch(error){
             console.log(error)
             res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: "Failed to fetch article" });
+        }
+    })
+
+    createNotification = asyncHandler(async(req: Request,res:Response)=>{
+        const notification = req.body
+        try{
+            const noti= await this.userService.createNotification(notification)
+            res.status(HttpStatusCode.OK).json(noti)
+
+        }catch(err){
+            console.log(err)
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: "Failed to create notification" });
+        }
+    })
+
+    getNotification = asyncHandler(async(req: Request,res:Response)=>{
+        const {userId} = req.params
+        try{
+            const noti = await this.userService.getNotifications(userId)
+            res.status(HttpStatusCode.OK).json(noti)
+
+        }catch(err){
+            console.log(err)
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: "Failed to fetch notification" });
+        }
+    })
+
+    clearNotifications = asyncHandler(async(req: Request,res:Response)=>{
+        const {userId} = req.params
+        try{
+            const noti = await this.userService.clearNotifications(userId)
+            res.status(HttpStatusCode.OK).json(noti)
+
+        }catch(err){
+            console.log(err)
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: "Failed to clear notification" });
         }
     })
 }

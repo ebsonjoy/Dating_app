@@ -6,18 +6,26 @@ import {
   useSendMessageMutation,
   useGetChatHistoryQuery,
   useGetMatchProfilesQuery,
+  useMarkMessagesAsReadMutation,
+  useGetUnreadMessageCountQuery,
 } from "../../slices/apiUserSlice";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
-import { Search, Phone, Video, Smile } from "lucide-react";
+import { Search, Phone, Video, Smile,CheckCheck, Check } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import type { EmojiClickData } from "emoji-picker-react";
 import VideoCall from "./videoCall";
+import { useCreateVideoCallMutation } from '../../slices/apiUserSlice';
+import { toast } from "react-toastify";
+import { useNavigate } from 'react-router-dom';
+
 
 interface Message {
+  _id?: string;
   senderId: string;
   message: string;
   createdAt: string;
+  isRead?: boolean;
 }
 
 interface MatchProfile {
@@ -37,12 +45,15 @@ interface CallState {
 const MatchesAndChat: React.FC = () => {
   const { socket,onlineUsers } = useSocketContext();
   const [sendMessageMutation] = useSendMessageMutation();
+  const [createVideoCall] = useCreateVideoCallMutation();
+  const [markMessagesAsRead] = useMarkMessagesAsReadMutation();
   const { userInfo } = useSelector((state: RootState) => state.auth);
   const userId = userInfo?._id;
   const location = useLocation();
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedMatch, setSelectedMatch] = useState<string | null>(null);
@@ -68,6 +79,11 @@ const MatchesAndChat: React.FC = () => {
     );
 
   const { data: matchProfiles = [] } = useGetMatchProfilesQuery(userId);
+
+  const { data: unreadMessageCounts = {} } = useGetUnreadMessageCountQuery(userId, {
+    skip: !userId,
+    refetchOnMountOrArgChange: true,
+  });
 
   // Format timestamp
   const formatMessageTime = (timestamp: string) => {
@@ -97,6 +113,32 @@ const MatchesAndChat: React.FC = () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [selectedMatch, refetchChatHistory]);
 
+  // useEffect(() => {
+  //   if (selectedMatch && messages.length > 0) {
+  //     // Mark messages as read when user opens the chat
+  //     const unreadMessages = messages.filter(
+  //       msg => msg.senderId === selectedMatch && !msg.isRead
+  //     );
+      
+  //     if (unreadMessages.length > 0) {
+  //       // Call your API to mark messages as read
+  //       markMessagesAsRead({
+  //         userId: userId,
+  //         senderId: selectedMatch
+  //       });
+  
+  //       // Emit socket event for each unread message
+  //       unreadMessages.forEach(msg => {
+  //         socket?.emit("markMessageRead", {
+  //           messageId: msg._id,
+  //           senderId: selectedMatch,
+  //           readerId: userId
+  //         });
+  //       });
+  //     }
+  //   }
+  // }, [selectedMatch, messages, userId]);
+
   // Update when returning to the page
   useEffect(() => {
     if (location.state && location.state.partnerUserId) {
@@ -110,6 +152,7 @@ const MatchesAndChat: React.FC = () => {
       setMessages(chatHistory.data);
     }
   }, [chatHistory]);
+  const name = userInfo?.name
 
   useEffect(() => {
     if (socket) {
@@ -117,11 +160,26 @@ const MatchesAndChat: React.FC = () => {
         setMessages((prevMessages) => [...prevMessages, newMessage]);
       });
 
+      // socket.on('messageRead', ({ messageId, readerId }) => {
+      //   setMessages(prevMessages =>
+      //     prevMessages.map(msg =>
+      //       msg._id === messageId ? { ...msg, isRead: true } : msg
+      //     )
+      //   );
+      // });
+  
       return () => {
         socket.off("newMessage");
+        // socket.off("messageRead");
       };
     }
   }, [socket]);
+
+  //   useEffect(() => {
+  //   if (selectedMatch && userId) {
+  //     markMessagesAsRead({ userId, senderId: selectedMatch });
+  //   }
+  // }, [selectedMatch, userId, markMessagesAsRead]);
 
   useEffect(() => {
     if (!socket) return;
@@ -141,6 +199,25 @@ const MatchesAndChat: React.FC = () => {
       socket.off("incoming-call");
     };
   }, [socket]);
+
+  useEffect(() => {
+    if (!socket) return;
+  
+    socket.on("call-rejected", () => {
+      console.log("Call rejected by the opponent.");
+      setShowVideoCall(false);
+      setCallState({
+        isReceivingCall: false,
+        from: "",
+        offer: null,
+      });
+    });
+  
+    return () => {
+      socket.off("call-rejected");
+    };
+  }, [socket]);
+  
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -179,6 +256,7 @@ const MatchesAndChat: React.FC = () => {
     e.preventDefault();
     if (!messageInput.trim() || !selectedMatch) return;
 
+
     try {
       const newMessage = {
         senderId: userId,
@@ -198,13 +276,23 @@ const MatchesAndChat: React.FC = () => {
         },
       ]);
 
+      socket?.emit("notifyMessage", {
+        name,
+        // likerId: userId,
+        likedUserId:selectedMatch,
+      });
+
       setMessageInput("");
     } catch (error) {
-      console.error("Failed to send message", error);
+      if (error?.status === 403 && error?.data?.code === 'SUBSCRIPTION_EXPIRED') {
+        toast.error(error?.data?.message || 'Your subscription has expired. Please subscribe.');
+        navigate('/userPlanDetails');
+    } else {
+        console.error("Error while liking the user:", error);
+        toast.error('An error occurred. Please try again.');
+    }
     }
   };
-
-  // Handle match selection
   const handleMatchSelect = (matchId: string) => {
     setSelectedMatch(matchId);
     refetchChatHistory();
@@ -223,14 +311,24 @@ const MatchesAndChat: React.FC = () => {
   };
 
   const handleRejectCall = () => {
+    const callStatus = 'rejected'
+    createVideoCall({
+      callerId: userId,
+      receiverId: selectedMatch?.toString(),
+      type: "video-call",
+      duration : 0,
+      status: callStatus
+    });
     if (socket && callState.from) {
       socket.emit("call-rejected", { to: callState.from });
     }
-    setCallState({
-      isReceivingCall: false,
-      from: "",
-      offer: null,
-    });
+    setShowVideoCall(false);
+  setCallState({
+    isReceivingCall: false,
+    from: "",
+    offer: null,
+  });
+    
   };
 
   const handleVoiceCall = () => {
@@ -240,7 +338,7 @@ const MatchesAndChat: React.FC = () => {
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       <Navbar />
-      <div className="flex-1 overflow-hidden bg-gradient-to-b from-pink-50 to-white">
+      <div className="flex-1 overflow-hidden bg-gradient-to-b from-rose-50 to-pink-50">
         <div className="max-w-[1400px] h-full mx-auto px-4 py-4">
           <div className="flex gap-4 h-full">
             {/* Left Side: Matches with Search */}
@@ -435,6 +533,47 @@ const MatchesAndChat: React.FC = () => {
                       <div ref={messagesEndRef} />
                     </div>
                   </div>
+
+                  {/* Messages Area */}
+{/* <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
+  <div className="space-y-2">
+    {messages.map((msg, index) => (
+      <div
+        key={index}
+        className={`flex ${
+          msg.senderId === userId ? "justify-end" : "justify-start"
+        }`}
+      >
+        <div className="flex flex-col max-w-[70%]">
+          <div
+            className={`px-4 py-2 rounded-lg break-words ${
+              msg.senderId === userId
+                ? "bg-pink-500 text-white"
+                : "bg-gray-200 text-black"
+            }`}
+          >
+            {msg.message}
+          </div>
+          <div className="flex items-center justify-end gap-1 mt-1">
+            <span className="text-xs text-gray-500">
+              {formatMessageTime(msg.createdAt)}
+            </span>
+            {msg.senderId === userId && (
+              <span className="text-gray-500">
+                {msg.isRead ? (
+                  <CheckCheck className="h-4 w-4" />
+                ) : (
+                  <Check className="h-4 w-4" />
+                )}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    ))}
+    <div ref={messagesEndRef} />
+  </div>
+</div> */}
 
                   {/* Message Input */}
                   <form

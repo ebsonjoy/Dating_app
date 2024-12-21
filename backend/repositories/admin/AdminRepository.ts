@@ -104,4 +104,146 @@ export class AdminRepository implements IAdminRepository {
     }
 }
 
+// Graph
+
+async getUserCountByTimeRange(timeRange: 'day' | 'month' | 'year'): Promise<number> {
+  const now = new Date();
+  let startDate: Date;
+
+  switch (timeRange) {
+    case 'day':
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      break;
+    case 'month':
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      break;
+    case 'year':
+      startDate = new Date(now.getFullYear(), 0, 1);
+      break;
+  }
+
+  return await this.userModel.countDocuments({ 
+    createdAt: { $gte: startDate } 
+  });
+}
+
+async getUserGrowthData(timeRange: 'day' | 'month' | 'year'): Promise<{ date: Date; count: number }[]> {
+  const now = new Date();
+  let groupFormat: string;
+  let startDate: Date;
+
+  switch (timeRange) {
+    case 'day':
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+      groupFormat = '%Y-%m-%d';
+      break;
+    case 'month':
+      startDate = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+      groupFormat = '%Y-%m';
+      break;
+    case 'year':
+      startDate = new Date(now.getFullYear() - 5, 0, 1);
+      groupFormat = '%Y';
+      break;
+  }
+
+  const result = await this.userModel.aggregate([
+    { 
+      $match: { 
+        createdAt: { $gte: startDate } 
+      } 
+    },
+    { 
+      $group: {
+        _id: { $dateToString: { format: groupFormat, date: '$createdAt' } },
+        count: { $sum: 1 }
+      }
+    },
+    { 
+      $sort: { _id: 1 } 
+    }
+  ]);
+
+  return result.map(item => ({
+    date: new Date(item._id),
+    count: item.count
+  }));
+}
+
+async getPaymentTotalByTimeRange(timeRange: 'day' | 'month' | 'year'): Promise<number> {
+  const now = new Date();
+  let startDate: Date;
+
+  switch (timeRange) {
+    case 'day':
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      break;
+    case 'month':
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      break;
+    case 'year':
+      startDate = new Date(now.getFullYear(), 0, 1);
+      break;
+  }
+
+  const result = await this.paymentModel.aggregate([
+    { 
+      $match: { 
+        date: { $gte: startDate } 
+      } 
+    },
+    { 
+      $group: { 
+        _id: null, 
+        total: { $sum: '$amount' } 
+      } 
+    }
+  ]);
+
+  return result[0]?.total || 0;
+}
+
+async getPaymentGrowthData(timeRange: 'day' | 'month' | 'year'): Promise<{ date: Date; amount: number }[]> {
+  const now = new Date();
+  let groupFormat: string;
+  let startDate: Date;
+
+  switch (timeRange) {
+    case 'day':
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+      groupFormat = '%Y-%m-%d';
+      break;
+    case 'month':
+      startDate = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+      groupFormat = '%Y-%m';
+      break;
+    case 'year':
+      startDate = new Date(now.getFullYear() - 5, 0, 1);
+      groupFormat = '%Y';
+      break;
+  }
+
+  const result = await this.paymentModel.aggregate([
+    { 
+      $match: { 
+        date: { $gte: startDate } 
+      } 
+    },
+    { 
+      $group: {
+        _id: { $dateToString: { format: groupFormat, date: '$date' } },
+        amount: { $sum: '$amount' }
+      }
+    },
+    { 
+      $sort: { _id: 1 } 
+    }
+  ]);
+
+  return result.map(item => ({
+    date: new Date(item._id), 
+    amount: item.amount
+  }));
+}
+
 }

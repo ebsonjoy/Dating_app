@@ -53,8 +53,10 @@ export class AdviceController {
     }
   });
   getAdviceCategory = asyncHandler(async(req:Request,res:Response)=>{
+    console.log('hlll')
     try{
         const categories = await this.adviceService.getCategories()
+        console.log(categories)
         res.status(HttpStatusCode.OK).json(categories);
 
     }catch (error) {

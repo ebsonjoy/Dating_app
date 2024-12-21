@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSocketContext } from "../../context/SocketContext";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
+import { useNavigate  } from 'react-router-dom';
 
 interface Player {
   p1: {
@@ -20,7 +21,9 @@ interface Player {
 
 const TicTacToe: React.FC = () => {
   const { socket } = useSocketContext();
+  const navigate = useNavigate();
   const { userInfo } = useSelector((state: RootState) => state.auth);
+  const userId = userInfo?._id;
   const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
@@ -28,6 +31,11 @@ const TicTacToe: React.FC = () => {
   const [playerValue, setPlayerValue] = useState("");
   const [board, setBoard] = useState(Array(9).fill(""));
   const [currentTurn, setCurrentTurn] = useState("X");
+  const [showModal, setShowModal] = useState(false);
+  const [gameResult, setGameResult] = useState<{
+    winner: string | null;
+    reason: string;
+  } | null>(null);
 
   const findPlayer = () => {
     if (!name) {
@@ -35,7 +43,7 @@ const TicTacToe: React.FC = () => {
       return;
     }
     setIsLoading(true);
-    socket?.emit("find", { name });
+    socket?.emit("find", { name, userId });
   };
 
   const handleCellClick = (index: number) => {
@@ -46,6 +54,20 @@ const TicTacToe: React.FC = () => {
       id: `btn${index + 1}`,
       name,
     });
+  };
+
+  const resetGame = () => {
+    setGameStarted(false);
+    setBoard(Array(9).fill(""));
+    setCurrentTurn("X");
+    setShowModal(false);
+    setGameResult(null);
+    socket?.emit("resetGame", { name });
+  };
+
+  const quitGame = () => {
+    resetGame();
+    navigate('/'); // Redirect to the homepage
   };
 
   useEffect(() => {
@@ -85,14 +107,8 @@ const TicTacToe: React.FC = () => {
     });
 
     socket.on("gameOver", (data: { winner: string | null; reason: string }) => {
-      if (data.reason === "win") {
-        alert(`${data.winner} wins the game!`);
-      } else if (data.reason === "draw") {
-        alert("The game is a draw!");
-      }
-      setGameStarted(false);
-      setBoard(Array(9).fill(""));
-      setCurrentTurn("X");
+      setGameResult(data);
+      setShowModal(true);
     });
 
     return () => {
@@ -142,6 +158,30 @@ const TicTacToe: React.FC = () => {
                 {cell}
               </button>
             ))}
+          </div>
+        </div>
+      )}
+
+      {showModal && (
+        <div className="modal fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded shadow-lg text-center">
+            <h2 className="text-2xl mb-4">
+              {gameResult?.reason === "win"
+                ? `${gameResult?.winner} Wins!`
+                : "It's a Draw!"}
+            </h2>
+            <button
+              onClick={resetGame}
+              className="bg-blue-500 text-white px-4 py-2 rounded mr-4"
+            >
+              Restart
+            </button>
+            <button
+              onClick={quitGame}
+              className="bg-red-500 text-white px-4 py-2 rounded"
+            >
+              Quit
+            </button>
           </div>
         </div>
       )}

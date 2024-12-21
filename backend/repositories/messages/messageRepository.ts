@@ -2,7 +2,7 @@ import { injectable } from 'inversify';
 import { IConversation } from '../../types/conversation.types';
 import { IMessage, IMessageData } from '../../types/message.types';
 import { IMessageRepository } from '../../interfaces/messages/IMessageRepository';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { ICallHistory } from '../../types/videoCall.types';
 import { ICallHistoryResponse } from '../../types/videoCall.types';
 
@@ -19,7 +19,6 @@ export class MessageRepository implements IMessageRepository {
       this.ConversationModel = ConversationModel;
       this.CallHistoryModel = CallHistoryModel;
     }
-
     async createMessage(senderId: string, receiverId: string, messageData: IMessageData): Promise<IMessage> {
       try {
         const message = new this.MessageModel({
@@ -98,6 +97,59 @@ async createMessageCallHistory(messageData: IMessageData): Promise<IMessage> {
     console.error('Error creating message:', error);
     throw new Error('Failed to create message');
   }
+}
+
+// async markMessagesAsRead(userId: string, senderId: string): Promise<void> {
+//   await this.MessageModel.updateMany(
+//     { 
+//       senderId: senderId, 
+//       receiverId: userId, 
+//       isRead: false 
+//     }, 
+//     { 
+//       $set: { isRead: true } 
+//     }
+//   );
+// }
+
+async getUnreadMessageCount(userId: string): Promise<{ [key: string]: number }> {
+  const unreadCounts = await this.MessageModel.aggregate([
+    { 
+      $match: { 
+        receiverId: new mongoose.Types.ObjectId(userId), 
+        isRead: false 
+      } 
+    },
+    {
+      $group: {
+        _id: "$senderId",
+        count: { $sum: 1 }
+      }
+    }
+  ]);
+
+  return unreadCounts.reduce((acc, item) => {
+    acc[item._id.toString()] = item.count;
+    return acc;
+  }, {});
+}
+
+async findMessage(userId1: string, userId2: string, status: boolean): Promise<IMessage[]> {
+    return await this.MessageModel.find({
+    receiverId: userId1,
+    senderId: userId2,
+    isRead: status,
+    })
+}
+
+async updateMessage(userId1: string, senderId: string, status: boolean): Promise<void> {
+    await this.MessageModel.updateMany({
+      receiverId: userId1,
+      senderId: senderId,
+      isRead: status,
+    },
+    { isRead: true }
+    )
 }
 
 }

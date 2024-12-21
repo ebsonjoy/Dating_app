@@ -8,10 +8,13 @@ export interface IAdminRepository{
     findAllUsers(): Promise<IUser[]>;
     updateUserStatus(userId: string, newStatus: boolean): Promise<IUser | null>;
     getAllPayments():Promise<IPayment[]>
-
     usersCount():Promise<number>
     matchesCount():Promise<number>
     premiumUsersCount():Promise<number>
     totalRevanue():Promise<number>
+    getUserCountByTimeRange(timeRange:'day'|'month'|'year'): Promise<number>;
+    getUserGrowthData(timeRange: 'day'|'month'|'year'): Promise<{ date: Date; count: number }[]>;
+    getPaymentTotalByTimeRange(timeRange:'day'|'month'| 'year'): Promise<number>;
+    getPaymentGrowthData(timeRange: 'day'|'month'|'year'): Promise<{ date: Date; amount: number }[]>;
 
 }

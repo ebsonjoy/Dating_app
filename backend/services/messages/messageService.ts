@@ -86,7 +86,6 @@ export class MessageService implements IMessageService {
         message,
         callHistoryId
     });
-console.log('meeeeeeeeeeeeesssssssssss',newMessage)
     if (newMessage && conversation._id) {
       await this.messageRepository.addMessageToConversation(conversation._id.toString(), newMessage._id.toString());
     }
@@ -95,6 +94,27 @@ console.log('meeeeeeeeeeeeesssssssssss',newMessage)
     throw new Error('Failed to create call history');
 }
 
+  }
+
+
+  // async markMessagesAsRead(userId: string, senderId: string): Promise<void> {
+  //   await this.messageRepository.markMessagesAsRead(userId, senderId);
+  // }
+  
+  async markMessagesAsRead(userId: string, senderId: string): Promise<IMessage[]> {
+    const messages = await this.messageRepository.findMessage(
+       userId, senderId, false,);
+  
+    if (messages.length > 0) {
+      await this.messageRepository.updateMessage(userId,senderId,false);
+    }
+  
+    return messages;
+  }
+
+
+  async getUnreadMessageCount(userId: string): Promise<{ [key: string]: number }> {
+    return await this.messageRepository.getUnreadMessageCount(userId);
   }
   
 }

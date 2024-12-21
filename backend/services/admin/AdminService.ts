@@ -6,6 +6,7 @@ import { IUser } from "../../types/user.types";
 import { IPayment } from "../../types/payment.types";
 import { IDashboardMasterData } from "../../types/dashboard.types";
 
+
 @injectable()
 export class AdminService implements IAdminService {
   constructor(
@@ -90,6 +91,28 @@ export class AdminService implements IAdminService {
     }
 }
 
+
+async getUserChartData(
+  timeRange: 'day' | 'month' | 'year'
+): Promise<{ totalUsers: number; userGrowthData: { date: Date; count: number }[] }> {
+  const totalUsers = await this.adminRepository.getUserCountByTimeRange(timeRange);
+  const userGrowthData = await this.adminRepository.getUserGrowthData(timeRange);
+
+  return {
+    totalUsers,
+    userGrowthData,
+  };
+}
+async getPaymentChartData(timeRange: 'day' | 'month' | 'year'
+):Promise<{totalPayments:number;paymentGrowthData:{ date: Date; amount: number }[]}> {
+  const totalPayments = await this.adminRepository.getPaymentTotalByTimeRange(timeRange);
+  const paymentGrowthData = await this.adminRepository.getPaymentGrowthData(timeRange);
+
+  return {
+    totalPayments,
+    paymentGrowthData
+  };
+}
 
 
 }

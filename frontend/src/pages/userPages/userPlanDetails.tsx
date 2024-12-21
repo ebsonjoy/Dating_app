@@ -89,7 +89,7 @@ const SubscriptionPage: React.FC = () => {
   const features = userPlanDetals?.subscription?.planId?.features || [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-indigo-200 via-purple-100 to-pink-100 flex flex-col items-center">
+    <div className="min-h-screen bg-gradient-to-b from-rose-50 to-pink-50 flex flex-col items-center">
       {/* Navbar */}
       <div className="w-full">
         <Navbar />

@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useLogoutMutation,useGetReceivedLikesCountQuery } from '../../slices/apiUserSlice';
 import { logout } from '../../slices/authSlice';
 import { RootState } from '../../store';
+import NotificationsDropdown from '../../pages/userPages/notification';
 
 const Navbar = () => {
   const [logoutApiCall] = useLogoutMutation();
@@ -16,7 +17,7 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [plansOpen, setPlansOpen] = useState(false);
   const { data: likesCount } = useGetReceivedLikesCountQuery(userId);
-console.log(likesCount?.count)
+console.log('count',likesCount?.count)
   // Close mobile menu on route change
   useEffect(() => {
     setMenuOpen(false);
@@ -112,6 +113,7 @@ console.log(likesCount?.count)
 
               {/* Profile and Logout */}
               <div className="flex items-center gap-2 ml-2">
+                 <NotificationsDropdown />
                 <button
                   onClick={() => navigate("/profile")}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors

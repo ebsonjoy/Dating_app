@@ -1,5 +1,4 @@
 import mongoose, { Schema } from "mongoose";
-
 import { ICallHistory } from "../types/videoCall.types";
 
 const callHistorySchema = new Schema<ICallHistory>({

@@ -215,6 +215,14 @@ interface IArticle {
   isBlock: boolean;
 }
 
+interface INotification {
+  userId: string;
+  type: string;     
+  message: string;  
+  createdAt?: Date; 
+}
+
+
 export const usersApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation<{ token: string }, LoginData>({
@@ -382,6 +390,18 @@ export const usersApiSlice = apiSlice.injectEndpoints({
         body: messageData
       }),
     }),
+
+    markMessagesAsRead: builder.mutation<void, { userId: string; senderId: string }>({
+      query: (body) => ({
+        url: `${MESSAGES_URL}/mark-message-read`,
+        method: 'POST',
+        body
+      }),
+    }),
+    
+    getUnreadMessageCount: builder.query<{ [key: string]: number }, string>({
+      query: (userId) => `${MESSAGES_URL}/messages-unread-count?userId=${userId}`
+    }),
     getChatHistory: builder.query<IChatHistory, GetChatHistoryParams>({
       query: ({ userId1, userId2 }) => ({
         url: `${MESSAGES_URL}/chat-history?userId1=${userId1}&userId2=${userId2}`
@@ -408,6 +428,26 @@ export const usersApiSlice = apiSlice.injectEndpoints({
     getArticleById: builder.query<IArticle, string>({
       query: (articleId) =>  `${USERS_URL}/getArticleById/${articleId}`,
     }),
+
+    createNotification: builder.mutation<void, INotification>({
+      query: (data) => ({
+        url: `${MESSAGES_URL}/createNotification`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+    getNotification: builder.query<INotification[], string>({
+      query: (userId) =>  `${USERS_URL}/getNotifications/${userId}`,
+    }),
+
+    clearNotification: builder.mutation<void, string>({
+      query: (userId) => ({
+        url:`${USERS_URL}/clearNotifications/${userId}`,
+        method: 'DELETE',
+      }),
+    }),
+
+    
 
   }),
 });
@@ -441,9 +481,13 @@ export const {
   useGetChatHistoryQuery,
   useCreateVideoCallMutation,
   useGetUserDetailsQuery,
-
   useGetAdviceCategoriesQuery, 
   useGetArticlesByCategoryQuery,
-  useGetArticleByIdQuery 
+  useGetArticleByIdQuery,
+  useCreateNotificationMutation,
+  useGetNotificationQuery,
+  useClearNotificationMutation,
+  useMarkMessagesAsReadMutation,
+  useGetUnreadMessageCountQuery,
 
 } = usersApiSlice;
