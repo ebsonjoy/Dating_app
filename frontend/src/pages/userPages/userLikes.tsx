@@ -1,30 +1,37 @@
 import React, { useState } from 'react';
 import Navbar from '../../components/user/Navbar';
-import { Heart, Send, UserCog, Home, Search } from 'lucide-react';
-import { useGetSentLikeProfilesQuery, useGetReceivedLikeProfilesQuery } from '../../slices/apiUserSlice';
+import { Heart, Send, UserCog, Home, Search, User } from 'lucide-react';
+import { useGetSentLikeProfilesQuery, useGetReceivedLikeProfilesQuery, useHandleHomeLikesMutation } from '../../slices/apiUserSlice';
 import { RootState } from "../../store";
 import { useSelector } from "react-redux";
 import { useNavigate } from 'react-router-dom';
 import SkeletonLoader from '../../components/skeletonLoader';
+import { toast } from 'react-toastify';
+import { useSocketContext } from "../../context/SocketContext";
 
-
-
+interface Profile {
+  id: string;
+  name: string;
+  age: string;
+  place: string;
+  image: string[];
+}
 
 const LikesPage: React.FC = () => {
   const navigate = useNavigate();
   const { userInfo } = useSelector((state: RootState) => state.auth);
   const userId = userInfo?._id;
-
-  const { data: dummyLikesData, isLoading, error } = useGetReceivedLikeProfilesQuery(userId);
-  const { data: dummySentLikesData } = useGetSentLikeProfilesQuery(userId);
-
+  const { socket } = useSocketContext();
+  const { data: receivedLikesData, isLoading,refetch, error } = useGetReceivedLikeProfilesQuery(userId);
+  const { data: sentLikesData } = useGetSentLikeProfilesQuery(userId);
+  const [likes] = useHandleHomeLikesMutation();
   const [viewMode, setViewMode] = useState<'received' | 'sent'>('received');
 
   const toggleViewMode = () => {
     setViewMode((prevMode) => (prevMode === 'received' ? 'sent' : 'received'));
   };
 
-  const displayedData = viewMode === 'received' ? dummyLikesData : dummySentLikesData;
+  const displayedData = viewMode === 'received' ? receivedLikesData : sentLikesData;
 
   const calculateAge = (dob: string): number => {
     const birthDate = new Date(dob);
@@ -37,18 +44,48 @@ const LikesPage: React.FC = () => {
     }
     return age;
   };
-console.log('ddddddddddddddddddddddddd',displayedData)
-  
+
   const handleMatchClick = (partnerUserId: string) => {
-    console.log('iiiiiiiiiiiiiidddddddd',partnerUserId)
+    if (!partnerUserId) {
+      toast.error('Invalid profile selected');
+      return;
+    }
     navigate("/userDetails", { state: { partnerUserId } });
   };
 
-  
-  if (isLoading) return <SkeletonLoader />;
-  console.log(error)
-  if (error) return <div>Failed to load like details.</div>;
+  const handleLike = async (likedUserId: string) => {
+    try {
+      if (!userId || !likedUserId) {
+        toast.error('Unable to process like at this moment');
+        return;
+      }
 
+      const res = await likes({ likerId: userId, likedUserId }).unwrap();
+      
+      if (res.match) {
+        socket?.emit('notifyMatch', {
+          user1Id: likedUserId,
+          user2Id: userId,
+        });
+      }
+
+      socket?.emit('notifyLike', {
+        name: userInfo.name,
+        likedUserId,
+      });
+
+      toast.success('Profile liked successfully!');
+      refetch()
+    } catch (error: any) {
+      if (error?.status === 403 && error?.data?.code === 'SUBSCRIPTION_EXPIRED') {
+        toast.error(error?.data?.message || 'Your subscription has expired. Please subscribe.');
+        navigate('/userPlanDetails');
+      } else {
+        console.error('Error while liking the user:', error);
+        toast.error('An error occurred. Please try again.');
+      }
+    }
+  };
 
   const EmptyStateReceived = () => (
     <div className="flex flex-col items-center justify-center py-16 px-4">
@@ -69,7 +106,8 @@ console.log('ddddddddddddddddddddddddd',displayedData)
           You haven't received any likes yet. Complete your profile to increase your chances of getting noticed!
         </p>
         
-        <button onClick={() => navigate("/profile")}
+        <button 
+          onClick={() => navigate("/profile")}
           className="w-full px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-full font-medium hover:from-pink-600 hover:to-rose-600 transition-all duration-300 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
         >
           <UserCog className="w-5 h-5" />
@@ -98,7 +136,8 @@ console.log('ddddddddddddddddddddddddd',displayedData)
           You haven't liked any profiles yet. Explore our community to find your perfect match!
         </p>
         
-        <button onClick={() => navigate("/")}
+        <button 
+          onClick={() => navigate("/")}
           className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full font-medium hover:from-blue-600 hover:to-indigo-600 transition-all duration-300 flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
         >
           <Home className="w-5 h-5" />
@@ -107,6 +146,9 @@ console.log('ddddddddddddddddddddddddd',displayedData)
       </div>
     </div>
   );
+
+  if (isLoading) return <SkeletonLoader />;
+  if (error) return <div>Failed to load like details.</div>;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
@@ -147,26 +189,25 @@ console.log('ddddddddddddddddddddddddd',displayedData)
 
         {displayedData && displayedData.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {displayedData.map((profile: any) => (
-              <div
-                key={profile.id}
-                className="group relative bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                
-                <div className="p-6">
-                  <div className="mb-4 relative">
+            {displayedData.map((profile: Profile) => (
+              <div key={profile.id} className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300">
+                <div className="p-4">
+                  {/* Profile Image */}
+                  <div className="relative mb-4">
                     <img
                       src={profile.image[0]}
                       alt={`${profile.name}'s profile`}
-                      className="w-32 h-32 rounded-full mx-auto object-cover border-4 border-white shadow-md group-hover:scale-105 transition-transform duration-300"
+                      className="w-32 h-32 rounded-full mx-auto object-cover border-4 border-white shadow-md"
                     />
-                    <div className="absolute bottom-0 right-1/3 transform translate-x-4 translate-y-2">
-                      <Heart className="w-8 h-8 text-pink-500 fill-pink-500" />
-                    </div>
+                    {viewMode === 'sent' && (
+                      <div className="absolute bottom-0 right-1/3 transform translate-x-4 translate-y-2">
+                        <Heart className="w-8 h-8 text-pink-500 fill-pink-500" />
+                      </div>
+                    )}
                   </div>
-                  
-                  <div className="text-center">
+
+                  {/* Profile Info */}
+                  <div className="text-center mb-4">
                     <h2 className="text-xl font-semibold text-gray-800 mb-2">{profile.name}</h2>
                     <div className="space-y-1">
                       <p className="text-gray-600">
@@ -178,12 +219,39 @@ console.log('ddddddddddddddddddddddddd',displayedData)
                       </p>
                     </div>
                   </div>
-                </div>
-                
-                <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <button className="w-full py-2 bg-white/90 rounded-full text-gray-800 font-medium hover:bg-white transition-colors duration-200" onClick={() => handleMatchClick(profile.id)}>
-                    View Profile
-                  </button>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 mt-4">
+                    {/* Profile Details Button */}
+                    <button 
+                      onClick={() => handleMatchClick(profile.id)}
+                      className="flex-1 flex items-center justify-center gap-2 py-2 px-4 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                    >
+                      <User size={20} />
+                      <span>Profile</span>
+                    </button>
+
+                    {/* Like Button - Only show in received view and if not already liked */}
+                    {viewMode === 'received' && (
+                      sentLikesData?.some((sent: Profile) => sent.id === profile.id) ? (
+                        <button 
+                          disabled
+                          className="flex-1 flex items-center justify-center gap-2 py-2 px-4 bg-gray-300 text-white rounded-lg cursor-not-allowed"
+                        >
+                          <Heart size={20} fill="white" />
+                          <span>Liked</span>
+                        </button>
+                      ) : (
+                        <button 
+                          onClick={() => handleLike(profile.id)}
+                          className="flex-1 flex items-center justify-center gap-2 py-2 px-4 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors"
+                        >
+                          <Heart size={20} />
+                          <span>Like</span>
+                        </button>
+                      )
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

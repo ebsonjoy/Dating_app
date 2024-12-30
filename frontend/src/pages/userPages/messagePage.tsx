@@ -11,14 +11,13 @@ import {
 } from "../../slices/apiUserSlice";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
-import { Search, Phone, Video, Smile,CheckCheck, Check } from "lucide-react";
+import { Search, Phone, Video, Smile, CheckCheck, Check } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import type { EmojiClickData } from "emoji-picker-react";
 import VideoCall from "./videoCall";
-import { useCreateVideoCallMutation } from '../../slices/apiUserSlice';
+import { useCreateVideoCallMutation } from "../../slices/apiUserSlice";
 import { toast } from "react-toastify";
-import { useNavigate } from 'react-router-dom';
-
+import { useNavigate } from "react-router-dom";
 
 interface Message {
   _id?: string;
@@ -43,7 +42,7 @@ interface CallState {
 }
 
 const MatchesAndChat: React.FC = () => {
-  const { socket,onlineUsers } = useSocketContext();
+  const { socket, onlineUsers } = useSocketContext();
   const [sendMessageMutation] = useSendMessageMutation();
   const [createVideoCall] = useCreateVideoCallMutation();
   const [markMessagesAsRead] = useMarkMessagesAsReadMutation();
@@ -67,7 +66,7 @@ const MatchesAndChat: React.FC = () => {
     from: "",
     offer: null,
   });
-
+  console.log("onlineUsers", onlineUsers);
   // Add skip and refetch to the query
   const { data: chatHistory, refetch: refetchChatHistory } =
     useGetChatHistoryQuery(
@@ -80,10 +79,21 @@ const MatchesAndChat: React.FC = () => {
 
   const { data: matchProfiles = [] } = useGetMatchProfilesQuery(userId);
 
-  const { data: unreadMessageCounts = {} } = useGetUnreadMessageCountQuery(userId, {
-    skip: !userId,
-    refetchOnMountOrArgChange: true,
-  });
+  const { data: unreadMessageCounts, refetch: refetchUnreadCounts } =
+    useGetUnreadMessageCountQuery(userId, {
+      skip: !userId,
+      refetchOnMountOrArgChange: true,
+    });
+  console.log("unreadMessageCounts", unreadMessageCounts);
+  const [localUnreadCounts, setLocalUnreadCounts] = useState<
+    Record<string, number>
+  >({});
+
+  useEffect(() => {
+    if (unreadMessageCounts?.data) {
+      setLocalUnreadCounts(unreadMessageCounts.data);
+    }
+  }, [unreadMessageCounts]);
 
   // Format timestamp
   const formatMessageTime = (timestamp: string) => {
@@ -113,31 +123,43 @@ const MatchesAndChat: React.FC = () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
   }, [selectedMatch, refetchChatHistory]);
 
-  // useEffect(() => {
-  //   if (selectedMatch && messages.length > 0) {
-  //     // Mark messages as read when user opens the chat
-  //     const unreadMessages = messages.filter(
-  //       msg => msg.senderId === selectedMatch && !msg.isRead
-  //     );
-      
-  //     if (unreadMessages.length > 0) {
-  //       // Call your API to mark messages as read
-  //       markMessagesAsRead({
-  //         userId: userId,
-  //         senderId: selectedMatch
-  //       });
-  
-  //       // Emit socket event for each unread message
-  //       unreadMessages.forEach(msg => {
-  //         socket?.emit("markMessageRead", {
-  //           messageId: msg._id,
-  //           senderId: selectedMatch,
-  //           readerId: userId
-  //         });
-  //       });
-  //     }
-  //   }
-  // }, [selectedMatch, messages, userId]);
+  useEffect(() => {
+    if (
+      selectedMatch &&
+      messages.length > 0 &&
+      document.visibilityState === "visible"
+    ) {
+      // Mark messages as read when user opens the chat
+      const unreadMessages = messages.filter(
+        (msg) => msg.senderId === selectedMatch && !msg.isRead
+      );
+
+      if (unreadMessages.length > 0) {
+        // Call your API to mark messages as read
+
+        setLocalUnreadCounts((prev) => ({
+          ...prev,
+          [selectedMatch]: 0,
+        }));
+
+        markMessagesAsRead({
+          userId: userId,
+          senderId: selectedMatch,
+        }).then(() => {
+          refetchUnreadCounts(); // Refresh the unread counts from server
+        });
+
+        // Emit socket event for each unread message
+        unreadMessages.forEach((msg) => {
+          socket?.emit("markMessageRead", {
+            messageId: msg._id,
+            senderId: selectedMatch,
+            readerId: userId,
+          });
+        });
+      }
+    }
+  }, [selectedMatch, messages, userId, document.visibilityState]);
 
   // Update when returning to the page
   useEffect(() => {
@@ -152,34 +174,94 @@ const MatchesAndChat: React.FC = () => {
       setMessages(chatHistory.data);
     }
   }, [chatHistory]);
-  const name = userInfo?.name
+  const name = userInfo?.name;
+
+  // useEffect(() => {
+  //   if (socket) {
+  //     socket.on("newMessage", (newMessage: Message) => {
+  //       setMessages((prevMessages) => [...prevMessages, newMessage]);
+  //     });
+
+  //     socket.on("messageRead", ({ messageId, readerId }) => {
+  //       setMessages((prevMessages) =>
+  //         prevMessages.map((msg) =>
+  //           msg._id === messageId ? { ...msg, isRead: true } : msg
+  //         )
+  //       );
+  //     });
+
+  //     return () => {
+  //       socket.off("newMessage");
+  //       socket.off("messageRead");
+  //     };
+  //   }
+  // }, [socket]);
 
   useEffect(() => {
     if (socket) {
       socket.on("newMessage", (newMessage: Message) => {
-        setMessages((prevMessages) => [...prevMessages, newMessage]);
+        // Only update messages if they belong to the current conversation
+        setMessages((prevMessages) => {
+          // Check if the message belongs to the current conversation
+          if (
+            (newMessage.senderId === selectedMatch &&
+              newMessage.senderId !== userId) ||
+            (newMessage.senderId === userId &&
+              selectedMatch === newMessage.receiverId)
+          ) {
+            return [...prevMessages, newMessage];
+          }
+          // If message doesn't belong to current conversation, don't update
+          return prevMessages;
+        });
+
+        if (
+          newMessage.senderId !== userId &&
+          newMessage.senderId !== selectedMatch
+        ) {
+          setLocalUnreadCounts((prev) => ({
+            ...prev,
+            [newMessage.senderId]: (prev[newMessage.senderId] || 0) + 1,
+          }));
+          refetchUnreadCounts(); // Refresh server counts
+        }
+
+        // If the message is from someone else and we're not in their chat,
+        // we could trigger a notification or update unread count
+        if (
+          newMessage.senderId !== userId &&
+          newMessage.senderId !== selectedMatch
+        ) {
+          // Optionally trigger a refetch of unread counts
+          refetchChatHistory();
+        }
       });
 
-      // socket.on('messageRead', ({ messageId, readerId }) => {
-      //   setMessages(prevMessages =>
-      //     prevMessages.map(msg =>
-      //       msg._id === messageId ? { ...msg, isRead: true } : msg
-      //     )
-      //   );
-      // });
-  
+      socket.on("messageRead", ({ messageId, readerId }) => {
+        setMessages((prevMessages) =>
+          prevMessages.map((msg) =>
+            msg._id === messageId ? { ...msg, isRead: true } : msg
+          )
+        );
+
+        // Update unread counts when messages are read
+        if (readerId !== userId) {
+          refetchUnreadCounts();
+        }
+      });
+
       return () => {
         socket.off("newMessage");
-        // socket.off("messageRead");
+        socket.off("messageRead");
       };
     }
-  }, [socket]);
+  }, [socket, selectedMatch, userId]);
 
-  //   useEffect(() => {
-  //   if (selectedMatch && userId) {
-  //     markMessagesAsRead({ userId, senderId: selectedMatch });
-  //   }
-  // }, [selectedMatch, userId, markMessagesAsRead]);
+  useEffect(() => {
+    if (selectedMatch && userId) {
+      markMessagesAsRead({ userId, senderId: selectedMatch });
+    }
+  }, [selectedMatch, userId, markMessagesAsRead]);
 
   useEffect(() => {
     if (!socket) return;
@@ -202,7 +284,7 @@ const MatchesAndChat: React.FC = () => {
 
   useEffect(() => {
     if (!socket) return;
-  
+
     socket.on("call-rejected", () => {
       console.log("Call rejected by the opponent.");
       setShowVideoCall(false);
@@ -212,12 +294,11 @@ const MatchesAndChat: React.FC = () => {
         offer: null,
       });
     });
-  
+
     return () => {
       socket.off("call-rejected");
     };
   }, [socket]);
-  
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -253,24 +334,47 @@ const MatchesAndChat: React.FC = () => {
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
+    // e.preventDefault();
+    // if (!messageInput.trim() || !selectedMatch) return;
+
+    // try {
+    //   const newMessage = {
+    //     senderId: userId,
+    //     receiverId: selectedMatch,
+    //     message: messageInput,
+    //     createdAt: new Date().toISOString(),
+    //   };
+
+    //   await sendMessageMutation(newMessage).unwrap();
+
+    //   setMessages((prevMessages) => [
+    //     ...prevMessages,
+    //     {
+    //       senderId: userId,
+    //       message: messageInput,
+    //       createdAt: new Date().toISOString(),
+    //     },
+    //   ]);
+
     e.preventDefault();
     if (!messageInput.trim() || !selectedMatch) return;
-
 
     try {
       const newMessage = {
         senderId: userId,
         receiverId: selectedMatch,
         message: messageInput,
-        createdAt: new Date().toISOString(), 
+        createdAt: new Date().toISOString(),
       };
 
       await sendMessageMutation(newMessage).unwrap();
 
+      // Add the message to the current conversation
       setMessages((prevMessages) => [
         ...prevMessages,
         {
           senderId: userId,
+          receiverId: selectedMatch,
           message: messageInput,
           createdAt: new Date().toISOString(),
         },
@@ -279,18 +383,24 @@ const MatchesAndChat: React.FC = () => {
       socket?.emit("notifyMessage", {
         name,
         // likerId: userId,
-        likedUserId:selectedMatch,
+        likedUserId: selectedMatch,
       });
 
       setMessageInput("");
     } catch (error) {
-      if (error?.status === 403 && error?.data?.code === 'SUBSCRIPTION_EXPIRED') {
-        toast.error(error?.data?.message || 'Your subscription has expired. Please subscribe.');
-        navigate('/userPlanDetails');
-    } else {
+      if (
+        error?.status === 403 &&
+        error?.data?.code === "SUBSCRIPTION_EXPIRED"
+      ) {
+        toast.error(
+          error?.data?.message ||
+            "Your subscription has expired. Please subscribe."
+        );
+        navigate("/userPlanDetails");
+      } else {
         console.error("Error while liking the user:", error);
-        toast.error('An error occurred. Please try again.');
-    }
+        toast.error("An error occurred. Please try again.");
+      }
     }
   };
   const handleMatchSelect = (matchId: string) => {
@@ -311,24 +421,23 @@ const MatchesAndChat: React.FC = () => {
   };
 
   const handleRejectCall = () => {
-    const callStatus = 'rejected'
+    const callStatus = "rejected";
     createVideoCall({
       callerId: userId,
       receiverId: selectedMatch?.toString(),
       type: "video-call",
-      duration : 0,
-      status: callStatus
+      duration: 0,
+      status: callStatus,
     });
     if (socket && callState.from) {
       socket.emit("call-rejected", { to: callState.from });
     }
     setShowVideoCall(false);
-  setCallState({
-    isReceivingCall: false,
-    from: "",
-    offer: null,
-  });
-    
+    setCallState({
+      isReceivingCall: false,
+      from: "",
+      offer: null,
+    });
   };
 
   const handleVoiceCall = () => {
@@ -372,35 +481,42 @@ const MatchesAndChat: React.FC = () => {
                     filteredMatches.map(
                       (match: MatchProfile, index: number) => (
                         <div
-    key={index}
-    onClick={() => handleMatchSelect(match.id)}
-    className={`flex items-center p-2 rounded-lg hover:bg-pink-50 transition-all cursor-pointer ${
-      selectedMatch === match.id ? "bg-pink-100" : ""
-    }`}
-  >
-    <div className="relative">
-      <img
-        src={match.image[0]}
-        alt={match.name}
-        className="w-10 h-10 rounded-full object-cover border-2 border-pink-500"
-      />
-      {/* Online status indicator */}
-      {onlineUsers.includes(match.id) && (
-        <div 
-          className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" 
-          title="Online"
-        />
-      )}
-    </div>
-    <div className="ml-3 overflow-hidden">
-      <h3 className="font-semibold text-gray-800 truncate">
-        {match.name}
-      </h3>
-      <p className="text-xs text-gray-600 truncate">
-        {calculateAge(match.age)} years • {match.place}
-      </p>
-    </div>
-  </div>
+                          key={index}
+                          onClick={() => handleMatchSelect(match.id)}
+                          className={`flex items-center p-2 rounded-lg hover:bg-pink-50 transition-all cursor-pointer ${
+                            selectedMatch === match.id ? "bg-pink-100" : ""
+                          }`}
+                        >
+                          <div className="relative">
+                            <img
+                              src={match.image[0]}
+                              alt={match.name}
+                              className="w-10 h-10 rounded-full object-cover border-2 border-pink-500"
+                            />
+                            {/* Online status indicator */}
+                            {onlineUsers.includes(match.id) && (
+                              <div
+                                className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white"
+                                title="Online"
+                              />
+                            )}
+                          </div>
+                          <div className="ml-3 overflow-hidden">
+                            <div className="flex items-center justify-between">
+                              <h3 className="font-semibold text-gray-800 truncate">
+                                {match.name}
+                              </h3>
+                              {localUnreadCounts[match.id] > 0 && (
+                                <span className="ml-2 bg-pink-500 text-white text-xs font-medium px-2 py-0.5 rounded-full">
+                                  {localUnreadCounts[match.id]}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-600 truncate">
+                              {calculateAge(match.age)} years • {match.place}
+                            </p>
+                          </div>
+                        </div>
                       )
                     )
                   )}
@@ -434,6 +550,11 @@ const MatchesAndChat: React.FC = () => {
                           {calculateAge(selectedMatchProfile?.age || "")} years
                           • {selectedMatchProfile?.place}
                         </p>
+                        <h2 className="text-sm text-green-500">
+                          {onlineUsers.includes(selectedMatchProfile?.id)
+                            ? "Online"
+                            : ""}
+                        </h2>
                       </div>
                     </div>
                     {showVideoCall ? (
@@ -503,90 +624,85 @@ const MatchesAndChat: React.FC = () => {
                   )}
 
                   {/* Messages Area */}
-                  <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
-                    <div className="space-y-2">
-                      {messages.map((msg, index) => (
-                        <div
-                          key={index}
-                          className={`flex ${
-                            msg.senderId === userId
-                              ? "justify-end"
-                              : "justify-start"
-                          }`}
-                        >
-                          <div className="flex flex-col max-w-[70%]">
+                  <div className="flex-1 overflow-y-auto p-4 bg-gradient-to-b from-gray-50 to-white [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                    <div className="space-y-4 px-2">
+                      {messages.map((msg, index) => {
+                        const isCurrentUser = msg.senderId === userId;
+
+                        return (
+                          <div
+                            key={index}
+                            className={`flex items-end space-x-2 ${
+                              isCurrentUser ? "justify-end" : "justify-start"
+                            }`}
+                          >
+                            {!isCurrentUser && (
+                              <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center">
+                                <span className="text-sm text-gray-600">
+                                  {selectedMatchProfile?.name?.charAt(0) || "?"}
+                                </span>
+                              </div>
+                            )}
+
                             <div
-                              className={`px-4 py-2 rounded-lg break-words ${
-                                msg.senderId === userId
-                                  ? "bg-pink-500 text-white"
-                                  : "bg-gray-200 text-black"
-                              }`}
+                              className={`flex flex-col ${
+                                isCurrentUser ? "items-end" : "items-start"
+                              } max-w-[75%]`}
                             >
-                              {msg.message}
+                              <div
+                                className={`px-4 py-2 rounded-2xl ${
+                                  isCurrentUser
+                                    ? "bg-gradient-to-r from-pink-500 to-rose-500 text-white"
+                                    : "bg-white border border-gray-200 text-gray-800"
+                                } shadow-sm`}
+                              >
+                                <p className="text-sm leading-relaxed break-words">
+                                  {msg.message}
+                                </p>
+                              </div>
+
+                              <div className="flex items-center mt-1 space-x-2">
+                                <span className="text-xs text-gray-500">
+                                  {formatMessageTime(msg.createdAt)}
+                                </span>
+                                {isCurrentUser && (
+                                  <span className="text-gray-500">
+                                    {msg.isRead ? (
+                                      <CheckCheck className="h-3 w-3" />
+                                    ) : (
+                                      <Check className="h-3 w-3" />
+                                    )}
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                            <span className="text-xs text-gray-500 mt-1 px-1">
-                              {formatMessageTime(msg.createdAt)}
-                            </span>
+
+                            {isCurrentUser && (
+                              <div className="flex-shrink-0 h-8 w-8 rounded-full bg-pink-100 flex items-center justify-center">
+                                <span className="text-sm text-pink-600">
+                                  {userInfo?.name?.charAt(0) || "Y"}
+                                </span>
+                              </div>
+                            )}
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                       <div ref={messagesEndRef} />
                     </div>
                   </div>
 
-                  {/* Messages Area */}
-{/* <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
-  <div className="space-y-2">
-    {messages.map((msg, index) => (
-      <div
-        key={index}
-        className={`flex ${
-          msg.senderId === userId ? "justify-end" : "justify-start"
-        }`}
-      >
-        <div className="flex flex-col max-w-[70%]">
-          <div
-            className={`px-4 py-2 rounded-lg break-words ${
-              msg.senderId === userId
-                ? "bg-pink-500 text-white"
-                : "bg-gray-200 text-black"
-            }`}
-          >
-            {msg.message}
-          </div>
-          <div className="flex items-center justify-end gap-1 mt-1">
-            <span className="text-xs text-gray-500">
-              {formatMessageTime(msg.createdAt)}
-            </span>
-            {msg.senderId === userId && (
-              <span className="text-gray-500">
-                {msg.isRead ? (
-                  <CheckCheck className="h-4 w-4" />
-                ) : (
-                  <Check className="h-4 w-4" />
-                )}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
-    ))}
-    <div ref={messagesEndRef} />
-  </div>
-</div> */}
-
                   {/* Message Input */}
                   <form
                     onSubmit={handleSendMessage}
-                    className="p-3 bg-white border-t relative"
+                    className="p-4 bg-white border-t relative"
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3 bg-gray-50 p-2 rounded-xl border border-gray-200 hover:border-pink-200 transition-colors">
                       <div className="relative">
                         <button
                           type="button"
                           ref={emojiButtonRef}
                           onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                          className="p-2 text-gray-500 hover:text-pink-500 rounded-full hover:bg-gray-100 transition-colors"
+                          className="p-2 text-gray-500 hover:text-pink-500 rounded-full hover:bg-white transition-all duration-200 active:scale-95"
                         >
                           <Smile className="h-5 w-5" />
                         </button>
@@ -594,8 +710,7 @@ const MatchesAndChat: React.FC = () => {
                         {showEmojiPicker && (
                           <div
                             ref={emojiPickerRef}
-                            className="absolute bottom-12 left-0 z-50 shadow-lg rounded-lg"
-                            style={{ backgroundColor: "white" }}
+                            className="absolute bottom-12 left-0 z-50 shadow-xl rounded-xl border border-gray-100"
                           >
                             <EmojiPicker
                               onEmojiClick={handleEmojiClick}
@@ -611,15 +726,32 @@ const MatchesAndChat: React.FC = () => {
                         value={messageInput}
                         onChange={(e) => setMessageInput(e.target.value)}
                         placeholder="Type a message..."
-                        className="flex-1 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+                        className="flex-1 p-2 bg-transparent text-gray-700 placeholder-gray-400 focus:outline-none text-sm"
                       />
 
                       <button
                         type="submit"
                         disabled={!messageInput.trim()}
-                        className="bg-pink-500 text-white px-4 py-2 rounded-lg hover:bg-pink-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg 
+                hover:from-pink-600 hover:to-rose-600 transition-all duration-200 
+                disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-pink-500 
+                disabled:hover:to-rose-500 shadow-sm hover:shadow active:scale-95
+                flex items-center gap-2"
                       >
-                        Send
+                        <span>Send</span>
+                        <svg
+                          className="w-4 h-4 rotate-90"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                          />
+                        </svg>
                       </button>
                     </div>
                   </form>

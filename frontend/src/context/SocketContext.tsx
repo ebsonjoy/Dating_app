@@ -69,10 +69,6 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         setNotifications((prev) => [notification, ...prev]);
       });
 
-      // newSocket.on('messageRead', ({ messageId, readerId }) => {
-      //   console.log('Message read:', messageId, 'by:', readerId);
-      // });
-
       return () => {
         newSocket.close();
         setSocket(null);

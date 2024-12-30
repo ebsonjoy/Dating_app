@@ -400,7 +400,7 @@ export const usersApiSlice = apiSlice.injectEndpoints({
     }),
     
     getUnreadMessageCount: builder.query<{ [key: string]: number }, string>({
-      query: (userId) => `${MESSAGES_URL}/messages-unread-count?userId=${userId}`
+      query: (userId) => `${MESSAGES_URL}/message-unread-count?userId=${userId}`
     }),
     getChatHistory: builder.query<IChatHistory, GetChatHistoryParams>({
       query: ({ userId1, userId2 }) => ({

@@ -102,6 +102,7 @@ const Home: React.FC = () => {
         console.log('Liker ID:', userId);
         console.log('Liked User ID:', currentUser.userId);
         console.log(res);
+        
         setCurrentIndex((prevIndex) => (prevIndex < users.length - 1 ? prevIndex + 1 : 0));
         setImageIndex(0);
       } else {

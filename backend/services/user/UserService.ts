@@ -69,7 +69,7 @@ export class UserService implements IUserService {
             if (currentPlan) {
                 dataToUpdate = {
                     subscription: {
-                        isPremium: true,
+                        isPremium: false,
                         planId: currentPlan._id ? new mongoose.Types.ObjectId(planId) : null,
                         planExpiryDate: calculateExpiryDate(currentPlan.duration),
                         // planExpiryDate:  new Date(Date.now() + 2 * 60 * 1000),
@@ -463,6 +463,7 @@ async handleHomeLikes(likesIds: ILikeData): Promise<{ match: boolean; message: s
 
     const reverseLike = await this.userRepository.findReverseLike({ likerId, likedUserId });
     if (reverseLike) {
+        await this.userRepository.saveLike({ likerId, likedUserId });
         await this.userRepository.updateLikeStatus({ likerId, likedUserId }, "matched");
         await this.userRepository.updateLikeStatus({ likerId: likedUserId, likedUserId: likerId }, "matched");
         await this.userRepository.saveMatch({ user1Id: likerId.toString(), user2Id: likedUserId.toString(), matchDate: new Date() });

@@ -74,9 +74,9 @@ const RevenueDetails: React.FC = () => {
 
 
   return (
-    <div className="flex flex-col md:flex-row h-screen">
+    <div className="flex flex-col lg:flex-row h-screen">
       <Navbar />
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col overflow-y-auto">
         <Header title="Revenue Details" />
         <div className="flex-1 bg-gray-100">
           <div className="max-w-7xl mx-auto bg-white p-6 rounded-lg shadow-md">

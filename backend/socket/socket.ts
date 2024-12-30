@@ -50,15 +50,15 @@ export const initializeSocket = (server: http.Server): void => {
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
     // Handle message read status
-    // socket.on("markMessageRead", ({ messageId, senderId, readerId }) => {
-    //   const senderSocketId = userSocketMap[senderId];
-    //   if (senderSocketId) {
-    //     io.to(senderSocketId).emit("messageRead", {
-    //       messageId,
-    //       readerId
-    //     });
-    //   }
-    // });
+    socket.on("markMessageRead", ({ messageId, senderId, readerId }) => {
+      const senderSocketId = userSocketMap[senderId];
+      if (senderSocketId) {
+        io.to(senderSocketId).emit("messageRead", {
+          messageId,
+          readerId
+        });
+      }
+    });
 
     // Existing messaging functionality
     socket.on("sendMessage", ({ receiverId, message }) => {
@@ -66,6 +66,7 @@ export const initializeSocket = (server: http.Server): void => {
       if (receiverSocketId) {
         io.to(receiverSocketId).emit("receiveMessage", {
           senderId: userId,
+          receiverId: receiverId,
           message,
           createdAt: new Date().toISOString(),
         });
@@ -116,15 +117,15 @@ export const initializeSocket = (server: http.Server): void => {
     });
   });
 
-    socket.on("call-user", ({ to, offer, from }) => {
-      const receiverSocketId = userSocketMap[to];
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit("incoming-call", {
-          offer,
-          from
-        });
-      }
-    });
+  socket.on("call-user", ({ to, offer, from }) => {
+    const receiverSocketId = userSocketMap[to];
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("incoming-call", {
+        offer,
+        from
+      });
+    }
+  });
 
     socket.on("call-accepted", ({ to, answer, from }) => {
       const receiverSocketId = userSocketMap[to];

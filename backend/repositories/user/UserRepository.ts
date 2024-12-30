@@ -114,8 +114,14 @@ export class UserRepository  implements IUserRepository {
         const earthRadius = 6371;
         const [longitude, latitude] = filters.location.coordinates;
         try {
+             // Fetch liked user IDs
+            const likedUsers = await this.LikesModel.find({ 
+                likerId: filters.userId 
+            }).select('likedUserId');
+
+            const likedUserIds = likedUsers.map(like => like.likedUserId);
         return await this.UserInfoModel.find({
-            userId: { $ne: filters.userId },
+            userId: { $ne: filters.userId, $nin: likedUserIds},
             gender: filters.gender,
             location: {
                 $geoWithin: {
@@ -156,7 +162,7 @@ export class UserRepository  implements IUserRepository {
 
     async userReceivedLikesCount(user1Id: string): Promise<number> {
         try {
-            const count = await this.LikesModel.countDocuments({ likedUserId: user1Id });
+            const count = await this.LikesModel.countDocuments({ likedUserId: user1Id,status: "pending" });
           if (!count){
             return 0
           }
@@ -224,11 +230,11 @@ export class UserRepository  implements IUserRepository {
     }
 
     async findSentLikes(likerId: string): Promise<ILikeData[]> {
-        return this.LikesModel.find({ likerId });
+        return this.LikesModel.find({ likerId,status: { $ne: "matched" } });
       }
 
       async findReceivedLikes(likedUserId: string): Promise<ILikeData[]> {
-        return this.LikesModel.find({ likedUserId });
+        return this.LikesModel.find({ likedUserId,status: { $ne: "matched" } });
       }
 
       async saveMatch(matchData: { user1Id: string; user2Id: string; matchDate: Date }): Promise<void> {

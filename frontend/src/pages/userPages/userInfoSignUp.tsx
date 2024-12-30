@@ -133,7 +133,7 @@ const UserInformation = () => {
         `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=d271ae71e593422e9b3539cd29e1f8eb`
       );
       const data = await response.json();
-      const city = data.results[0].components.city || data.results[0].components.town || data.results[0].components.village;
+      const city = data.results[0].components.city || data.results[0].components.town || data.results[0].components.village || data.results[0].components.state_district;
       
       if (city) {
         setPlace(city);
@@ -200,7 +200,6 @@ const UserInformation = () => {
     }
     
     formData.append('caste', caste);
-
     try {
       await createUserInfo(formData).unwrap();
       toast.success("User information successfully submitted");
