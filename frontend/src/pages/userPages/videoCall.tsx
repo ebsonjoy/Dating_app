@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { X, Mic, MicOff, Camera, CameraOff, PhoneOff } from 'lucide-react';
-import { useCreateVideoCallMutation } from '../../slices/apiUserSlice';
+import React, { useEffect, useRef, useState } from "react";
+import { X, Mic, MicOff, Camera, CameraOff, PhoneOff } from "lucide-react";
+import { useCreateVideoCallMutation } from "../../slices/apiUserSlice";
 
 interface VideoCallProps {
   userId: string;
@@ -31,11 +31,12 @@ const VideoCall: React.FC<VideoCallProps> = ({
 
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [isVideoEnabled, setIsVideoEnabled] = useState(true);
-  const [connectionStatus, setConnectionStatus] = useState<string>('Initializing...');
+  const [connectionStatus, setConnectionStatus] =
+    useState<string>("Initializing...");
   const configuration: RTCConfiguration = {
     iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: "stun:stun.l.google.com:19302" },
+      { urls: "stun:stun1.l.google.com:19302" },
     ],
   };
 
@@ -54,27 +55,29 @@ const VideoCall: React.FC<VideoCallProps> = ({
           const offer = await pc.createOffer();
           await pc.setLocalDescription(offer);
 
-          socket.emit('call-user', {
+          socket.emit("call-user", {
             offer,
             to: matchId,
             from: userId,
           });
-          setConnectionStatus('Calling...');
+          setConnectionStatus("Calling...");
         } else if (incomingOffer) {
-          await pc.setRemoteDescription(new RTCSessionDescription(incomingOffer));
+          await pc.setRemoteDescription(
+            new RTCSessionDescription(incomingOffer)
+          );
           const answer = await pc.createAnswer();
           await pc.setLocalDescription(answer);
 
-          socket.emit('call-accepted', {
+          socket.emit("call-accepted", {
             answer,
             to: matchId,
             from: userId,
           });
-          setConnectionStatus('Connecting...');
+          setConnectionStatus("Connecting...");
         }
       } catch (error) {
-        console.error('Error in call initialization:', error);
-        setConnectionStatus('Failed to initialize call');
+        console.error("Error in call initialization:", error);
+        setConnectionStatus("Failed to initialize call");
         onClose();
       }
     };
@@ -90,19 +93,29 @@ const VideoCall: React.FC<VideoCallProps> = ({
   useEffect(() => {
     if (!socket) return;
 
-    const handleCallAccepted = async ({ answer }: { answer: RTCSessionDescriptionInit }) => {
+    const handleCallAccepted = async ({
+      answer,
+    }: {
+      answer: RTCSessionDescriptionInit;
+    }) => {
       try {
         if (peerConnectionRef.current) {
-          await peerConnectionRef.current.setRemoteDescription(new RTCSessionDescription(answer));
-          setConnectionStatus('Connected');
+          await peerConnectionRef.current.setRemoteDescription(
+            new RTCSessionDescription(answer)
+          );
+          setConnectionStatus("Connected");
         }
       } catch (error) {
-        console.error('Error handling call accepted:', error);
-        setConnectionStatus('Connection failed');
+        console.error("Error handling call accepted:", error);
+        setConnectionStatus("Connection failed");
       }
     };
 
-    const handleIceCandidate = async ({ candidate }: { candidate: RTCIceCandidateInit }) => {
+    const handleIceCandidate = async ({
+      candidate,
+    }: {
+      candidate: RTCIceCandidateInit;
+    }) => {
       try {
         const candidateObj = new RTCIceCandidate(candidate);
         if (peerConnectionRef.current?.remoteDescription) {
@@ -111,18 +124,18 @@ const VideoCall: React.FC<VideoCallProps> = ({
           iceCandidatesRef.current.push(candidateObj);
         }
       } catch (error) {
-        console.error('Error handling ICE candidate:', error);
+        console.error("Error handling ICE candidate:", error);
       }
     };
 
-    socket.on('call-accepted', handleCallAccepted);
-    socket.on('ice-candidate', handleIceCandidate);
-    socket.on('call-ended', handleCallEnd);
+    socket.on("call-accepted", handleCallAccepted);
+    socket.on("ice-candidate", handleIceCandidate);
+    socket.on("call-ended", handleCallEnd);
 
     return () => {
-      socket.off('call-accepted', handleCallAccepted);
-      socket.off('ice-candidate', handleIceCandidate);
-      socket.off('call-ended', handleCallEnd);
+      socket.off("call-accepted", handleCallAccepted);
+      socket.off("ice-candidate", handleIceCandidate);
+      socket.off("call-ended", handleCallEnd);
     };
   }, [socket]);
 
@@ -132,7 +145,7 @@ const VideoCall: React.FC<VideoCallProps> = ({
 
       pc.onicecandidate = (event) => {
         if (event.candidate) {
-          socket.emit('ice-candidate', {
+          socket.emit("ice-candidate", {
             candidate: event.candidate,
             to: matchId,
           });
@@ -147,10 +160,13 @@ const VideoCall: React.FC<VideoCallProps> = ({
 
       pc.onconnectionstatechange = () => {
         setConnectionStatus(pc.connectionState);
-        if (pc.connectionState === 'connected') {
+        if (pc.connectionState === "connected") {
           callStartTimeRef.current = Date.now();
         }
-        if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+        if (
+          pc.connectionState === "disconnected" ||
+          pc.connectionState === "failed"
+        ) {
           handleCallEnd();
         }
       };
@@ -164,14 +180,17 @@ const VideoCall: React.FC<VideoCallProps> = ({
       peerConnectionRef.current = pc;
       return pc;
     } catch (error) {
-      console.error('Error creating peer connection:', error);
+      console.error("Error creating peer connection:", error);
       return null;
     }
   };
 
   const setupLocalStream = async (): Promise<MediaStream | null> => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true,
+      });
       localStreamRef.current = stream;
 
       if (localVideoRef.current) {
@@ -180,22 +199,21 @@ const VideoCall: React.FC<VideoCallProps> = ({
 
       return stream;
     } catch (error) {
-      console.error('Error accessing media devices:', error);
-      setConnectionStatus('Failed to access camera/microphone');
+      console.error("Error accessing media devices:", error);
+      setConnectionStatus("Failed to access camera/microphone");
       return null;
     }
   };
 
   const handleCallEnd = () => {
-  
     // Calculate call duration
     const callEndTime = Date.now();
-    const duration = callStartTimeRef.current 
-      ? Math.floor((callEndTime - callStartTimeRef.current) / 1000) 
+    const duration = callStartTimeRef.current
+      ? Math.floor((callEndTime - callStartTimeRef.current) / 1000)
       : 0;
 
     // Determine call status
-    const callStatus = (duration !== 0 ? 'ended' : 'missed')
+    const callStatus = duration !== 0 ? "ended" : "missed";
 
     // Create call history
     createVideoCall({
@@ -203,10 +221,10 @@ const VideoCall: React.FC<VideoCallProps> = ({
       receiverId: matchId,
       type: "video-call",
       duration,
-      status: callStatus
+      status: callStatus,
     });
 
-    socket.emit('end-call', { to: matchId });
+    socket.emit("end-call", { to: matchId });
     cleanup();
     onClose();
   };
@@ -238,8 +256,12 @@ const VideoCall: React.FC<VideoCallProps> = ({
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
       <div className="relative w-full max-w-6xl h-[80vh] bg-gray-900 rounded-lg overflow-hidden">
         <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
-          <span className="text-white px-3 py-1 rounded bg-gray-800">{connectionStatus}</span>
-          <span className="text-white text-lg font-semibold mr-4">Call with {partnerName}</span>
+          <span className="text-white px-3 py-1 rounded bg-gray-800">
+            {connectionStatus}
+          </span>
+          <span className="text-white text-lg font-semibold mr-4">
+            Call with {partnerName}
+          </span>
           <button
             onClick={handleCallEnd}
             className="p-2 bg-red-500 rounded-full hover:bg-red-600 text-white"
@@ -266,11 +288,29 @@ const VideoCall: React.FC<VideoCallProps> = ({
           </div>
 
           <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex items-center space-x-4">
-            <button onClick={toggleAudio} className={`p-4 rounded-full ${isAudioEnabled ? 'bg-gray-700' : 'bg-red-500'}`}>
-              {isAudioEnabled ? <Mic className="h-6 w-6 text-white" /> : <MicOff className="h-6 w-6 text-white" />}
+            <button
+              onClick={toggleAudio}
+              className={`p-4 rounded-full ${
+                isAudioEnabled ? "bg-gray-700" : "bg-red-500"
+              }`}
+            >
+              {isAudioEnabled ? (
+                <Mic className="h-6 w-6 text-white" />
+              ) : (
+                <MicOff className="h-6 w-6 text-white" />
+              )}
             </button>
-            <button onClick={toggleVideo} className={`p-4 rounded-full ${isVideoEnabled ? 'bg-gray-700' : 'bg-red-500'}`}>
-              {isVideoEnabled ? <Camera className="h-6 w-6 text-white" /> : <CameraOff className="h-6 w-6 text-white" />}
+            <button
+              onClick={toggleVideo}
+              className={`p-4 rounded-full ${
+                isVideoEnabled ? "bg-gray-700" : "bg-red-500"
+              }`}
+            >
+              {isVideoEnabled ? (
+                <Camera className="h-6 w-6 text-white" />
+              ) : (
+                <CameraOff className="h-6 w-6 text-white" />
+              )}
             </button>
             <button
               onClick={handleCallEnd}
