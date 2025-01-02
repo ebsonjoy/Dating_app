@@ -24,7 +24,7 @@ const SubscriptionPage: React.FC = () => {
     isLoading,
     error,
     refetch,
-  } = useGetUserPlanDetailsQuery(userId);
+  } = useGetUserPlanDetailsQuery(userId!,{skip:!userId});
   const [cancelPlan, { isLoading: isCanceling }] = useCancelSubscriptionMutation();
 
   // Refresh on param change
@@ -187,7 +187,7 @@ const SubscriptionPage: React.FC = () => {
                   <button
                     onClick={handleOpenCancelModal}
                     className={`w-full md:w-auto px-5 py-3 bg-gradient-to-r ${isExpired ? 'from-gray-500 to-gray-600' : 'from-red-500 to-red-600'} text-white rounded-full font-semibold text-base sm:text-lg transition transform duration-200 hover:scale-105 hover:shadow-lg shadow-md`}
-                    disabled={isCanceling || isExpired} 
+                    disabled={!!isCanceling || !!isExpired}
                   >
                     {isCanceling ? "Canceling..." : "Cancel Plan"}
                   </button>

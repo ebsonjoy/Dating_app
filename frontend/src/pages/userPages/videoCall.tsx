@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { X, Mic, MicOff, Camera, CameraOff, PhoneOff } from "lucide-react";
 import { useCreateVideoCallMutation } from "../../slices/apiUserSlice";
+import { Socket } from "socket.io-client";
 
 interface VideoCallProps {
   userId: string;
   matchId: string;
-  socket: any;
+  socket: Socket;
   onClose: () => void;
   isInitiator: boolean;
   incomingOffer?: RTCSessionDescriptionInit;

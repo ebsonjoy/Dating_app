@@ -7,8 +7,9 @@ import Loader from "../../components/user/loader";
 import { Link, useNavigate } from "react-router-dom";
 import { AppDispatch, RootState } from "../../store";
 import { useGoogleLoginMutation } from "../../slices/apiUserSlice";
-import { GoogleLogin } from '@react-oauth/google';
+import { GoogleLogin,CredentialResponse } from '@react-oauth/google';
 import { Heart, Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { IApiError } from "../../types/error.types";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -29,11 +30,11 @@ const SignIn = () => {
     }
   }, [navigate, userInfo]);
 
-  const handleGoogleSuccess = async (credentialResponse: any) => {
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
       setIsLoading(true);
       const res = await googleLogin({ 
-        credential: credentialResponse.credential 
+        credential: credentialResponse.credential || ''
       }).unwrap();
       const userId = res._id;
       localStorage.setItem("userId", userId);
@@ -43,8 +44,14 @@ const SignIn = () => {
       } else {
         navigate('/');
       }
-    } catch (err: any) {
-      toast.error(err?.data?.message || err.error);
+    } catch (err: unknown) {
+      const error = err as IApiError
+      if (error?.data?.message === "Your account has been blocked by the admin.") {
+        toast.error("Your account has been blocked by the admin. Please contact support.");
+      } else {
+        toast.error(error?.data?.message || error.error);
+      }
+      // toast.error(err?.data?.message || err.error);
     } finally {
       setIsLoading(false);
     }
@@ -58,11 +65,13 @@ const SignIn = () => {
       dispatch(setCredentials({ ...res }));
       toast.success("Successfully logged in!");
       navigate("/");
-    } catch (err: any) {
-      if (err?.data?.message === "Your account has been blocked by the admin.") {
+    } catch (err: unknown) {
+      const error = err as IApiError
+      console.log('eeeeeee',error)
+      if (error?.data?.message === "Your account has been blocked by the admin.") {
         toast.error("Your account has been blocked by the admin. Please contact support.");
       } else {
-        toast.error(err?.data?.message || err.error);
+        toast.error(error?.data?.message || error.error);
       }
     } finally {
       setIsLoading(false);

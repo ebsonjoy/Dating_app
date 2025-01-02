@@ -1,7 +1,20 @@
 
 import { useNavigate } from 'react-router-dom';
+import { IMatchProfile } from "../../types/like.types";
 
-const MatchCard = ({ match, onClick }) => {
+
+// Props for MatchCard
+interface MatchCardProps {
+  match: IMatchProfile;
+  onClick: () => void;
+}
+
+// Props for MatchesSection
+interface MatchesSectionProps {
+  matchProfiles: IMatchProfile[];
+}
+
+const MatchCard: React.FC<MatchCardProps>  = ({ match, onClick }) => {
   // Calculate age from birthdate
   const calculateAge = (birthDate: string | number | Date) => {
     const birth = new Date(birthDate);
@@ -33,7 +46,7 @@ const MatchCard = ({ match, onClick }) => {
 };
 
 // Update the Card component in the matches section
-const MatchesSection = ({ matchProfiles = [] }) => {
+const MatchesSection: React.FC<MatchesSectionProps> = ({ matchProfiles = [] }) => {
   const navigate = useNavigate();
 
   const handleMatchClick = (partnerUserId: string) => {

@@ -21,4 +21,5 @@ export enum StatusMessage {
   MARK_MESSAGES_AS_READ_SUCCESS= "Messages marked as read",
   MARK_MESSAGES_AS_READ_FAILED= "Failed to mark messages as read",
   GET_UNREAD_MESSAGES_COUNT_FAILED= "Failed to get unread messages count",
+  ACCOUNT_BLOCKED = "Your account has been blocked by the admin."
   }

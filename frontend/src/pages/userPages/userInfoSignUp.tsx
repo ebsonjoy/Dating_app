@@ -1,17 +1,38 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useCreateUserInfoMutation } from '../../slices/apiUserSlice';
 import { RootState } from '../../store';
 import { useSelector } from 'react-redux';
-import { Camera, MapPin, User, Briefcase, Book, MessageSquare, Heart } from 'lucide-react';
+import { Camera, MapPin, Briefcase, Book, MessageSquare, Heart } from 'lucide-react';
+import { IApiError } from '../../types/error.types';
+
+interface FormErrors {
+  gender?: string;
+  lookingFor?: string;
+  relationship?: string;
+  interests?: string
+  location?: string;
+  occupation?: string;
+  education?: string;
+  bio?: string;
+  caste?: string;
+  smoking?: string;
+  drinking?: string;
+  profilePhotos?: string
+}
+interface ILocation {
+  latitude: number;
+  longitude: number;
+}
+
 
 const UserInformation = () => {
   // State management
   const [gender, setGender] = useState('');
   const [lookingFor, setLookingFor] = useState('');
   const [relationship, setRelationship] = useState('');
-  const [interests, setInterests] = useState([]);
+  const [interests, setInterests] = useState<string[]>([]);
   const [place, setPlace] = useState('');
   const [caste, setCaste] = useState('');
   const [occupation, setOccupation] = useState('');
@@ -19,16 +40,15 @@ const UserInformation = () => {
   const [bio, setBio] = useState('');
   const [smoking, setSmoking] = useState('');
   const [drinking, setDrinking] = useState('');
-  const [profilePhotos, setProfilePhotos] = useState([]);
-  const [location, setLocation] = useState(null);
+  const [profilePhotos, setProfilePhotos] =useState<File[]>([]);
+  const [location, setLocation] = useState<ILocation | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<FormErrors>({});
 
   const { userInfo } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
   const [createUserInfo, { isLoading }] = useCreateUserInfoMutation();
-  const [userId, setUserId] = useState(null);
-
+  const [userId, setUserId] = useState<string | null>(null);
   // Available interests
   const availableInterests = [
     'Gym', 'Movies', 'Reading', 'Music', 'Photography', 'Sports',
@@ -53,7 +73,7 @@ const UserInformation = () => {
 
   // Validation function
   const validateFields = () => {
-    const newErrors = {};
+    const newErrors:FormErrors  = {};
 
     if (!gender.trim()) newErrors.gender = "Gender is required.";
     if (!lookingFor.trim()) newErrors.lookingFor = "Looking for is required.";
@@ -97,7 +117,7 @@ const UserInformation = () => {
     setErrors(newErrors);
     
     // Clear errors after 4 seconds
-    Object.keys(newErrors).forEach((field) => {
+    (Object.keys(newErrors) as (keyof FormErrors)[]).forEach((field) => {
       setTimeout(() => {
         setErrors(prev => {
           const updated = { ...prev };
@@ -127,7 +147,7 @@ const UserInformation = () => {
     );
   };
 
-  const fetchLocationName = async (latitude, longitude) => {
+  const fetchLocationName = async (latitude: number, longitude: number) => {
     try {
       const response = await fetch(
         `https://api.opencagedata.com/geocode/v1/json?q=${latitude}+${longitude}&key=d271ae71e593422e9b3539cd29e1f8eb`
@@ -146,7 +166,7 @@ const UserInformation = () => {
     }
   };
 
-  const handleInterestClick = (interest) => {
+  const handleInterestClick = (interest: string) => {
     if (interests.includes(interest)) {
       setInterests(interests.filter(i => i !== interest));
     } else if (interests.length < 5) {
@@ -154,8 +174,8 @@ const UserInformation = () => {
     }
   };
 
-  const handlePhotoUpload = (e) => {
-    const files = Array.from(e.target.files || []);
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []) as File[]
     if (files.length + profilePhotos.length <= 4) {
       setProfilePhotos([...profilePhotos, ...files]);
     } else {
@@ -163,7 +183,8 @@ const UserInformation = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
+  // const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     if (!validateFields()) return;
 
@@ -206,8 +227,9 @@ const UserInformation = () => {
       localStorage.removeItem('emailId');
       localStorage.removeItem('userId');
       navigate('/login');
-    } catch (err) {
-      toast.error(err?.data?.message || "Failed to submit user information");
+    } catch (err:unknown) {
+      const error = err as IApiError
+      toast.error(error?.data?.message || "Failed to submit user information");
     }
   };
 

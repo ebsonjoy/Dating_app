@@ -8,22 +8,30 @@ import { useNavigate } from 'react-router-dom';
 import SkeletonLoader from '../../components/skeletonLoader';
 import { toast } from 'react-toastify';
 import { useSocketContext } from "../../context/SocketContext";
+import { IApiError } from '../../types/error.types';
+import { ILikeProfiles } from '../../types/like.types';
 
-interface Profile {
-  id: string;
-  name: string;
-  age: string;
-  place: string;
-  image: string[];
-}
+// interface Profile {
+//   id: string;
+//   name: string;
+//   age: string;
+//   place: string;
+//   image: string[];
+// }
 
 const LikesPage: React.FC = () => {
   const navigate = useNavigate();
   const { userInfo } = useSelector((state: RootState) => state.auth);
   const userId = userInfo?._id;
   const { socket } = useSocketContext();
-  const { data: receivedLikesData, isLoading,refetch, error } = useGetReceivedLikeProfilesQuery(userId);
-  const { data: sentLikesData } = useGetSentLikeProfilesQuery(userId);
+  const { data: receivedLikesData, isLoading,refetch, error } = useGetReceivedLikeProfilesQuery(
+    userId!,
+    { skip: !userId }
+  );
+  const { data: sentLikesData } = useGetSentLikeProfilesQuery(
+    userId!,
+    { skip: !userId }
+  );
   const [likes] = useHandleHomeLikesMutation();
   const [viewMode, setViewMode] = useState<'received' | 'sent'>('received');
 
@@ -76,7 +84,8 @@ const LikesPage: React.FC = () => {
 
       toast.success('Profile liked successfully!');
       refetch()
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as IApiError
       if (error?.status === 403 && error?.data?.code === 'SUBSCRIPTION_EXPIRED') {
         toast.error(error?.data?.message || 'Your subscription has expired. Please subscribe.');
         navigate('/userPlanDetails');
@@ -189,7 +198,7 @@ const LikesPage: React.FC = () => {
 
         {displayedData && displayedData.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {displayedData.map((profile: Profile) => (
+            {displayedData.map((profile: ILikeProfiles) => (
               <div key={profile.id} className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-all duration-300">
                 <div className="p-4">
                   {/* Profile Image */}
@@ -211,7 +220,7 @@ const LikesPage: React.FC = () => {
                     <h2 className="text-xl font-semibold text-gray-800 mb-2">{profile.name}</h2>
                     <div className="space-y-1">
                       <p className="text-gray-600">
-                        <span className="font-medium">{calculateAge(profile.age)}</span> years old
+                        <span className="font-medium">{calculateAge(String(profile.age))}</span> years old
                       </p>
                       <p className="text-gray-600 flex items-center justify-center gap-1">
                         <span className="w-2 h-2 rounded-full bg-green-500" />
@@ -233,7 +242,7 @@ const LikesPage: React.FC = () => {
 
                     {/* Like Button - Only show in received view and if not already liked */}
                     {viewMode === 'received' && (
-                      sentLikesData?.some((sent: Profile) => sent.id === profile.id) ? (
+                      sentLikesData?.some((sent: ILikeProfiles) => sent.id === profile.id) ? (
                         <button 
                           disabled
                           className="flex-1 flex items-center justify-center gap-2 py-2 px-4 bg-gray-300 text-white rounded-lg cursor-not-allowed"

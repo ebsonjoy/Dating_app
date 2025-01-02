@@ -6,6 +6,16 @@ import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
 
+interface IPayment {
+  paymentId: string;
+  userName?: string;
+  planName?: string;
+  amount: number;
+  date?: string | Date;
+}
+
+
+
 const RevenueDetails: React.FC = () => {
   const { data: payments, isLoading, error } = useGetPaymentQuery();
 
@@ -32,12 +42,14 @@ const RevenueDetails: React.FC = () => {
   // Function to export data to Excel
   const exportToExcel = () => {
     const ws = XLSX.utils.json_to_sheet(
-      payments.map((payment: any) => ({
+      payments.map((payment: IPayment) => ({
         PaymentID: payment.paymentId,
         UserName: payment.userName || 'N/A',
         PlanName: payment.planName || 'N/A',
         Amount: payment.amount,
-        Date: new Date(payment.date).toLocaleDateString(),
+        Date: payment.date
+        ? new Date(payment.date).toLocaleDateString()
+        : 'N/A',
       }))
     );
     const wb = XLSX.utils.book_new();
@@ -53,15 +65,17 @@ const RevenueDetails: React.FC = () => {
     doc.setFontSize(12);
 
     const headers = ["Payment ID", "User Name", "Plan Name", "Amount (₹)", "Date"];
-    const rows = payments.map((payment: any) => [
+    const rows = payments.map((payment: IPayment) => [
       payment.paymentId,
       payment.userName || 'N/A',
       payment.planName || 'N/A',
       payment.amount,
-      new Date(payment.date).toLocaleDateString(),
+      payment.date
+    ? new Date(payment.date).toLocaleDateString()
+    : 'N/A',
     ]);
 
-    (doc as any).autoTable({
+    doc.autoTable({
       head: [headers],
       body: rows,
       startY: 30,
@@ -107,13 +121,15 @@ const RevenueDetails: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {payments.map((payment: any) => (
-                    <tr key={payment.id} className="border-b">
+                  {payments.map((payment:IPayment) => (
+                    <tr key={payment.paymentId} className="border-b">
                       <td className="p-4 text-gray-700">{payment.paymentId}</td>
                       <td className="p-4 text-gray-700">{payment.userName || 'N/A'}</td>
                       <td className="p-4 text-gray-700">{payment.planName || 'N/A'}</td>
                       <td className="p-4 text-gray-700">₹{payment.amount}</td>
-                      <td className="p-4 text-gray-700">{new Date(payment.date).toLocaleDateString()}</td>
+                      <td className="p-4 text-gray-700">
+        {payment.date ? new Date(payment.date).toLocaleDateString() : 'N/A'}
+      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -123,7 +139,7 @@ const RevenueDetails: React.FC = () => {
               <div className="text-xl font-semibold mb-2">Revenue Summary:</div>
               <p>
                 <span className="font-medium">Total Payments:</span> ₹
-                {payments.reduce((acc: number, payment: any) => acc + payment.amount, 0)}
+                {payments.reduce((acc: number, payment: IPayment) => acc + payment.amount, 0)}
               </p>
             </div>
           </div>

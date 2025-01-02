@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useResetPasswordMutation } from '../../slices/apiUserSlice';
 import { Eye, EyeOff, Lock } from 'lucide-react';
 import Loader from "../../components/user/loader";
+import { IApiError } from '../../types/error.types';
 
 
 const ResetPassword: React.FC = () => {
@@ -62,7 +63,8 @@ const ResetPassword: React.FC = () => {
             setTimeout(() => {
                 navigate('/login');
             }, 3000);
-        } catch (error: any) {
+        } catch (err: unknown) {
+            const error = err as IApiError
             setPasswordError(error?.data?.message || 'Error resetting password.');
         } finally {
             setIsLoading(false);

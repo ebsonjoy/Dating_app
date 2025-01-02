@@ -5,12 +5,13 @@ import { useParams } from 'react-router-dom';
 import { useGetOnePlanQuery, useUpdatePlanMutation } from '../../slices/adminApiSlice';
 import { toast } from 'react-toastify'; 
 import { useNavigate } from 'react-router-dom';
+import { IApiError } from '../../types/error.types';
 
 const EditPlan: React.FC = () => {
   const { planId } = useParams<{ planId: string }>(); 
   const navigate = useNavigate();
 
-  const { data: plan, isLoading } = useGetOnePlanQuery(planId);
+  const { data: plan, isLoading } = useGetOnePlanQuery(planId!,{skip:!planId});
 
   const [updatePlan] = useUpdatePlanMutation();
 
@@ -39,9 +40,9 @@ const EditPlan: React.FC = () => {
       setFormData({
         planName: plan.planName || '',
         duration: plan.duration || '',
-        actualPrice: plan.actualPrice || '',
-        offerPercentage: plan.offerPercentage || '',
-        offerPrice: plan.offerPrice || '',
+        actualPrice: plan.actualPrice ? String(plan.actualPrice) : '',
+        offerPercentage: plan.offerPercentage ? String(plan.offerPercentage) : '',
+        offerPrice: plan.offerPrice ? String(plan.offerPrice) : '',
         offerName: plan.offerName || '',
         features: plan.features || [],
       });
@@ -148,7 +149,13 @@ const EditPlan: React.FC = () => {
     if (!validateFields()) return;
 
     try {
-      await updatePlan({ planId, data: formData }).unwrap();
+      await updatePlan({ planId: String(planId), data: {
+        ...formData,
+        status: true,
+        actualPrice: Number(formData.actualPrice) || 0,
+        offerPercentage: Number(formData.offerPercentage) || 0,
+        offerPrice: Number(formData.offerPrice) || 0,
+      }, }).unwrap();
       toast.success('Plan updated successfully');
       setFormData({
         planName: '',
@@ -160,11 +167,12 @@ const EditPlan: React.FC = () => {
         features: [],
       });
       navigate('/admin/subscriptionPlans?refresh=true');
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as IApiError
       console.error('Failed to update plan:', error);
       if (error?.data?.errors && Array.isArray(error.data.errors)) {
         error.data.errors.forEach((errMsg: string) => {
-          toast.error(errMsg, { duration: 4000 });
+          toast.error(errMsg, { autoClose: 4000 });
         });
       } else {
         toast.error('Failed to update plan. Please try again.');

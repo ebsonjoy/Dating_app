@@ -10,6 +10,14 @@ import {
   useUpdateAdviceCategoryMutation,
 } from "../../slices/adminApiSlice";
 
+interface ICategory {
+  _id: string;
+  image: string;
+  name: string;
+  description: string;
+  isBlock: boolean;
+}
+
 const AdviceManagement: React.FC = () => {
   const navigate = useNavigate();
   const { categoryId } = useParams<{ categoryId: string }>();
@@ -258,7 +266,7 @@ const AdviceManagement: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {categories.map((category: any) => (
+                {(categories as ICategory[]).map((category) => (
                     <tr key={category._id} className="border-b">
                       <td className="p-4">
                         <img

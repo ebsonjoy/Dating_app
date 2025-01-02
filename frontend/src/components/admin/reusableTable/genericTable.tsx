@@ -8,7 +8,7 @@ interface TableData {
 }
 
 
-interface Column<T> {
+export interface Column<T> {
   key: keyof T;
   label: string;
   render?: (value: any, row: T) => React.ReactNode;
@@ -29,7 +29,6 @@ function GenericTable<T extends TableData>({
   itemsPerPage = 5,
   searchKeys = [],
   actionButtons,
-  onRowAction
 }: GenericTableProps<T>) {
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState('');
@@ -90,7 +89,7 @@ function GenericTable<T extends TableData>({
             </tr>
           </thead>
           <tbody>
-            {currentItems.map((row, index) => (
+            {currentItems.map((row) => (
               <tr key={row._id} className="border-b hover:bg-gray-100">
                 {columns.map((column) => (
                   <td key={String(column.key)} className="py-3 px-4">

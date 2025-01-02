@@ -1,5 +1,7 @@
-import background3 from '../../assets/landingImg/img-3.jpeg';
-import background1 from '../../assets/landingImg/pexels-gustavo-fring-7447067.jpg';
+ import background3 from '../../assets/landingImg/img-3.jpeg';
+ import background1 from '../../assets/landingImg/pexels-gustavo-fring-7447067.jpg';
+
+ 
 import  { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';

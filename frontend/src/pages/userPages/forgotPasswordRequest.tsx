@@ -27,8 +27,12 @@ const ForgotPassword: React.FC = () => {
     try {
       await forgotPasswordRequesting({ email }).unwrap();
       toast.success("Password reset link sent to your email");
-    } catch (err: any) {
-      toast.error(err?.data?.message || err.error);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        toast.error(err.message || "An unexpected error occurred");
+      } else {
+        toast.error("An unexpected error occurred");
+      }
     }
   };
 

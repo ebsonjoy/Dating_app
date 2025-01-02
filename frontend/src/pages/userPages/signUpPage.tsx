@@ -1,8 +1,9 @@
-import React, { useState, FormEvent, useEffect } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useRegisterMutation } from "../../slices/apiUserSlice";
 import { Heart, User, Mail, Phone, Calendar, Lock, Eye, EyeOff } from 'lucide-react';
+import { IApiError } from "../../types/error.types";
 
 const SignUp = () => {
   const [name, setFirstName] = useState("");
@@ -55,7 +56,8 @@ const SignUp = () => {
       
       toast.success("Registration successful! Please verify your email.");
       navigate("/verifyOtp");
-    } catch (error: any) {
+    } catch (err: unknown) {
+      const error = err as IApiError
       if (error.data && Array.isArray(error.data.errors)) {
         setErrors(error.data.errors);
       } else {

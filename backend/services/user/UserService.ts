@@ -552,7 +552,7 @@ async handleHomeLikes(likesIds: ILikeData): Promise<{ match: boolean; message: s
         const userInfo = await this.userRepository.findUserInfo(id.toString());
         if (user && userInfo) {
             return {
-                id:user._id,
+              id:user._id,
               name: user.name,
               age: user.dateOfBirth,
               place: userInfo.place,

@@ -42,7 +42,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const { userInfo } = useSelector((state: RootState) => state.auth);
   const userId = userInfo?._id;
 
-  const { data: userNotifications, refetch } = useGetNotificationQuery(userId, {
+  const { data: userNotifications } = useGetNotificationQuery(userId!, {
     skip: !userId,
   });
 

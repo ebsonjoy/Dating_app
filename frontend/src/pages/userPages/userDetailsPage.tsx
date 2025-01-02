@@ -10,10 +10,10 @@ import SkeletonLoader from '../../components/skeletonLoader';
 import Navbar from '../../components/user/Navbar';
 
 // Typed interfaces for better type safety
-interface UserDetails {
+interface IUserDetails {
   userId: string;
   name: string;
-  age: number;
+  age:number
   gender: string;
   lookingFor: string;
   profilePhotos: string[];
@@ -27,11 +27,11 @@ interface UserDetails {
   place: string;
 }
 
-interface DetailItem {
-  icon?: React.ReactNode;
-  label: string;
-  value: string | undefined;
-}
+// interface DetailItem {
+//   icon?: React.ReactNode;
+//   label: string;
+//   value: string | undefined;
+// }
 
 // Custom Card Component
 const Card: React.FC<React.PropsWithChildren<{ className?: string }>> = ({ 
@@ -95,7 +95,8 @@ const UserDetails: React.FC = () => {
     }
   };
 
-  const getUserDetailsByImageIndex = (user: UserDetails, index: number) => {
+  const getUserDetailsByImageIndex = (user: IUserDetails, index: number) => {
+    
     switch (index) {
       case 0:
         return {

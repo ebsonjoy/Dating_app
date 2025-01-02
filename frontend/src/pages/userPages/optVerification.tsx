@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import {useNavigate } from "react-router-dom";
 import { useVerifyOtpMutation, useResendOtpMutation } from "../../slices/apiUserSlice";
 import { toast } from "react-toastify";
 import { Heart, Mail } from 'lucide-react';
+import { IApiError } from "../../types/error.types";
 
 const OTPVerification = () => {
   const [otp, setOtp] = useState<string[]>(Array(4).fill(''));
@@ -63,8 +64,9 @@ const OTPVerification = () => {
       await verifyOtp({ otp: otp.join(''), emailId }).unwrap();
       toast.success("Email verified successfully!");
       navigate("/userInfoSignUp");
-    } catch (err: any) {
-      toast.error(err?.data?.message || err.error);
+    } catch (err: unknown) {
+      const error = err as IApiError
+      toast.error(error?.data?.message || error.error);
     }
   };
 
@@ -75,8 +77,9 @@ const OTPVerification = () => {
       setOtp(Array(4).fill(''));
       startTimer();
       toast.success("A new OTP has been sent to your email!");
-    } catch (err: any) {
-      toast.error(err?.data?.message || err.error);
+    } catch (err: unknown) {
+      const error = err as IApiError
+      toast.error(error?.data?.message || error.error);
     }
   };
 

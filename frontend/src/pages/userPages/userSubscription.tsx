@@ -28,12 +28,13 @@ interface paymentData {
     isPremium: boolean;
     planId: string;
     planExpiryDate: Date;
+    planStartingDate:  Date;
 }
 
 const SubscriptionPage: React.FC = () => {
     const { userInfo } = useSelector((state: RootState) => state.auth);
     const userId = userInfo?._id;
-    const { data: plans, error, isLoading } = useGetUserPlansQuery(userId);
+    const { data: plans, error, isLoading } = useGetUserPlansQuery(userId!,{skip:!userId});
     const [selectedSubscription, setSelectedSubscription] = useState<Subscription | null>(null);
     const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
     const [updateUserSubscription, { isLoading: isUpdating }] = useUpdateUserSubscriptionMutation();
@@ -70,16 +71,16 @@ const SubscriptionPage: React.FC = () => {
         return 0;
     };
     
-    const calculateExpiryDate = (duration: string) => {
+    const calculateExpiryDate = (duration: string): Date => {
         const durationInDays = getDurationInDays(duration);
         const expiryDate = new Date();
         expiryDate.setDate(expiryDate.getDate() + durationInDays);
-        return expiryDate.toISOString();
+        // return expiryDate.toISOString();
+        return expiryDate
     };
 
     const handlePayment = (subscription: Subscription) => {
         if (!subscription) return;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if (typeof (window as any).Razorpay !== "function") {
             console.error("Razorpay SDK not loaded");
             setPaymentStatus("Payment gateway is not available. Please try again later.");
@@ -103,7 +104,7 @@ const SubscriptionPage: React.FC = () => {
                 
                 const updateResult = await updateUserSubscription({
                     data: subscriptionData,
-                    userId
+                    userId: userId || ''
                 });
 
                 if (updateResult.error) {
@@ -131,6 +132,7 @@ const SubscriptionPage: React.FC = () => {
         const rzp = new (window as any).Razorpay(options);
         rzp.open();
         rzp.on('payment.failed', function (response: any) {
+            console.log(response)
             setPaymentStatus("Payment Failed! Please try again.");
         });
     };
@@ -140,7 +142,7 @@ const SubscriptionPage: React.FC = () => {
     }
 
     if (error) {
-        return <div>Error fetching plans: {error.message}</div>;
+        return <div>Error fetching plans</div>;
     }
 
     const subscriptions: Subscription[] = plans || [];

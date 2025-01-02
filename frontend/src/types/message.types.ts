@@ -10,7 +10,7 @@ export interface IMessage {
 }
 
 export interface IChatHistory {
-  messages: IMessage[];
+ data: IMessage[];
   partnerProfile?: {
     id: string;
     name: string;
@@ -35,6 +35,6 @@ export interface SendMessagePayload {
 }
 
 export interface GetChatHistoryParams {
-  userId1: string;
-  userId2: string;
+  userId1: string | null | undefined;
+  userId2: string | null | undefined;
 }

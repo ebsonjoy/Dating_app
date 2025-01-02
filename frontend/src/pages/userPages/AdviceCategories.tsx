@@ -4,6 +4,7 @@ import { useGetAdviceCategoriesQuery, useGetArticlesByCategoryQuery } from "../.
 import { IAdviceCategory, IArticle } from "../../types/advice.types";
 import { ChevronLeft, ArrowLeft, BookOpen, Search, Sparkles, BookmarkIcon, LayersIcon } from 'lucide-react';
 
+
 const AdvicePage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedArticle, setSelectedArticle] = useState<IArticle | null>(null);

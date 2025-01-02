@@ -18,8 +18,11 @@ import VideoCall from "./videoCall";
 import { useCreateVideoCallMutation } from "../../slices/apiUserSlice";
 import { toast } from "react-toastify";       
 import { useNavigate } from "react-router-dom";
-
+import { IMatchProfile } from "../../types/like.types";
+// import { IMessage } from "../../types/message.types";
+import { IApiError } from "../../types/error.types";
 interface Message {
+  receiverId: string | null;
   _id?: string;
   senderId: string;
   message: string;
@@ -27,18 +30,18 @@ interface Message {
   isRead?: boolean;
 }
 
-interface MatchProfile {
-  id: string;
-  name: string;
-  image: string[];
-  age: string | number | Date;
-  place: string;
-}
+// interface MatchProfile {
+//   id: string;
+//   name: string;
+//   image: string[];
+//   age: string | number | Date;
+//   place: string;
+// }
 
 interface CallState {
   isReceivingCall: boolean;
   from: string;
-  offer: any;
+  offer: RTCSessionDescriptionInit |  undefined
 }
 
 const MatchesAndChat: React.FC = () => {
@@ -64,33 +67,36 @@ const MatchesAndChat: React.FC = () => {
   const [callState, setCallState] = useState<CallState>({
     isReceivingCall: false,
     from: "",
-    offer: null,
+    offer:  undefined,
   });
   console.log("onlineUsers", onlineUsers);
-  // Add skip and refetch to the query
+
   const { data: chatHistory, refetch: refetchChatHistory } =
     useGetChatHistoryQuery(
       { userId1: userId, userId2: selectedMatch },
       {
         skip: !userId || !selectedMatch,
-        pollingInterval: 0, // Disable polling as we'll handle updates manually
+        pollingInterval: 0, 
       }
     );
 
-  const { data: matchProfiles = [] } = useGetMatchProfilesQuery(userId);
+    const { data: matchProfiles = [] } = useGetMatchProfilesQuery(userId!, {
+      skip: !userId,
+    });
+    console.log('matchProfiles',matchProfiles)
 
   const { data: unreadMessageCounts, refetch: refetchUnreadCounts } =
-    useGetUnreadMessageCountQuery(userId, {
+    useGetUnreadMessageCountQuery(userId!, {
       skip: !userId,
       refetchOnMountOrArgChange: true,
     });
   console.log("unreadMessageCounts", unreadMessageCounts);
   const [localUnreadCounts, setLocalUnreadCounts] = useState<
-    Record<string, number>
+    Record<string, number> 
   >({});
 
   useEffect(() => {
-    if (unreadMessageCounts?.data) {
+    if (unreadMessageCounts?.data&& typeof unreadMessageCounts.data === 'object') {
       setLocalUnreadCounts(unreadMessageCounts.data);
     }
   }, [unreadMessageCounts]);
@@ -102,12 +108,13 @@ const MatchesAndChat: React.FC = () => {
   };
 
   // Filter matches based on search query
-  const filteredMatches = matchProfiles.filter((match: MatchProfile) =>
+  const filteredMatches = matchProfiles.filter((match: IMatchProfile) =>
     match.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  console.log('filteredMatches',filteredMatches)
   const selectedMatchProfile = matchProfiles.find(
-    (match: MatchProfile) => match.id === selectedMatch
+    (match: IMatchProfile) => match.id === selectedMatch
   );
 
   // Add focus detection
@@ -129,27 +136,24 @@ const MatchesAndChat: React.FC = () => {
       messages.length > 0 &&
       document.visibilityState === "visible"
     ) {
-      // Mark messages as read when user opens the chat
       const unreadMessages = messages.filter(
         (msg) => msg.senderId === selectedMatch && !msg.isRead
       );
 
       if (unreadMessages.length > 0) {
-        // Call your API to mark messages as read
-
         setLocalUnreadCounts((prev) => ({
           ...prev,
           [selectedMatch]: 0,
         }));
 
-        markMessagesAsRead({
-          userId: userId,
-          senderId: selectedMatch,
-        }).then(() => {
-          refetchUnreadCounts(); // Refresh the unread counts from server
-        });
-
-        // Emit socket event for each unread message
+        if (userId && selectedMatch) {
+          markMessagesAsRead({
+            userId,
+            senderId: selectedMatch,
+          }).then(() => {
+            refetchUnreadCounts();
+          });
+        }
         unreadMessages.forEach((msg) => {
           socket?.emit("markMessageRead", {
             messageId: msg._id,
@@ -159,7 +163,7 @@ const MatchesAndChat: React.FC = () => {
         });
       }
     }
-  }, [selectedMatch, messages, userId, document.visibilityState]);
+  }, [selectedMatch, messages, userId, markMessagesAsRead, refetchUnreadCounts, socket]);
 
   // Update when returning to the page
   useEffect(() => {
@@ -171,9 +175,11 @@ const MatchesAndChat: React.FC = () => {
 
   useEffect(() => {
     if (chatHistory) {
-      setMessages(chatHistory.data);
+      setMessages(chatHistory.data as unknown as Message[]);
+      console.log('chatttt',chatHistory.data)
     }
   }, [chatHistory]);
+
   const name = userInfo?.name;
 
   // useEffect(() => {
@@ -255,7 +261,7 @@ const MatchesAndChat: React.FC = () => {
         socket.off("messageRead");
       };
     }
-  }, [socket, selectedMatch, userId]);
+  }, [socket, selectedMatch, userId, refetchUnreadCounts, refetchChatHistory]);
 
   useEffect(() => {
     if (selectedMatch && userId) {
@@ -291,7 +297,7 @@ const MatchesAndChat: React.FC = () => {
       setCallState({
         isReceivingCall: false,
         from: "",
-        offer: null,
+        offer:  undefined,
       });
     });
 
@@ -361,19 +367,16 @@ const MatchesAndChat: React.FC = () => {
 
     try {
       const newMessage = {
-        senderId: userId,
-        receiverId: selectedMatch,
+        senderId:userId as string,
+        receiverId: (selectedMatch as string) || '',
         message: messageInput,
         createdAt: new Date().toISOString(),
       };
-
       await sendMessageMutation(newMessage).unwrap();
-
-      // Add the message to the current conversation
       setMessages((prevMessages) => [
         ...prevMessages,
         {
-          senderId: userId,
+          senderId:  userId as string,
           receiverId: selectedMatch,
           message: messageInput,
           createdAt: new Date().toISOString(),
@@ -387,7 +390,8 @@ const MatchesAndChat: React.FC = () => {
       });
 
       setMessageInput("");
-    } catch (error) {
+    } catch (err: unknown) {
+      const error = err as IApiError
       if (
         error?.status === 403 &&
         error?.data?.code === "SUBSCRIPTION_EXPIRED"
@@ -422,13 +426,17 @@ const MatchesAndChat: React.FC = () => {
 
   const handleRejectCall = () => {
     const callStatus = "rejected";
-    createVideoCall({
-      callerId: userId,
-      receiverId: selectedMatch?.toString(),
-      type: "video-call",
-      duration: 0,
-      status: callStatus,
-    });
+    if (userId && selectedMatch) {
+      createVideoCall({
+        callerId: userId,
+        receiverId: selectedMatch.toString(),
+        type: "video-call",
+        duration: 0,
+        status: callStatus,
+      });
+    } else {
+      console.error("UserId or selectedMatch is undefined");
+    }
     if (socket && callState.from) {
       socket.emit("call-rejected", { to: callState.from });
     }
@@ -436,7 +444,7 @@ const MatchesAndChat: React.FC = () => {
     setCallState({
       isReceivingCall: false,
       from: "",
-      offer: null,
+      offer:  undefined,
     });
   };
 
@@ -479,7 +487,7 @@ const MatchesAndChat: React.FC = () => {
                     </div>
                   ) : (
                     filteredMatches.map(
-                      (match: MatchProfile, index: number) => (
+                      (match: IMatchProfile, index: number) => (
                         <div
                           key={index}
                           onClick={() => handleMatchSelect(match.id)}
@@ -551,13 +559,13 @@ const MatchesAndChat: React.FC = () => {
                           • {selectedMatchProfile?.place}
                         </p>
                         <h2 className="text-sm text-green-500">
-                          {onlineUsers.includes(selectedMatchProfile?.id)
+                          {onlineUsers.includes(selectedMatchProfile?.id || '')
                             ? "Online"
                             : ""}
                         </h2>
                       </div>
                     </div>
-                    {showVideoCall ? (
+                    {userId && showVideoCall ? (
                       <VideoCall
                         userId={userId}
                         matchId={selectedMatch}
@@ -567,7 +575,7 @@ const MatchesAndChat: React.FC = () => {
                           setCallState({
                             isReceivingCall: false,
                             from: "",
-                            offer: null,
+                            offer:  undefined,
                           });
                         }}
                         isInitiator={!callState.isReceivingCall}

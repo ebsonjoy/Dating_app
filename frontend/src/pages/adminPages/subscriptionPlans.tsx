@@ -1,11 +1,12 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import Navbar from '../../components/admin/adminNavBar';
 import Header from '../../components/admin/adminHeader';
 import { useNavigate } from 'react-router-dom';
 import { useGetPlansQuery, useUpdatePlanStatusMutation } from '../../slices/adminApiSlice';
 import GenericTable from '../../components/admin/reusableTable/genericTable';
+import { Column } from '../../components/admin/reusableTable/genericTable';
 
-interface Plans {
+interface IPlansData {
   _id: string;
   planName: string;
   duration: string;
@@ -36,7 +37,7 @@ const PlanList: React.FC = () => {
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error loading plans</div>;
 
-  const planColumns = [
+  const planColumns: Column<IPlansData>[] = [
     { 
       key: 'planName', 
       label: 'Plan Name' 
@@ -48,17 +49,17 @@ const PlanList: React.FC = () => {
     { 
       key: 'offerPercentage', 
       label: 'Offer %',
-      render: (value) => `${value}%`
+      render: (value: number) => `${value}%`
     },
     { 
       key: 'actualPrice', 
       label: 'Actual Price',
-      render: (value) => `₹${value}`
+      render: (value: number) => `₹${value}`
     },
     { 
       key: 'offerPrice', 
       label: 'Offer Price',
-      render: (value) => `₹${value}`
+      render: (value: number) => `₹${value}`
     },
     { 
       key: 'offerName', 
@@ -87,7 +88,7 @@ const PlanList: React.FC = () => {
             </button>
           </div>
 
-          <GenericTable 
+          <GenericTable<IPlansData> 
             data={planList || []} 
             columns={planColumns}
             searchKeys={['planName', 'offerName']}

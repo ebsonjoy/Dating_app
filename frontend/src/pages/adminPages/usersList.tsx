@@ -6,16 +6,36 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../store'; 
 import { useGetAllUsersQuery, useUpdateUserStatusMutation } from '../../slices/adminApiSlice';
 import GenericTable from '../../components/admin/reusableTable/genericTable'
-
-interface User {
+import { Column } from '../../components/admin/reusableTable/genericTable';
+interface IUser {
   _id: string;
   name: string;
   email: string;
   mobileNumber: string;
-  subscription: { isPremium: boolean };
+  subscription: ISubscription;
   matches: number;
   status: boolean;
 }
+
+// interface UsersData {
+//   _id: string;
+//   name: string;
+//   email: string;
+//   status: boolean;
+//   subscription: ISubscription;
+// }
+
+// interface ISubscription {
+//   type: 'Premium' | 'Free';
+// }
+
+
+interface ISubscription {
+  isPremium: boolean;
+  planId: string;
+  planExpiryDate: string;
+  planStartingDate: string;
+};
 
 const UsersList: React.FC = () => {
   const { data: usersList, error, isLoading, refetch } = useGetAllUsersQuery();
@@ -44,7 +64,7 @@ const UsersList: React.FC = () => {
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error loading users</div>;
 
-  const userColumns = [
+  const userColumns: Column<IUser>[] = [
     { 
       key: 'name', 
       label: 'Name' 
@@ -60,7 +80,7 @@ const UsersList: React.FC = () => {
     { 
       key: 'subscription', 
       label: 'Premium/Free',
-      render: (value) => value.isPremium ? 'Premium' : 'Free'
+      render: (value : ISubscription) => value.isPremium ? 'Premium' : 'Free'
     },
     { 
       key: 'matches', 
@@ -69,7 +89,7 @@ const UsersList: React.FC = () => {
     { 
       key: 'status', 
       label: 'Status',
-      render: (value) => value ? 'Active' : 'Blocked'
+      render: (value:boolean) => value ? 'Active' : 'Blocked'
     }
   ];
 
@@ -79,7 +99,7 @@ const UsersList: React.FC = () => {
       <div className="flex-1 flex flex-col overflow-y-auto">
         <Header title="Users" />
         <div className="flex-1 p-3 bg-gray-100">
-          <GenericTable 
+          <GenericTable<IUser> 
             data={usersList || []} 
             columns={userColumns}
             searchKeys={['name', 'email']}

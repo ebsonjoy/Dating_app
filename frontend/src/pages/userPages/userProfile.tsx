@@ -18,7 +18,7 @@ const ProfilePage = () => {
   const navigate = useNavigate();
   const { userInfo } = useSelector((state: RootState) => state.auth);
   const userId = userInfo?._id;
-  const { data: userProfile, isLoading, refetch } = useGetUserProfileQuery(userId);
+  const { data: userProfile, isLoading, refetch } = useGetUserProfileQuery(userId!,{skip:!userId});
 
   // State management
   const [updateUserPersonalInfo] = useUpdateUserPersonalInfoMutation();
@@ -82,6 +82,10 @@ const ProfilePage = () => {
 
   const handlePersonalSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!userId) {
+      toast.error("User ID is missing");
+      return;
+    }
     if (editPersonal) {
       const formData = new FormData();
       formData.append("name", name);
@@ -98,7 +102,8 @@ const ProfilePage = () => {
         toast.success("Profile Updated Successfully");
         refetch();
         setEditPersonal(false);
-      } catch (error) {
+      } catch (err) {
+        console.log(err)
         toast.error("Failed to update profile");
       }
     }
@@ -159,6 +164,10 @@ const ProfilePage = () => {
   const handleDatingSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validateFields()) return;
+    if (!userId) {
+      toast.error("User ID is missing");
+      return;
+    }
 
     const formData = new FormData();
     formData.append("gender", gender);
@@ -187,6 +196,7 @@ const ProfilePage = () => {
       setImgIndex([]);
       refetch();
     } catch (error) {
+      console.log(error)
       toast.error("Failed to update dating info");
     }
   };

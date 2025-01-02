@@ -19,7 +19,7 @@ import {
   Moon,
   Sun
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface ChartProps {
   userChartData: { date: string | Date; count: number }[];

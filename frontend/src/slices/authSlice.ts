@@ -1,10 +1,10 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface User {
-  id: string;
+  _id: string;
   name: string;
   email: string;
-  isGoogleLogin:boolean;
+  isGoogleLogin?:boolean;
 }
 
 interface AuthState {

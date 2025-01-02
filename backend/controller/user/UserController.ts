@@ -26,7 +26,7 @@ export class UserController {
                 return;
             }
             if (user.status === false) {
-                res.status(HttpStatusCode.FORBIDDEN).json({ message: StatusMessage.FORBIDDEN });
+                res.status(HttpStatusCode.FORBIDDEN).json({ message: StatusMessage.ACCOUNT_BLOCKED });
                 return;
             }
             const accessToken = TokenService.generateAccessToken(user._id.toString());
@@ -129,7 +129,7 @@ export class UserController {
           
           if (!user.status) {
             res.status(HttpStatusCode.FORBIDDEN).json({ 
-              message: StatusMessage.FORBIDDEN 
+              message: StatusMessage.ACCOUNT_BLOCKED 
             });
             return;
           }

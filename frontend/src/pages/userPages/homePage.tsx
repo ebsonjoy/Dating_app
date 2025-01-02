@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState,ReactNode } from 'react';
 import Navbar from '../../components/user/Navbar';
 import { FaHeart, FaTimes, FaArrowLeft, FaArrowRight, FaGraduationCap, FaBriefcase, FaMapMarkerAlt, FaVenusMars, FaSearch, FaWineGlass, FaSmoking } from 'react-icons/fa';
 import { useGetUsersProfilesQuery,useHandleHomeLikesMutation, useGetMatchProfilesQuery } from '../../slices/apiUserSlice';
@@ -9,10 +9,14 @@ import SkeletonLoader from '../../components/skeletonLoader';
 import MatchesSection from './matchProfiles';
 import { useSocketContext } from "../../context/SocketContext";
 import { toast } from 'react-toastify';
+import { IUserProfile } from '../../types/user.types';
 
+interface CardProps {
+  children: ReactNode;
+  className?: string;
+}
 
-
-const Card = ({ children, className = '' }) => {
+const Card = ({ children, className = '' }: CardProps) => {
   return (
     <div className={`bg-white rounded-xl shadow-lg ${className}`}>
       {children}
@@ -29,9 +33,15 @@ const Home: React.FC = () => {
 
   const { userInfo } = useSelector((state: RootState) => state.auth);
   const userId = userInfo?._id;
-  const { data: users = [], isLoading, isError } = useGetUsersProfilesQuery(userId);
+  const { data: users = [], isLoading, isError } = useGetUsersProfilesQuery(userId!, {
+    skip: !userId,
+  });
   const [likes] = useHandleHomeLikesMutation();
-  const { data: matchProfiles } = useGetMatchProfilesQuery(userId);
+  const { data: matchProfiles = [] } = useGetMatchProfilesQuery(userId!, {
+    skip: !userId,
+  });
+
+  console.log('matchProfiles',matchProfiles)
 
 
   useEffect(() => {
@@ -109,8 +119,9 @@ const Home: React.FC = () => {
         console.error("User ID or current user is missing.");
       }
     } catch (error) {
-      if (error?.status === 403 && error?.data?.code === 'SUBSCRIPTION_EXPIRED') {    
-        toast.error(error?.data?.message || 'Your subscription has expired. Please subscribe.');
+      const err = error as { status?: number; data?: { code?: string; message?: string } };
+      if (err?.status === 403 && err?.data?.code === 'SUBSCRIPTION_EXPIRED') {    
+        toast.error(err?.data?.message || 'Your subscription has expired. Please subscribe.');
         navigate('/userPlanDetails'); 
     } else {
         console.error("Error while liking the user:", error);
@@ -119,7 +130,7 @@ const Home: React.FC = () => {
     }
   };
 
-  const getUserDetailsByImageIndex = (user: any, index: number) => {
+  const getUserDetailsByImageIndex = (user: IUserProfile, index: number) => {
     switch (index) {
       case 0:
         return {

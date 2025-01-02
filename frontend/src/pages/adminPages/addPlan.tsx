@@ -5,6 +5,7 @@ import Header from '../../components/admin/adminHeader';
 import { useAddPlanMutation } from '../../slices/adminApiSlice';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import { IApiError } from '../../types/error.types';
 
 const AddPlan: React.FC = () => {
     const [addPlan, { isLoading }] = useAddPlanMutation();
@@ -125,7 +126,12 @@ const AddPlan: React.FC = () => {
 
 
         try {
-            const response = await addPlan(planDetails).unwrap();
+            const response = await addPlan({
+                ...planDetails,
+                offerPercentage: Number(planDetails.offerPercentage),
+                actualPrice: Number(planDetails.actualPrice),
+                offerPrice: Number(planDetails.offerPrice),
+            }).unwrap();
             console.log('Plan added successfully:', response);
             toast.success('Plan added successfully');
 
@@ -141,11 +147,12 @@ const AddPlan: React.FC = () => {
             });
             navigate('/admin/subscriptionPlans?refresh=true');
 
-        } catch (error: any) {
+        } catch (err: unknown) {
+            const error = err as IApiError
             console.error('Failed to add plan:', error);
             if (error?.data?.errors && Array.isArray(error.data.errors)) {
                 error.data.errors.forEach((errMsg: string) => {
-                    toast.error(errMsg, { duration: 4000 });
+                    toast.error(errMsg, { autoClose: 4000 });
                 });
             } else {
                 toast.error('Failed to add plan. Please try again.');

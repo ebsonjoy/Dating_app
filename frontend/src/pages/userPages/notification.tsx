@@ -34,6 +34,10 @@ const NotificationsDropdown: React.FC = () => {
 
   const clearNotifications = async () => {
     try {
+      if (!userId) {
+        console.error("User ID is undefined. Cannot clear notifications.");
+        return;
+      }
       await clearNotification(userId).unwrap();
       setNotifications([]);
     } catch (error) {

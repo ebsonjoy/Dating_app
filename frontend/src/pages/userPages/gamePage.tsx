@@ -5,7 +5,15 @@ import TicTacToe from '../../components/games/TicTacToe';
 import { RootState } from "../../store";
 import { useSelector } from 'react-redux';
 
-const GameCard = ({ title, icon: Icon, description, onClick, isActive = false }) => (
+interface GameCardProps {
+  title: string;
+  icon: React.ElementType;
+  description: string;
+  onClick?: () => void;
+  isActive?: boolean;
+}
+
+const GameCard: React.FC<GameCardProps> = ({ title, icon: Icon, description, onClick, isActive = false }) => (
   <div 
     className={`relative overflow-hidden rounded-2xl p-6 transition-all duration-300 cursor-pointer hover:shadow-xl ${
       isActive ? 'bg-gradient-to-br from-pink-500 via-red-500 to-orange-500' : 'bg-white'
@@ -23,6 +31,7 @@ const GameCard = ({ title, icon: Icon, description, onClick, isActive = false })
   </div>
 );
 
+// ✅ Main GameZonePage Component
 const GameZonePage: React.FC = () => {
   const [isGameStarted, setIsGameStarted] = useState(false);
   const { userInfo } = useSelector((state: RootState) => state.auth);

@@ -2,10 +2,16 @@ import { apiSlice } from "./apiSlice";
 
 const ADMIN_URL = "/api/admin";
 // const PLAN_URL = "/api/plans"
+
 interface AdminLoginData {
   email: string;
   password: string;
   
+}
+interface IAdmin {
+  id: string;
+  name: string;
+  email: string;
 }
 
 interface AdminRegisterData {
@@ -38,7 +44,7 @@ interface UpdatePlanStatusData{
 }
 
 interface PlansData{
-  _id: string;
+  _id?: string;
   planName: string;
   duration: string;
   offerPercentage: number;
@@ -48,6 +54,16 @@ interface PlansData{
   status:boolean;
   features: string[];
 }
+interface CreatePlanData {
+  planName: string;
+  duration: string;
+  offerPercentage: number;
+  actualPrice: number;
+  offerPrice: number;
+  offerName: string;
+  features: string[];
+}
+
 interface UpdatePlanArgs {
   planId: string; 
   data: PlansData; 
@@ -76,7 +92,9 @@ export interface IAdviceCategory{
   image: string; 
   isBlock : boolean
 }
-
+// interface IAdviceCategoryFormData {
+//   formData: FormData;
+// }
 export interface IArticle {
   title: string;
   image: string;
@@ -96,17 +114,15 @@ interface IBlockArticle{
 
 interface IAdviceCategoryUpdate{
   categoryId: string
-  name: string;
-  description: string;
-  image: File
+  // name: string;
+  // description: string;
+  // image?: File
+  formData: FormData;
 }
 
 export interface IArticleUpdate {
   articleId: string
-  title: string;
-  image: File
-  content: string; 
-  categoryId:string; 
+  formData: FormData;
 }
 
 interface UserChartData {
@@ -124,7 +140,7 @@ interface PaymentChartData {
 export const adminApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     // Admin login
-    loginAdmin: builder.mutation<{ token: string }, AdminLoginData>({
+    loginAdmin: builder.mutation<IAdmin &{ token: string }, AdminLoginData>({
       query: (data) => ({
         url: `${ADMIN_URL}/login`,
         method: "POST",
@@ -179,7 +195,7 @@ export const adminApiSlice = apiSlice.injectEndpoints({
     getPlans:builder.query<PlansData,void>({
       query:()=>`${ADMIN_URL}/getAllPlans`,
     }),
-    addPlan: builder.mutation<{ message: string }, PlansData>({
+    addPlan: builder.mutation<{ message: string }, CreatePlanData>({
       query: (data) => ({
         url: `${ADMIN_URL}/createNewPlan`,
         method: "POST",
@@ -218,7 +234,7 @@ export const adminApiSlice = apiSlice.injectEndpoints({
         method: "GET",
       }),
     }),
-    addAdviceCategory: builder.mutation<{ message: string }, IAdviceCategory>({
+    addAdviceCategory: builder.mutation<{ message: string }, FormData>({
       query: (data) => ({
         url: `${ADMIN_URL}/createAdviceCategory`,
         method: "POST",
@@ -246,7 +262,7 @@ export const adminApiSlice = apiSlice.injectEndpoints({
 
     //Article
 
-    addArticle: builder.mutation<{ message: string }, IArticle>({
+    addArticle: builder.mutation<{ message: string }, FormData>({
       query: (data) => ({
         url: `${ADMIN_URL}/createArticle`,
         method: "POST",

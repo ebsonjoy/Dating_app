@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from "react-toastify";
 import { AppDispatch } from "../../store";
 import { RootState } from '../../store'; 
+import { IApiError } from '../../types/error.types';
 
 const AdminLogin: React.FC = () => {
   const [email, setEmail] = useState<string>('');
@@ -33,9 +34,10 @@ const AdminLogin: React.FC = () => {
       const adminInfo = await loginAdmin({ email, password }).unwrap(); 
       dispatch(setAdminCredentials({ ...adminInfo })); 
       navigate('/admin/Dashboard'); 
-    } catch (err: any) {
-      console.error('Failed to login:', err);
-      toast.error(err?.data?.message || err.error);
+    } catch (err:unknown) {
+      const error = err as IApiError
+      console.error('Failed to login:', error);
+      toast.error(error?.data?.message || error.error);
     }
   };
 
