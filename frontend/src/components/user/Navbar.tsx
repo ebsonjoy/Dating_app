@@ -1,4 +1,4 @@
-import  { useState, useEffect } from 'react';
+import  React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaHeart, FaUserCircle, FaBars, FaTimes, FaChevronDown } from 'react-icons/fa';
 import { useDispatch, useSelector } from 'react-redux';
@@ -6,6 +6,23 @@ import { useLogoutMutation,useGetReceivedLikesCountQuery } from '../../slices/ap
 import { logout } from '../../slices/authSlice';
 import { RootState } from '../../store';
 import NotificationsDropdown from '../../pages/userPages/notification';
+
+interface NavLinkProps {
+  to: string;
+  children: React.ReactNode;
+  active: boolean;
+}
+
+interface DropdownItemProps {
+  to: string;
+  children: React.ReactNode;
+}
+interface MobileNavLinkProps {
+  to: string;
+  children: React.ReactNode;
+  active: boolean;
+}
+
 
 const Navbar = () => {
   const [logoutApiCall] = useLogoutMutation();
@@ -16,7 +33,7 @@ const Navbar = () => {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [plansOpen, setPlansOpen] = useState(false);
-  const { data: likesCount } = useGetReceivedLikesCountQuery(userId);
+  const { data: likesCount } = useGetReceivedLikesCountQuery(userId as string);
 console.log('count',likesCount?.count)
   // Close mobile menu on route change
   useEffect(() => {
@@ -107,7 +124,7 @@ console.log('count',likesCount?.count)
               <button onClick={() => navigate("/userLikes")} className="relative p-2 text-white hover:bg-white/10 rounded-lg transition-colors">
                 <FaHeart className="text-xl" />
                 <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                  {likesCount?.count>0 ? likesCount?.count : 0}
+                  {likesCount && likesCount?.count>0 ? likesCount?.count : 0}
                 </span>
               </button>
 
@@ -186,7 +203,7 @@ console.log('count',likesCount?.count)
 };
 
 // Utility Components
-const NavLink = ({ to, children, active }) => (
+const NavLink: React.FC<NavLinkProps> = ({ to, children, active }) => (
   <Link
     to={to}
     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
@@ -196,7 +213,7 @@ const NavLink = ({ to, children, active }) => (
   </Link>
 );
 
-const DropdownItem = ({ to, children }) => (
+const DropdownItem: React.FC<DropdownItemProps>  = ({ to, children }) => (
   <Link
     to={to}
     className="block px-4 py-2 text-sm text-gray-700 hover:bg-rose-50 hover:text-rose-500 transition-colors"
@@ -205,7 +222,7 @@ const DropdownItem = ({ to, children }) => (
   </Link>
 );
 
-const MobileNavLink = ({ to, children, active }) => (
+const MobileNavLink: React.FC<MobileNavLinkProps> = ({ to, children, active }) => (
   <Link
     to={to}
     className={`block px-4 py-2 rounded-lg text-sm font-medium transition-colors

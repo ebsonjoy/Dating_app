@@ -6,7 +6,7 @@ import { Socket } from "socket.io-client";
 interface VideoCallProps {
   userId: string;
   matchId: string;
-  socket: Socket;
+  socket: Socket 
   onClose: () => void;
   isInitiator: boolean;
   incomingOffer?: RTCSessionDescriptionInit;

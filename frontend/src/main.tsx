@@ -8,7 +8,7 @@ import './index.css';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import appRoutes from './routes/index';
 import AuthProvider from './components/user/AuthProvider'
-import { SocketProvider } from './context/socketContext';
+import { SocketProvider } from './context/SocketContext';
 
 const router = createBrowserRouter(appRoutes);
 

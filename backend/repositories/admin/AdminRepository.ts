@@ -56,7 +56,7 @@ export class AdminRepository implements IAdminRepository {
         userId,
         { status: newStatus },
         { new: true }
-      );
+      ).select('_id name status')
       if (!updatedUser) {
         throw new Error("User not found");
       }

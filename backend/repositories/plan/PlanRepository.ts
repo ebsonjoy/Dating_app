@@ -68,7 +68,7 @@ export class PlanRepository implements IPlanRepository {
         id,
         { status },
         { new: true }
-      );
+      ).select('_id planName status')
       if (!updatedPlan) {
         throw new Error("Plan not found");
       }

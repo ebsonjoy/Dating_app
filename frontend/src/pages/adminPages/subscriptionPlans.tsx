@@ -3,10 +3,9 @@ import Navbar from '../../components/admin/adminNavBar';
 import Header from '../../components/admin/adminHeader';
 import { useNavigate } from 'react-router-dom';
 import { useGetPlansQuery, useUpdatePlanStatusMutation } from '../../slices/adminApiSlice';
-import GenericTable from '../../components/admin/reusableTable/genericTable';
-import { Column } from '../../components/admin/reusableTable/genericTable';
+import GenericTable, { Column } from '../../components/admin/reusableTable/genericTable';
 
-interface IPlansData {
+interface IPlan {
   _id: string;
   planName: string;
   duration: string;
@@ -18,14 +17,17 @@ interface IPlansData {
 }
 
 const PlanList: React.FC = () => {
-  const { data: planList, error, isLoading, refetch } = useGetPlansQuery();
+  const { data, error, isLoading, refetch } = useGetPlansQuery();
   const [updatePlanStatus] = useUpdatePlanStatusMutation();
   const navigate = useNavigate();
+
+  const planList: IPlan[] = Array.isArray(data) ? data : [];
 
   const handleUpdatePlanStatus = async (planId: string, currentStatus: boolean) => {
     try {
       const newStatus = !currentStatus;
-      const res = await updatePlanStatus({ planId, newStatus });
+      const res = await updatePlanStatus({ planId, newStatus }).unwrap();
+      console.log('resssss',res)
       if (res) {
         refetch();
       }
@@ -37,7 +39,7 @@ const PlanList: React.FC = () => {
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error loading plans</div>;
 
-  const planColumns: Column<IPlansData>[] = [
+  const planColumns: Column<IPlan>[] = [
     { 
       key: 'planName', 
       label: 'Plan Name' 
@@ -49,17 +51,17 @@ const PlanList: React.FC = () => {
     { 
       key: 'offerPercentage', 
       label: 'Offer %',
-      render: (value: number) => `${value}%`
+      render: (value) => `${value}%`
     },
     { 
       key: 'actualPrice', 
       label: 'Actual Price',
-      render: (value: number) => `₹${value}`
+      render: (value) => `₹${value}`
     },
     { 
       key: 'offerPrice', 
       label: 'Offer Price',
-      render: (value: number) => `₹${value}`
+      render: (value) => `₹${value}`
     },
     { 
       key: 'offerName', 
@@ -88,14 +90,16 @@ const PlanList: React.FC = () => {
             </button>
           </div>
 
-          <GenericTable<IPlansData> 
-            data={planList || []} 
+          <GenericTable<IPlan>
+            data={planList}
             columns={planColumns}
             searchKeys={['planName', 'offerName']}
             actionButtons={(plan) => (
               <>
                 <button
-                  className={`px-3 py-1 text-white rounded-md mr-2 ${plan.status ? "bg-red-500" : "bg-green-500"} hover:opacity-80 transition-opacity`}
+                  className={`px-3 py-1 text-white rounded-md mr-2 ${
+                    plan.status ? "bg-red-500" : "bg-green-500"
+                  } hover:opacity-80 transition-opacity`}
                   onClick={() => handleUpdatePlanStatus(plan._id, plan.status)}
                 >
                   {plan.status ? "Hide" : "Unhide"}

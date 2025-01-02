@@ -1,17 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from 'react';
 
-
-interface TableData {
-  [key: string]: any;
+// Base interface for table data
+export interface TableData {
   _id: string;
 }
 
-
+// Improved Column interface with better type safety
 export interface Column<T> {
   key: keyof T;
   label: string;
-  render?: (value: any, row: T) => React.ReactNode;
+  render?: (value: T[keyof T], row: T) => React.ReactNode;
 }
 
 interface GenericTableProps<T extends TableData> {
@@ -34,29 +32,26 @@ function GenericTable<T extends TableData>({
   const [search, setSearch] = useState('');
   const [filteredData, setFilteredData] = useState<T[]>(data);
 
-
   useEffect(() => {
     setFilteredData(data);
     setCurrentPage(1);
   }, [data]);
 
-
   useEffect(() => {
-    const filtered = data.filter(item => 
-      searchKeys.some(key => 
-        String(item[key]).toLowerCase().includes(search.toLowerCase())
-      )
+    const filtered = data.filter((item) =>
+      searchKeys.some((key) => {
+        const value = item[key];
+        return String(value).toLowerCase().includes(search.toLowerCase());
+      })
     );
     setFilteredData(filtered);
     setCurrentPage(1);
-  }, [search, data]);
-
+  }, [search, data, searchKeys]);
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredData.slice(indexOfFirstItem, indexOfLastItem);
-
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -64,7 +59,6 @@ function GenericTable<T extends TableData>({
 
   return (
     <div className="bg-white rounded-lg shadow-md p-4">
-      {/* Search Input */}
       <div className="mb-4 flex justify-between items-center">
         <input
           type="text"
@@ -76,7 +70,6 @@ function GenericTable<T extends TableData>({
       </div>
 
       <div className="overflow-x-auto">
-        {/* Desktop Table */}
         <table className="hidden md:table w-full table-auto">
           <thead>
             <tr className="bg-gray-800 text-white">
@@ -93,52 +86,46 @@ function GenericTable<T extends TableData>({
               <tr key={row._id} className="border-b hover:bg-gray-100">
                 {columns.map((column) => (
                   <td key={String(column.key)} className="py-3 px-4">
-                    {column.render 
+                    {column.render
                       ? column.render(row[column.key], row)
-                      : String(row[column.key])
-                    }
+                      : String(row[column.key])}
                   </td>
                 ))}
                 {actionButtons && (
-                  <td className="py-3 px-4">
-                    {actionButtons(row)}
-                  </td>
+                  <td className="py-3 px-4">{actionButtons(row)}</td>
                 )}
               </tr>
             ))}
           </tbody>
         </table>
 
-   
         <div className="block md:hidden">
           {currentItems.map((row) => (
             <div key={row._id} className="bg-white shadow-md rounded-md mb-4 p-4">
               {columns.map((column) => (
                 <div key={String(column.key)} className="mb-2">
                   <strong>{column.label}: </strong>
-                  {column.render 
+                  {column.render
                     ? column.render(row[column.key], row)
-                    : String(row[column.key])
-                  }
+                    : String(row[column.key])}
                 </div>
               ))}
-              {actionButtons && (
-                <div className="mt-2">
-                  {actionButtons(row)}
-                </div>
-              )}
+              {actionButtons && <div className="mt-2">{actionButtons(row)}</div>}
             </div>
           ))}
         </div>
       </div>
 
-     
       <div className="flex justify-center mt-4">
         <div className="space-x-2">
           {Array.from({ length: totalPages }, (_, index) => (
             <button
               key={index}
-              className={`px-3 py-1 rounded-md border ${currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-white text-black'} hover:bg-blue-500 hover:text-white transition-colors`}
+              className={`px-3 py-1 rounded-md border ${
+                currentPage === index + 1
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-white text-black'
+              } hover:bg-blue-500 hover:text-white transition-colors`}
               onClick={() => handlePageChange(index + 1)}
             >
               {index + 1}

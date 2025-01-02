@@ -40,7 +40,7 @@ export class AdviceController {
 
       const newCategory = await this.adviceService.createCategory(categoryData);
       res.status(HttpStatusCode.CREATED).json(newCategory);
-    } catch (error: any) {
+    } catch (error:any) {
       if (error.message.includes("already exists")) {
         res.status(HttpStatusCode.BAD_REQUEST).json({
           errors: [error.message],

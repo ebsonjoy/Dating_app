@@ -134,7 +134,23 @@ interface PaymentChartData {
   paymentGrowthData: { date: Date; amount: number }[];
   totalPayments: number;
 }
+interface UpdateUserStatusResponse {
+  message: string;
+  user: {
+      _id: string;
+      name: string;
+      status: boolean;
+  };
+}
 
+interface UpdatePlanStatusResponse {
+  message: string;
+  user: {
+      _id: string;
+      name: string;
+      status: boolean;
+  };
+}
 
 
 export const adminApiSlice = apiSlice.injectEndpoints({
@@ -171,7 +187,7 @@ export const adminApiSlice = apiSlice.injectEndpoints({
       }),
     }),
 
-    updateUserStatus: builder.mutation<void, UpdateStatusData>({
+    updateUserStatus: builder.mutation<UpdateUserStatusResponse, UpdateStatusData>({
       query: ({ userId, newStatus }) => ({
         url: `${ADMIN_URL}/updateUserStatus/${userId}`,
         method: "PUT",
@@ -184,7 +200,7 @@ export const adminApiSlice = apiSlice.injectEndpoints({
 
     //plans
 
-    updatePlanStatus: builder.mutation<void, UpdatePlanStatusData>({
+    updatePlanStatus: builder.mutation<UpdatePlanStatusResponse, UpdatePlanStatusData>({
       query: ({ planId, newStatus }) => ({
         url: `${ADMIN_URL}/updatePlanStatus/${planId}`,
         method: "PUT",

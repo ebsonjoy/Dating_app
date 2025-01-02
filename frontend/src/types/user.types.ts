@@ -77,7 +77,7 @@ export  interface IMyFormData {
     userId: string;
     gender: string;
     lookingFor: string;
-    profilePhotos: string[];
+    profilePhotos: File[];
     relationship: string;
     interests: string[];
     occupation: string;

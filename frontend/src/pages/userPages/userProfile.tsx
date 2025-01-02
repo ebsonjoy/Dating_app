@@ -42,7 +42,7 @@ const ProfilePage = () => {
   const [bio, setBio] = useState<string>('');
   const [smoking, setSmoking] = useState<string>('');
   const [drinking, setDrinking] = useState<string>('');
-  const [profilePhotos, setProfilePhotos] = useState<File[]>([]);
+  const [profilePhotos, setProfilePhotos] = useState<File[] >([]);
   const [showModal, setShowModal] = useState(false);
   const [imgIndex, setImgIndex] = useState<number[]>([]);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -235,7 +235,11 @@ const ProfilePage = () => {
             <div className="grid md:grid-cols-2 gap-6">
               <div className="col-span-2 flex justify-center">
                 <img
-                  src={userProfile?.userInfo.profilePhotos[0]}
+                  src={
+                    userProfile?.userInfo.profilePhotos[0] instanceof File
+                      ? URL.createObjectURL(userProfile?.userInfo.profilePhotos[0])
+                      : userProfile?.userInfo.profilePhotos[0]
+                  }
                   alt="Profile"
                   
                   className="w-32 h-32 rounded-full object-cover border-4 border-rose-500"
@@ -544,13 +548,13 @@ const ProfilePage = () => {
                 <div className="mt-6">
                   <label className="text-sm font-medium text-gray-600 mb-3 block">Profile Photos</label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {userProfile?.userInfo.profilePhotos.map((image: string, index: number) => (
+                    {userProfile?.userInfo.profilePhotos.map((image:  File | string, index: number) => (
                       <div key={index} className="relative group">
-                        <img
-                          src={image}
-                          alt={`Profile ${index + 1}`}
-                          className="w-full h-48 object-cover rounded-lg"
-                        />
+                       <img
+  src={image instanceof File ? URL.createObjectURL(image) : image}
+  alt={`Profile ${index + 1}`}
+  className="w-full h-48 object-cover rounded-lg"
+/>
                         {editDating && (
                           <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
                             <input

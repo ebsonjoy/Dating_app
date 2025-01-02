@@ -565,7 +565,7 @@ const MatchesAndChat: React.FC = () => {
                         </h2>
                       </div>
                     </div>
-                    {userId && showVideoCall ? (
+                    {userId && showVideoCall && socket ? (
                       <VideoCall
                         userId={userId}
                         matchId={selectedMatch}
