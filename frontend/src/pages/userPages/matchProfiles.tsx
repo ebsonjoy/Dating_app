@@ -50,9 +50,8 @@ const MatchesSection: React.FC<MatchesSectionProps> = ({ matchProfiles = [] }) =
   const navigate = useNavigate();
 
   const handleMatchClick = (partnerUserId: string) => {
-    console.log('iiiiiiiiiiiiiidddddddd',partnerUserId)
     navigate("/userDetails", { state: { partnerUserId } });
-  };
+  }
 
   return (
     <div className="lg:w-1/4 w-full bg-white rounded-xl shadow-lg p-6">

@@ -20,5 +20,6 @@ export interface ILikeProfile {
     dateOfBirth: string;
     place: string;
     profilePhotos: string[];
+    blockedUsers?:string[]
   }
   

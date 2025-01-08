@@ -88,7 +88,15 @@ const UsersList: React.FC = () => {
       <Navbar />
       <div className="flex-1 flex flex-col overflow-y-auto">
         <Header title="Users" />
-        <div className="flex-1 p-3 bg-gray-100">
+        <div className="flex-1 p-3 bg-gray-100 p-4">
+        <div className="flex justify-end mb-4">
+            <button
+              className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200 mr-2"
+              onClick={() => navigate("/admin/userReportDetails/")}
+            >
+              User Reports
+            </button>
+          </div>
           <GenericTable<IUser>
             data={usersList}
             columns={userColumns}

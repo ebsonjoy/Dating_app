@@ -51,8 +51,8 @@ router.put('/updateArticle/:articleId',multerUploadUserImg.single("image"),advic
 router.delete('/deleteArtilce/:articleId',adviceController.deleteArticle)
 router.get('/fetchArtilceByCategory/:categoryId',adviceController.getArticlesByCategory)
 
-
-
+router.get('/userReportWithMessages',adminControllerr.getUserReports)
+router.put('/updateReportStatus/:reportId',adminControllerr.updateReportStatus)
 
 
 

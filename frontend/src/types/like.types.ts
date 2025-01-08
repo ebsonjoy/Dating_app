@@ -25,6 +25,7 @@ export interface ILike{
     image: string[];
     age: string | number | Date;
     place: string;
+    blockedUsers?:string[]
   }
   
   

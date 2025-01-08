@@ -10,6 +10,7 @@ import EditPlan from '../pages/adminPages/editSubscriptionPlan';
 import PaymentDetails from '../pages/adminPages/paymentDetails';
 import AdviceManagement from '../pages/adminPages/adviceCategoryPage';
 import ArticleManagement from '../pages/adminPages/articlePage';
+import UserReportDetials from '../pages/adminPages/userReport'
 
 const adminRoutes = (
   <Route path="/" element={<App />}>
@@ -26,6 +27,8 @@ const adminRoutes = (
 
     <Route path="/admin/article" element={<ArticleManagement />} />
     <Route path="/admin/editArticle/:articleId" element={<ArticleManagement />} />
+    <Route path="/admin/userReportDetails/" element={<UserReportDetials />} />
+
 
 
 

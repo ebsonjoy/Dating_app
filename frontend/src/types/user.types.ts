@@ -116,3 +116,13 @@ export  interface IMyFormData {
     caste: string;
   
   }
+
+  export interface IBlockedUserResponse {
+    _id: string;
+    blockedUsers: string[];
+}
+
+export interface IBlockedUser{
+  userId:string,
+  blockedUserId:string,
+}

@@ -61,6 +61,15 @@ router.post('/createNotification',userProtect,userController.createNotification)
 router.get('/getNotifications/:userId',userProtect,userController.getNotification)
 router.delete('/clearNotifications/:userId',userProtect,userController.clearNotifications)
 
+// BlOCK&UNBLOCK
+router.put('/userBlocked',userProtect,userController.userBlocked)
+router.put('/userUnblocked',userProtect,userController.userUnBlocked)
+router.get('/userBlockedList/:userId',userProtect,userController.fetchBlockedUserList)
+
+//REPORT
+router.post('/createReport',userController.createReport)
+
+
 
 
 export default router;

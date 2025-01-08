@@ -19,6 +19,7 @@ export const multerUploadUserImg = multer({
       s3: s3,
       bucket: process.env.AWS_BUCKET_NAME || "",
       contentType: multerS3.AUTO_CONTENT_TYPE,
+      acl: 'public-read',
       key: (req, file, cb) => {
         const filename = `profilePhotos/${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`;
         cb(null, filename);

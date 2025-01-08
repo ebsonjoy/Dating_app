@@ -1,30 +1,18 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { useSelector } from 'react-redux';
+import { useSelector,useDispatch } from 'react-redux';
 import { RootState } from '../store';
-import { useGetNotificationQuery } from '../slices/apiUserSlice';
+import { useLogoutMutation } from '../slices/apiUserSlice';
+import { logout } from '../slices/authSlice';
 
-
-interface Notification {
-  type: string;
-  message: string;
-}
 interface SocketContextType {
   socket: Socket | null;
   onlineUsers: string[];
-  notifications: Notification[];
-  setNotifications: React.Dispatch<React.SetStateAction<Notification[]>>;
-  hasSeenPopup: boolean;
-  setHasSeenPopup: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const SocketContext = createContext<SocketContextType>({
   socket: null,
   onlineUsers: [],
-  notifications:[],
-  setNotifications: () => {},
-  hasSeenPopup: false,
-  setHasSeenPopup: () => {},
 });
 
 export const useSocketContext = () => useContext(SocketContext);
@@ -36,23 +24,10 @@ interface SocketProviderProps {
 export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [hasSeenPopup, setHasSeenPopup] = useState(false);
-
   const { userInfo } = useSelector((state: RootState) => state.auth);
   const userId = userInfo?._id;
-
-  const { data: userNotifications } = useGetNotificationQuery(userId!, {
-    skip: !userId,
-  });
-
-  useEffect(() => {
-    if (userNotifications) {
-      setNotifications(userNotifications);
-    }
-  }, [userNotifications]);
-
-
+  const [logoutApiCall] = useLogoutMutation();
+  const dispatch = useDispatch();
   useEffect(() => {
     if (userId) {
       const newSocket = io('http://localhost:5000', {
@@ -65,8 +40,14 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         setOnlineUsers(users);
       });
 
-      newSocket.on('notification', (notification: Notification) => {
-        setNotifications((prev) => [notification, ...prev]);
+      newSocket.on('forceLogout',async () => {
+       try {
+            await logoutApiCall().unwrap();
+            dispatch(logout());
+            window.location.href = '/login';
+          } catch (error) {
+            console.error('Error during forced logout:', error);
+          }
       });
 
       return () => {
@@ -74,12 +55,12 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
         setSocket(null);
       };
     }
-  }, [userId]);
+  }, [dispatch, logoutApiCall, userId]);
 
   
 
   return (
-    <SocketContext.Provider value={{ socket, onlineUsers,notifications,setNotifications, hasSeenPopup, setHasSeenPopup, }}>
+    <SocketContext.Provider value={{ socket, onlineUsers }}>
       {children}
     </SocketContext.Provider>
   );

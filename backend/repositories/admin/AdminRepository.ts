@@ -5,9 +5,12 @@ import User from "../../models/User";
 import Admin from "../../models/AdminModel";
 import Payment from "../../models/PaymentModel";
 import Match from '../../models/MatchModel'
+import Message from '../../models/MessageModel'
+import Report from '../../models/reportModel'
 import { IUser } from "../../types/user.types";
 import { IPayment } from "../../types/payment.types";
-
+import { IMessage } from "../../types/message.types";
+import { IReport } from "../../types/report.types";
 @injectable()
 export class AdminRepository implements IAdminRepository {
   constructor(
@@ -15,6 +18,9 @@ export class AdminRepository implements IAdminRepository {
     private readonly userModel = User,
     private readonly paymentModel = Payment,
     private readonly matchModel = Match,
+    private readonly MessageModel = Message,
+    private readonly reportModel = Report,
+
   ) {}
 
   async authenticate(email: string): Promise<IAdmin | null> {
@@ -244,6 +250,39 @@ async getPaymentGrowthData(timeRange: 'day' | 'month' | 'year'): Promise<{ date:
     date: new Date(item._id), 
     amount: item.amount
   }));
+}
+
+async getAllReportsWithMessages(): Promise<(IReport & { messages: IMessage[] })[]> {
+  const reports = await this.reportModel.find()
+    .populate("reporterId", "name email")
+    .populate("reportedId", "name email")
+    .lean();
+
+  const reportsWithMessages = await Promise.all(
+    reports.map(async (report) => {
+      const messages = await this.MessageModel.find({
+        $or: [
+          { senderId: report.reporterId, receiverId: report.reportedId },
+          { senderId: report.reportedId, receiverId: report.reporterId },
+        ],
+      })
+        .sort({ createdAt: -1 }) 
+        .limit(5)
+        .lean();
+
+      return { ...report, messages };
+    })
+  );
+
+  return reportsWithMessages;
+}
+
+async updateReportStatus(reportId: string, status: 'Pending' | 'Reviewed' | 'Resolved'): Promise<IReport | null> {
+  return await Report.findByIdAndUpdate(
+      reportId,
+      { status, updatedAt: new Date() },
+      { new: true }
+  );
 }
 
 }

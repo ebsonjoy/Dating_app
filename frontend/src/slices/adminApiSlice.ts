@@ -1,3 +1,4 @@
+import { ApiResponse, IUpdateReportStatus } from "../types/report.types";
 import { apiSlice } from "./apiSlice";
 
 const ADMIN_URL = "/api/admin";
@@ -324,8 +325,21 @@ export const adminApiSlice = apiSlice.injectEndpoints({
         method: "GET",
         params: { timeRange }
       }),
-    })
+    }),
+    getUserReports : builder.query<ApiResponse, void>({
+      query: () => ({
+        url: `${ADMIN_URL}/userReportWithMessages`,
+        method: "GET",
+      }),
+    }),
 
+    updateReportStatus : builder.mutation<void, IUpdateReportStatus>({
+      query: ({ reportId, status }) => ({
+        url: `${ADMIN_URL}/updateReportStatus/${reportId}`,
+        method: "PUT",
+        body: {status }, 
+      }),
+    }),
     
 
   }),
@@ -358,6 +372,8 @@ export const {
   useUpdateArticleMutation,
 
   useGetUserChartDataQuery,
-  useGetPaymentChartDataQuery
+  useGetPaymentChartDataQuery,
+  useGetUserReportsQuery,
+  useUpdateReportStatusMutation,
 
 } = adminApiSlice;

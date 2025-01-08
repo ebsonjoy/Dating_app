@@ -5,6 +5,8 @@ import { IAdminService } from '../../interfaces/admin/IAdminService';
 import { HttpStatusCode } from '../../enums/HttpStatusCode';
 import generateAdminToken from '../../utils/generateAdminToken'; 
 import { StatusMessage } from '../../enums/StatusMessage';
+import { getReceiverSocketId, io } from "../../socket/socket";
+
 
 @injectable()
 export class AdminController{
@@ -71,6 +73,12 @@ export class AdminController{
         const { newStatus } = req.body;
         try {
             const updatedUser = await this.adminService.toggleUserStatus(userId, newStatus);
+            if(updatedUser?.status==false){
+                const socketId = getReceiverSocketId(userId);
+                if (socketId) {
+                  io.to(socketId).emit('forceLogout');
+                }
+            }
             res.status(HttpStatusCode.OK).json({ message: 'User status updated', user: updatedUser });
         } catch (error) {
             console.error(error);
@@ -133,4 +141,44 @@ export class AdminController{
           res.status(500).json({ message: 'Error fetching payment chart data', error });
         }
       })
+
+      getUserReports = asyncHandler(async(req:Request, res: Response)=>{
+        try {
+            const reports = await this.adminService.getReportsWithMessages();
+            res.status(200).json({
+              success: true,
+              data: reports,
+            });
+          } catch (err:unknown) {
+            const error = err as Error
+            res.status(500).json({
+              success: false,
+              message: "Failed to fetch reports.",
+              error: error.message,
+            });
+          }
+      })
+
+      updateReportStatus = asyncHandler(async (req: Request, res: Response) => {
+        const { reportId } = req.params;
+        const { status } = req.body;
+        console.log('reportId',reportId,'status',status)
+        if (!['Pending', 'Reviewed', 'Resolved'].includes(status)) {
+             res.status(400).json({ message: 'Invalid status value' });
+             return
+        }
+        try {
+            const updatedReport = await this.adminService.updateReportStatus(reportId, status);
+            if (!updatedReport) {
+                 res.status(404).json({ message: 'Report not found' });
+                 return
+            }
+            res.status(200).json({ message: 'Report status updated successfully', data: updatedReport });
+            return
+        } catch (error) {
+            console.error(error);
+             res.status(500).json({ message: 'Internal server error' });
+             return
+        }
+    })
 }

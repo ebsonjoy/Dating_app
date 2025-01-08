@@ -64,8 +64,18 @@ const userSchema = new mongoose.Schema<IUser>(
         mobileNumber: {
             type: String,
         },
-        otp: { type: String },
-        otpExpiresAt: { type: Date }
+        otp: { 
+            type: String,
+         },
+        otpExpiresAt: { 
+            type: Date,
+         },
+        blockedUsers: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: 'User'
+            }
+        ],
     },
     {
         timestamps: true,

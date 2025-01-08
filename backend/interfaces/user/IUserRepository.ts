@@ -1,4 +1,4 @@
-import { IUser } from "../../types/user.types";
+import { IUser,IBlockedUserResponse,IUnblockedUserResponse } from "../../types/user.types";
 import { IUserInfo } from "../../types/userInfo.types";
 import { UserInfoUpdate } from "../../types/userInfo.types";
 import { IPlan, IPlanDocument } from "../../types/plan.types";
@@ -7,6 +7,7 @@ import {IMatch} from '../../types/match.types'
 import { IPaymentCreate } from "../../types/payment.types";
 import { IAdviceCategory, IArticle } from "../../types/advice.types";
 import { INotification } from "../../types/notification.types";
+import { IReport } from "../../types/report.types";
 
 
 
@@ -41,5 +42,9 @@ export interface IUserRepository {
     createNotification(notication:INotification):Promise<INotification>
     getNotifications(userId:string):Promise<INotification[]>
     clearNotifications(userId:string):Promise<string>
+    userBlocked(userId:string,blockedUserId:string):Promise<IBlockedUserResponse | null>
+    userUnblocked(userId:string,blockedUserId:string):Promise<IUnblockedUserResponse | null>
+    createReport(reportData: IReport): Promise<IReport>;
+   
 
 }

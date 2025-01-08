@@ -7,8 +7,9 @@ import Match from "../../models/MatchModel";
 import Plan from "../../models/PlanModel";
 import Payment from "../../models/PaymentModel";
 import Notification from "../../models/Notifications";
+import Report from '../../models/reportModel'
 import { IUserRepository } from "../../interfaces/user/IUserRepository";
-import { IUser } from "../../types/user.types";
+import { IUser,IBlockedUserResponse,IUnblockedUserResponse } from "../../types/user.types";
 import { IUserInfo, ILocation } from "../../types/userInfo.types";
 import { IPlan, IPlanDocument } from "../../types/plan.types";
 import { ILikeData,ILike} from "../../types/like.types";
@@ -18,6 +19,8 @@ import Article from "../../models/Article";
 import AdviceCategory from "../../models/AdviceCategory";
 import { IAdviceCategory, IArticle } from "../../types/advice.types";
 import { INotification } from "../../types/notification.types";
+import { IReport } from "../../types/report.types";
+
 
 
 
@@ -34,6 +37,8 @@ export class UserRepository  implements IUserRepository {
         private readonly AdviceCategoryModel = AdviceCategory,
         private readonly ArticleModel = Article,
         private readonly NotificationModel = Notification,
+        private readonly reportModel = Report,
+       
     ){}
    
     async findByEmail(email: string): Promise<IUser | null> {
@@ -284,5 +289,54 @@ export class UserRepository  implements IUserRepository {
         ? "Notifications successfully deleted." 
         : "No notifications found to delete.";
     }
+    async userBlocked(userId: string, blockedUserId: string): Promise<IBlockedUserResponse | null> {
+        try {
+            const user = await this.UserModel.findByIdAndUpdate(
+                userId,
+                { $addToSet: { blockedUsers: blockedUserId } },
+                { new: true }
+            ).select('userId blockedUsers')
+    
+            if (!user) {
+                return null
+            }
+    
+            return {
+                _id: user._id.toString(),
+                blockedUsers: user.blockedUsers,
+            };
+        } catch (error) {
+            console.error('Error blocking user:', error);
+            throw new Error('Failed to block user');
+        }
+    }
+    async userUnblocked(userId: string, blockedUserId: string): Promise<IUnblockedUserResponse | null> {
+        try {
+            const user = await this.UserModel.findByIdAndUpdate(
+                userId,
+                { $pull: { blockedUsers: blockedUserId } },
+                { new: true } 
+            );
+    
+            if (!user) {
+                return null
+            }
+    
+            return{
+                _id: user._id.toString(),
+                blockedUsers: user.blockedUsers,
+            };
+        } catch (error) {
+            console.error('Error blocking user:', error);
+            throw new Error('Failed to block user');
+        }
+    }
+
+    async createReport(reportData: IReport): Promise<IReport> {
+        const report = new this.reportModel(reportData);
+        return await report.save();
+    }
+
+  
 }
 

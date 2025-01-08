@@ -4,10 +4,9 @@ import { IUserRepository } from "../../interfaces/user/IUserRepository";
 import { generateOTP,sendOTP } from "../../utils/userOtp";
 import { sendResetEmail } from "../../utils/resetGmail";
 import { IUserInfo, UserInfoUpdate } from "../../types/userInfo.types";
-import { IUser, IUserProfile } from "../../types/user.types";
+import { IBlockedUserResponse, IUnblockedUserResponse, IUser, IUserProfile } from "../../types/user.types";
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-// import Plan from "../../models/PlanModel";
 import { calculateAge } from "../../utils/calculateAge";
 import { ISubscriptionDetails } from "../../types/user.types";
 import mongoose from "mongoose";
@@ -17,7 +16,8 @@ import { ILikeData, ILikeProfile } from "../../types/like.types";
 import { calculateExpiryDate } from "../../utils/calculateExpDate";
 import { IAdviceCategory, IArticle } from "../../types/advice.types";
 import { INotification } from "../../types/notification.types";
-// import { IPayment,CreatePaymentInput } from "../../types/payment.types";
+import { IReport } from "../../types/report.types";
+
 
 
 
@@ -557,6 +557,7 @@ async handleHomeLikes(likesIds: ILikeData): Promise<{ match: boolean; message: s
               age: user.dateOfBirth,
               place: userInfo.place,
               image: userInfo.profilePhotos,
+              blockedUsers:user.blockedUsers,
             };
           }
           return null;
@@ -588,9 +589,31 @@ async handleHomeLikes(likesIds: ILikeData): Promise<{ match: boolean; message: s
   async clearNotifications(userId: string): Promise<string> {
       return await this.userRepository.clearNotifications(userId)
   }
+  async userBlocked(userId: string, blockedUserId: string): Promise<IBlockedUserResponse | null> {
+      return await this.userRepository.userBlocked(userId,blockedUserId)
+  }
+  async userUnblocked(userId: string, blockedUserId: string): Promise<IUnblockedUserResponse | null> {
+      return await this.userRepository.userUnblocked(userId,blockedUserId)
+  }
 
-
-
+  async userBlockedList(userId: string): Promise<IBlockedUserResponse | null> {
+      try{
+        const user = await this.userRepository.findById(userId)
+        if(!user){
+            return null
+        }
+        return {
+            _id: user._id.toString(),
+            blockedUsers: user.blockedUsers,
+        };
+      }catch(err){
+        console.error("Error in fetch blocked user:", err);
+        throw new Error("Unable to fetch blocked users");
+      }
+  }
+  async createReport(reportData: IReport): Promise<IReport> {
+    return await this.userRepository.createReport(reportData);
+}
 }
 
 

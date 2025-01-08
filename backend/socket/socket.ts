@@ -73,46 +73,65 @@ export const initializeSocket = (server: http.Server): void => {
       }
     });
 
+    // Handle user blocking
+    socket.on("userBlocked", ({ blockedUserId, blockedByUserId }) => {
+      console.log(blockedByUserId)
+      const blockedUserSocketId = userSocketMap[blockedUserId];
+      if (blockedUserSocketId) {
+        io.to(blockedUserSocketId).emit("userWasBlocked", { blockedUserId });
+      }
+    });
+
+    // Handle user unblocking
+    socket.on("userUnblocked", ({ unblockedUserId, unblockedByUserId }) => {
+      const unblockedUserSocketId = userSocketMap[unblockedUserId];
+      if (unblockedUserSocketId) {
+        io.to(unblockedUserSocketId).emit("userWasUnblocked", { unblockedByUserId });
+      }
+    });
+
+
+
+
     //Notification
 
-  socket.on("notifyLike", async ({ name, likedUserId }) => {
-    const receiverSocketId = getReceiverSocketId(likedUserId);
-    const notification = {
-      userId: likedUserId,
-      type: "like",
-      message: `${name} liked your profile.`,
-    };
-    await Notification.create(notification);
-  
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("notification", notification);
-    }
-  });
-
-  socket.on("notifyMessage",async ({name,likedUserId }) => {
-    const receiverSocketId = getReceiverSocketId(likedUserId);
-         const notification = {
-      userId: likedUserId,
-      type: "message",
-      message:`${name} sent you a message:`,
-    };
-    await Notification.create(notification);
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("notification", notification);
-    }
-  });
-
-  socket.on("notifyMatch",async ({ user1Id, user2Id }) => {
-    [user1Id, user2Id].forEach(async (userId) => {
-      const receiverSocketId = getReceiverSocketId(userId);
+    socket.on("notificationForLike",async ({ likedUserId,name }) => {
+      const receiverSocketId = userSocketMap[likedUserId];
       const notification = {
-        userId,
+        userId: likedUserId,
+        type: "like",
+        message: `${name} liked your profile.`,
+      };
+      await Notification.create(notification);
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("OneUserLiked", { likedUserId,name });
+      }
+    });
+
+  socket.on("notifyForMessage",async ({name,receivedUserId }) => {
+    const receiverSocketId = userSocketMap[receivedUserId];
+         const notification = {
+      userId: receivedUserId,
+      type: "message",
+      message:`${name} sent a message:`,
+    };
+    await Notification.create(notification);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("OneMessage", { receivedUserId,name });
+    }
+  });
+
+  socket.on("notifyForMatch",async ({ user1Id, user2Id }) => {
+    [user1Id, user2Id].forEach(async (userID) => {
+      const receiverSocketId = userSocketMap[userID];
+      const notification = {
+        userID,
         type: "match",
         message:`"You have a new match!"`,
       };
       await Notification.create(notification);
       if (receiverSocketId) {
-        io.to(receiverSocketId).emit("notification", notification);
+        io.to(receiverSocketId).emit("OneMatch", { userID});
       }
     });
   });

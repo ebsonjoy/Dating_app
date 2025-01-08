@@ -98,17 +98,19 @@ const Home: React.FC = () => {
         const name = userInfo.name
         const res = await likes({ likerId: userId, likedUserId: currentUser.userId }).unwrap();
         console.log(res)
+
+        //me
+        socket?.emit('notificationForLike',{
+          likedUserId:currentUser.userId,
+          likerId:userId,
+          name
+        })  
         if(res.match){
           socket?.emit("notifyMatch", {
             user1Id:currentUser.userId,
             user2Id:userId,
           });
         }
-        socket?.emit("notifyLike", {
-          name,
-          likedUserId: currentUser.userId,
-        });
-
         console.log('Liker ID:', userId);
         console.log('Liked User ID:', currentUser.userId);
         console.log(res);

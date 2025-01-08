@@ -1,36 +1,55 @@
 import React, { useEffect, useState } from "react";
 import { useSocketContext } from "../../context/SocketContext";
-import { useClearNotificationMutation } from "../../slices/apiUserSlice";
+import { useClearNotificationMutation,useGetNotificationQuery } from "../../slices/apiUserSlice";
 import { RootState } from "../../store";
 import { useSelector } from "react-redux";
 import { Bell, X } from "lucide-react";
+import { toast } from "react-toastify";
+
 
 const NotificationsDropdown: React.FC = () => {
   const {
-    notifications,
-    setNotifications,
-    hasSeenPopup,
-    setHasSeenPopup,
+    socket,
   } = useSocketContext();
-  const [showNotificationPopup, setShowNotificationPopup] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const { userInfo } = useSelector((state: RootState) => state.auth);
-
   const userId = userInfo?._id;
-  const unreadCount = notifications.length;
   const [clearNotification] = useClearNotificationMutation();
+  const { data: userNotifications,refetch } = useGetNotificationQuery(userId!, {
+      skip: !userId,
+    });
+  const unreadCount = userNotifications?.length || 0
+ 
+useEffect(() => {
+    if (!socket) return;
+    socket.on("OneUserLiked", ({ likedUserId,name }) => {
+      if (likedUserId === userId) {
+        toast.success(`${name} liked your profile.`)
+      }
+      refetch()
+    });
 
-  useEffect(() => {
-    if (unreadCount > 0 && !hasSeenPopup) {
-      setShowNotificationPopup(true);
-      setHasSeenPopup(true); 
-      const timer = setTimeout(() => {
-        setShowNotificationPopup(false);
-      }, 5000);
+    socket.on("OneMessage", ({ receivedUserId,name }) => {
+      if (receivedUserId === userId) {
+        toast.success(`${name} sent a message.`)
+      }
+      refetch()
+    });
+    socket.on("OneMatch", ({ userID }) => {
+      if (userID === userId) {
+        toast.success(`You have a new match!`)
+      }
+      refetch()
+    });
 
-      return () => clearTimeout(timer);
-    }
-  }, [unreadCount, hasSeenPopup, setHasSeenPopup]);
+    return () => {
+      socket.off("OneUserLiked");
+      socket.off("OneMessage")
+    };
+  }, [refetch, socket, userId]);
+
+
+
 
   const clearNotifications = async () => {
     try {
@@ -39,7 +58,7 @@ const NotificationsDropdown: React.FC = () => {
         return;
       }
       await clearNotification(userId).unwrap();
-      setNotifications([]);
+      refetch()
     } catch (error) {
       console.error("Failed to clear notifications:", error);
     }
@@ -64,15 +83,7 @@ const NotificationsDropdown: React.FC = () => {
         )}
       </button>
 
-      {/* Notification Popup */}
-      {showNotificationPopup && (
-        <div className="fixed top-16 right-4 bg-green-600 text-white text-sm px-4 py-2 rounded-lg shadow-lg z-50 animate-slide-in">
-          <div className="flex items-center">
-            <Bell className="mr-2 w-4 h-4" />
-            {notifications[0]?.message}
-          </div>
-        </div>
-      )}
+     
 
       {/* Dropdown */}
       {showDropdown && (
@@ -90,10 +101,10 @@ const NotificationsDropdown: React.FC = () => {
             </button>
           </div>
 
-          {unreadCount > 0 ? (
+          {userNotifications && unreadCount > 0 ? (
             <>
               <ul className="max-h-64 overflow-y-auto">
-                {notifications.map((notification, index) => (
+                {userNotifications.map((notification, index) => (
                   <li 
                     key={index} 
                     className="p-3 border-b border-gray-100 hover:bg-gray-50 transition-colors duration-200"

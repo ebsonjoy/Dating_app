@@ -10,222 +10,11 @@ import {
 
 import { ICallHistory } from "../types/videoCall.types";
 import { ILoginData,IforgotPasswordData,IresetPasswordData,IOtp,IResendOtpData,IGoogleLogin,ILogin } from "../types/auth.types";
-import { IRegisterData,IRegisterResponse,IUpdateUserData,IUserProfile,IUserProfileResponse } from "../types/user.types";
+import { IBlockedUser, IBlockedUserResponse, IRegisterData,IRegisterResponse,IUpdateUserData,IUserProfile,IUserProfileResponse } from "../types/user.types";
 import { IPlansData,IpaymentData,IUserPlanDetails} from "../types/subscription.types";
 import { ILike,ILikeProfiles,ILikesCount,ILikeResponse, IMatchProfile } from "../types/like.types";
 import { IAdviceCategory,IArticle,INotification } from "../types/article.types";
-
-// interface LoginData {
-//   email: string;
-//   password: string;
-// }
-
-// interface forgotPasswordData {
-//   email : string
-// }
-// interface resetPasswordData{
-//   password:string;
-// }
-
-// interface RegisterData {
-//   name: string;
-//   email: string;
-//   mobileNumber: string;
-//   password: string;
-//   confirmPassword:string;
-//   dateOfBirth: string;
-// }
-
-// interface RegisterResponse {
-//   _id: string;
-//   name: string;
-//   email: string;
-//   mobileNumber: string;
-//   dateOfBirth: string;
-//   otp: string;
-// }
-
-// interface UpdateUserData {
-//   name?: string;
-//   email?: string;
-// }
-// interface Otp{
-//   otp:string;
-//   emailId:string;
-// }
-// interface ResendOtpData {
-//   emailId: string;
-// }
-
-// interface MyFormData {
-  
-//   gender: string;
-//   lookingFor: string;
-//   profilePhotos: string[];
-//   relationship: string;
-//   interests: string[];
-//   occupation: string;
-//   education: string;
-//   bio: string;
-//   smoking: string;
-//   drinking: string;
-//   location: {
-//     latitude: number;
-//     longitude: number;
-//   };
-//   caste: string;
-
-// }
-
-// interface UserProfile {
-//   userId: string; 
-//   name: string | undefined;
-//   age: number | null;
-//   gender: string;
-//   lookingFor: string;
-//   profilePhotos: string[];
-//   relationship: string;
-//   interests: string[];
-//   occupation: string;
-//   education: string;
-//   bio: string;
-//   smoking: boolean;
-//   drinking: boolean;
-//   place: string;
-// }
-
-// interface IUser {
-//   _id: string;
-//   name: string;
-//   email: string;
-//   dateOfBirth: string;
-//   mobileNumber: string;
-//   otp: string;
-//   otpExpiresAt: string;
-//   createdAt: string;
-//   updatedAt: string;
-//   status: boolean;
-//   isPremium: boolean;
-//   matches: number;
-// }
-
-// interface IUserInfo {
-//   _id: string;
-//   userId: string;
-//   gender: string;
-//   lookingFor: string;
-//   profilePhotos: string[];
-//   relationship: string;
-//   interests: string[];
-//   occupation: string;
-//   education: string;
-//   bio: string;
-//   smoking: string;
-//   drinking: string;
-//   place: string;
-//   caste: string;
-// }
-
-
-// interface IUserProfileResponse {
-//   user: IUser;
-//   userInfo: IUserInfo;
-// }
-
-// interface UpdateUserPersonalInfoArgs {
-//   userId: string; 
-//   data: RegisterResponse; 
-// }
-
-// interface PlansData{
-//   _id: string;
-//   planName: string;
-//   duration: string;
-//   offerPercentage: number;
-//   actualPrice: number;
-//   offerPrice: number;
-//   offerName: string;
-//   status:boolean;
-//   features:string[];
-// }
-// interface paymentData{
-//   isPremium: boolean;
-//   planId:string;
-//   planExpiryDate:Date;
-//   planStartingDate:Date;
-// }
-
-// interface updateData {
-  
-//   gender: string;
-//   lookingFor: string;
-//   profilePhotos: string[];
-//   relationship: string;
-//   interests: string[];
-//   occupation: string;
-//   education: string;
-//   bio: string;
-//   smoking: string;
-//   drinking: string;
-//   place: string;
-//   caste: string;
-
-// }
-
-// interface IUserSubscriptionResponse {
-//   userId: string;
-//   name: string;
-//   email: string;
-//   planStartingDate: Date; 
-//   planExpiryDate: Date;
-//   isPremium: boolean; 
-//   planId: PlansData;
-// }
-// interface IUserPlanDetails{
-//   subscription: IUserSubscriptionResponse;
-//   plan: PlansData;
-// }
-
-// interface ILike{
-//   likerId:string;
-//   likedUserId:string;
-// }
-
-// interface ILikeProfile {
-//   id:string;
-//   name: string;
-//   dateOfBirth: string;
-//   place: string;
-//   profilePhotos: string[];
-// }
-
-// interface ILikesCount{
-//   count: number
-// }
-
-// interface IAdviceCategory {
-//   _id: string;
-//   name: string;
-//   description: string;
-//   image: string;
-//   isBlock: boolean;
-// }
-
-// interface IArticle {
-//   _id: string;
-//   title: string;
-//   content: string;
-//   image: string;
-//   categoryId: string;
-//   isBlock: boolean;
-// }
-
-// interface INotification {
-//   userId: string;
-//   type: string;     
-//   message: string;  
-//   createdAt?: Date; 
-// }
+import { IReport } from "../types/report.types";
 
 
 export const usersApiSlice = apiSlice.injectEndpoints({
@@ -452,6 +241,34 @@ export const usersApiSlice = apiSlice.injectEndpoints({
       }),
     }),
 
+    //Block & Unblock
+    userBlocked: builder.mutation<IBlockedUserResponse, IBlockedUser>({
+      query: (data) => ({
+        url: `${USERS_URL}/userBlocked`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
+
+    userUnblocked: builder.mutation<IBlockedUserResponse, IBlockedUser>({
+      query: (data) => ({
+        url: `${USERS_URL}/userUnblocked`,
+        method: "PUT",
+        body: data,
+      }),
+    }),
+
+    userBlockedList: builder.query<IBlockedUserResponse, string>({
+      query: (userId) =>  `${USERS_URL}/userBlockedList/${userId}`,
+    }),
+
+    userCreateReport: builder.mutation<IReport, IReport>({
+      query: (data) => ({
+        url: `${USERS_URL}/createReport`,
+        method: "POST",
+        body: data,
+      }),
+    }),
     
 
   }),
@@ -494,5 +311,9 @@ export const {
   useClearNotificationMutation,
   useMarkMessagesAsReadMutation,
   useGetUnreadMessageCountQuery,
+  useUserBlockedMutation,
+  useUserUnblockedMutation,
+  useUserBlockedListQuery,
+  useUserCreateReportMutation,
 
 } = usersApiSlice;

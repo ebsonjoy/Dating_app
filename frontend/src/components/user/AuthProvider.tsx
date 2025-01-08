@@ -8,7 +8,7 @@ import axios from 'axios';
 const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const dispatch = useDispatch();
   const [refreshToken] = useRefreshTokenMutation();
-
+console.log('chekked')
   React.useEffect(() => {
     const setupAxiosInterceptor = () => {
       const interceptor = async (error: any) => {

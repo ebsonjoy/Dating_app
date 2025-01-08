@@ -5,6 +5,8 @@ import { IAdmin } from "../../types/admin.types";
 import { IUser } from "../../types/user.types";
 import { IPayment } from "../../types/payment.types";
 import { IDashboardMasterData } from "../../types/dashboard.types";
+import { IReport } from "../../types/report.types";
+import { IMessage } from "../../types/message.types";
 
 
 @injectable()
@@ -114,5 +116,11 @@ async getPaymentChartData(timeRange: 'day' | 'month' | 'year'
   };
 }
 
+async getReportsWithMessages(): Promise<(IReport & { messages: IMessage[] })[]> {
+  return await this.adminRepository.getAllReportsWithMessages();
+}
+async updateReportStatus(reportId: string, status: 'Pending' | 'Reviewed' | 'Resolved'): Promise<IReport | null> {
+  return await this.adminRepository.updateReportStatus(reportId, status);
+}
 
 }

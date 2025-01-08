@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from 'express';
 import asyncHandler from 'express-async-handler';
 import { IUserService } from '../../interfaces/user/IUserService';
 import { HttpStatusCode } from '../../enums/HttpStatusCode';
-// import generateToken from '../../utils/generateToken';
 import { inject, injectable } from 'inversify';
 import { StatusMessage } from '../../enums/StatusMessage';
 import { GoogleAuthService } from '../../services/user/googleAuthService';
@@ -33,9 +31,6 @@ export class UserController {
             const refreshToken = TokenService.generateRefreshToken(user._id.toString())
 
             TokenService.setTokenCookies(res, accessToken, refreshToken);
-
-
-            // generateToken(res, user._id.toString());
             res.status(HttpStatusCode.OK).json({
                 _id: user._id,
                 name: user.name,
@@ -250,7 +245,6 @@ export class UserController {
         try {
             const matchedUsers = await this.userService.getMatchedUsers(userId);
             res.status(HttpStatusCode.OK).json(matchedUsers);
-            // console.log(matchedUsers)
         } catch (error: unknown) {
             console.log(error);
             res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
@@ -307,9 +301,7 @@ export class UserController {
     updateUserDatingInfo = asyncHandler(async (req: Request, res: Response) => {
         const { userId } = req.params;
         const uploadedPhotos = (req.files as Express.MulterS3.File[]) || [];
-
         const data = req.body;
-    
         try {
             
             const userInfo = await this.userService.updateUserDatingInfo(userId, data, uploadedPhotos);
@@ -378,7 +370,8 @@ export class UserController {
               return
           }
           res.status(HttpStatusCode.OK).json({ message: 'Subscription cancelled successfully' });
-        } catch (error:any) {
+        } catch (err) {
+            const error = err as Error
           console.error(`Error cancelling subscription: ${error.message}`);
           res
             .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
@@ -512,4 +505,111 @@ export class UserController {
             res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: "Failed to clear notification" });
         }
     })
+
+    userBlocked = asyncHandler(async (req: Request, res: Response) => {
+        const { userId, blockedUserId } = req.body;
+    
+        try {
+            const user = await this.userService.userBlocked(userId, blockedUserId);
+    
+            if (!user) {
+                    res
+                    .status(HttpStatusCode.NOT_FOUND)
+                    .json({ message: 'User not found' });
+                    return
+            }
+    
+                 res
+                .status(HttpStatusCode.OK)
+                .json({ 
+                    message: 'Blocked successfully', 
+                    data: user 
+                });
+                return
+        } catch (err) {
+            console.error('Error in userBlocked controller:', err);
+    
+                 res
+                .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
+                .json({ message: 'Failed to block user' });
+                return
+        }
+    });
+
+    userUnBlocked = asyncHandler(async (req: Request, res: Response) => {
+        const { userId, blockedUserId } = req.body;
+    
+        try {
+            const user = await this.userService.userUnblocked(userId, blockedUserId);
+    
+            if (!user) {
+                    res
+                    .status(HttpStatusCode.NOT_FOUND)
+                    .json({ message: 'User not found' });
+                    return
+            }
+    
+                 res
+                .status(HttpStatusCode.OK)
+                .json({ 
+                    message: 'Unblocked successfully', 
+                    data: user 
+                });
+                return
+        } catch (err) {
+            console.error('Error in userBlocked controller:', err);
+                 res
+                .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
+                .json({ message: 'Failed to block user' });
+                return
+        }
+    });
+
+    fetchBlockedUserList = asyncHandler(async (req: Request, res: Response) => {
+        const {userId} = req.params
+        try{
+          const  blockeList = await this.userService.userBlockedList(userId)
+            if(!blockeList){
+                res
+                    .status(HttpStatusCode.NOT_FOUND)
+                    .json({ message: 'User not found' });
+                    return
+            }
+
+            res
+            .status(HttpStatusCode.OK)
+            .json(blockeList);
+            return
+        }catch (err) {
+            console.error('Error in fetch user blocked list:', err);
+                 res
+                .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
+                .json({ message: 'Failed to fetch user block list' });
+                return
+        }
+    })
+
+    createReport = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+        try {
+            const { reporterId, reportedId, reason, additionalDetails } = req.body;
+            
+            if (!reporterId || !reportedId || !reason) {
+                res.status(400).json({ message: 'Reporter ID, Reported ID, and Reason are required.' });
+                return;
+            }
+            const report = await this.userService.createReport({
+                reporterId,
+                reportedId,
+                reason,
+                additionalDetails,
+                status: 'Pending',
+                createdAt: new Date(),
+                updatedAt: new Date(),
+            });
+            res.status(201).json({ message: 'Report created successfully.', report });
+        } catch (err:unknown) {
+            const error = err as Error
+            res.status(500).json({ message: 'Internal server error', error: error.message });
+        }
+    });
 }

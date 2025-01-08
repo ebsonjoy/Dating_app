@@ -24,6 +24,7 @@ export interface IUser extends Document {
     matches: number;
     otpExpiresAt: Date;
     mobileNumber: string;
+    blockedUsers: string[];
 
     matchPassword: (enteredPassword: string) => Promise<boolean>;
 }
@@ -64,4 +65,16 @@ export interface ISubscriptionDetails {
     mobileNumber: string;
     otp: string;
     otpExpiresAt: Date;
+}
+
+
+export interface IBlockedUserResponse {
+    _id: string;
+    blockedUsers: string[];
+}
+
+
+export interface IUnblockedUserResponse {
+    _id: string;
+    blockedUsers: string[];
 }
