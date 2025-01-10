@@ -215,6 +215,8 @@ const MatchesAndChat: React.FC = () => {
       skip: !userId,
     });
 
+    console.log('matchProfiles matchProfiles matchProfiles matchProfiles',matchProfiles)
+
   const { data: unreadMessageCounts, refetch: refetchUnreadCounts } =
     useGetUnreadMessageCountQuery(userId!, {
       skip: !userId,
@@ -264,7 +266,6 @@ const MatchesAndChat: React.FC = () => {
   useEffect(() => {
     if (!socket) return;
 console.log('kkkkkkkkkkkkkkk')
-    // Listen for when you are blocked by someone
     socket.on("userWasBlocked", ({ blockedUserId }) => {
       refetchBlockedUsers();
       refetchMatchProfiles();

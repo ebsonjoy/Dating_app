@@ -12,10 +12,10 @@ const messageController = container.get<MessageController>('MessageController')
 
 
 router.post('/messages/:userId',userProtect,checkSubscription,messageController.sendMessage);
-router.get('/chat-history', messageController.getChatHistory);
-router.post('/createCallHistory',messageController.createCallHistroy)
-router.post('/mark-message-read', messageController.markMessagesAsRead);
-router.get('/message-unread-count', messageController.getUnreadMessageCount);
+router.get('/chat-history',userProtect, messageController.getChatHistory);
+router.post('/createCallHistory',userProtect,messageController.createCallHistroy)
+router.post('/mark-message-read',userProtect, messageController.markMessagesAsRead);
+router.get('/message-unread-count',userProtect, messageController.getUnreadMessageCount);
 
 
 export default router;

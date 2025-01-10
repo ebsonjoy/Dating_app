@@ -45,7 +45,7 @@ const AdminLogin: React.FC = () => {
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-800 relative px-4">
       {/* Branding Section */}
       <div className="absolute top-0 left-0 flex items-center p-6">
-        <h1 className="text-xl sm:text-3xl font-bold text-white mr-2">VR_Dating</h1>
+        <h1 className="text-xl sm:text-3xl font-bold text-white mr-2">CoupidsCourt</h1>
         <span className="bg-green-500 text-white text-xs sm:text-sm font-semibold px-3 py-1 rounded-full">
           Admin
         </span>

@@ -67,7 +67,7 @@ router.put('/userUnblocked',userProtect,userController.userUnBlocked)
 router.get('/userBlockedList/:userId',userProtect,userController.fetchBlockedUserList)
 
 //REPORT
-router.post('/createReport',userController.createReport)
+router.post('/createReport',userProtect,userController.createReport)
 
 
 

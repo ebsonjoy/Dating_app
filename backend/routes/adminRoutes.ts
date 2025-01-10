@@ -18,41 +18,41 @@ const adviceController = container.get<AdviceController>('AdviceController');
 // container admin
 router.get('/getAllUsers',protect,adminControllerr.getAllUsers)
 router.post('/login',adminControllerr.login)
-router.put('/updateUserStatus/:userId',adminControllerr.updateUserStatus)
+router.put('/updateUserStatus/:userId',protect,adminControllerr.updateUserStatus)
 router.post('/logoutAdmin',adminControllerr.logout)
 router.post('/create',adminControllerr.register)
-router.get('/paymentDetails',adminControllerr.fetchPayments)
-router.get('/dashBoardMasterData',adminControllerr.getDashboardMasterData)
-router.get('/dashboard/users',adminControllerr.getUserChartData)
-router.get('/dashboard/payments',adminControllerr.getPaymentChartData)
+router.get('/paymentDetails',protect,adminControllerr.fetchPayments)
+router.get('/dashBoardMasterData',protect,adminControllerr.getDashboardMasterData)
+router.get('/dashboard/users',protect,adminControllerr.getUserChartData)
+router.get('/dashboard/payments',protect,adminControllerr.getPaymentChartData)
 
 //contaner Plan
-router.get('/getAllPlans',planController.getPlans)
-router.get('/getOnePlan/:planId',planController.getOnePlan)
-router.post('/createNewPlan',validatePlanDetails,planController.createPlan)
-router.put('/updatePlan/:planId',planController.updatePlan)
-router.put('/updatePlanStatus/:planId',planController.updatePlanStatus)
+router.get('/getAllPlans',protect,planController.getPlans)
+router.get('/getOnePlan/:planId',protect,planController.getOnePlan)
+router.post('/createNewPlan',protect,validatePlanDetails,planController.createPlan)
+router.put('/updatePlan/:planId',protect,planController.updatePlan)
+router.put('/updatePlanStatus/:planId',protect,planController.updatePlanStatus)
 
 //container Advice
 
 //Category
-router.post('/createAdviceCategory',multerUploadUserImg.single("image"),adviceController.createAdviceCategory)
-router.get('/getAdviceCategories',adviceController.getAdviceCategory)
-router.put('/blockAdviceCategory/:categoryId',adviceController.blockAdviceCategory)
-router.get('/getSingleAdviceCategory/:categoryId',adviceController.getSingleAdviceCategory)
-router.put('/updateAdviceCategory/:categoryId',multerUploadUserImg.single("image"),adviceController.updateAdviceCategory)
+router.post('/createAdviceCategory',protect,multerUploadUserImg.single("image"),adviceController.createAdviceCategory)
+router.get('/getAdviceCategories',protect,adviceController.getAdviceCategory)
+router.put('/blockAdviceCategory/:categoryId',protect,adviceController.blockAdviceCategory)
+router.get('/getSingleAdviceCategory/:categoryId',protect,adviceController.getSingleAdviceCategory)
+router.put('/updateAdviceCategory/:categoryId',protect,multerUploadUserImg.single("image"),adviceController.updateAdviceCategory)
 
 //Article
-router.post('/createArticle',multerUploadUserImg.single("image"),adviceController.createArticle)
-router.get('/getArticles',adviceController.getArticles)
-router.put('/blockArticle/:articleId',adviceController.blockArticle)
-router.get('/getSingleArticle/:articleId',adviceController.getSingleArticle)
-router.put('/updateArticle/:articleId',multerUploadUserImg.single("image"),adviceController.updateArticle)
-router.delete('/deleteArtilce/:articleId',adviceController.deleteArticle)
-router.get('/fetchArtilceByCategory/:categoryId',adviceController.getArticlesByCategory)
+router.post('/createArticle',protect,multerUploadUserImg.single("image"),adviceController.createArticle)
+router.get('/getArticles',protect,adviceController.getArticles)
+router.put('/blockArticle/:articleId',protect,adviceController.blockArticle)
+router.get('/getSingleArticle/:articleId',protect,adviceController.getSingleArticle)
+router.put('/updateArticle/:articleId',protect,multerUploadUserImg.single("image"),adviceController.updateArticle)
+router.delete('/deleteArtilce/:articleId',protect,adviceController.deleteArticle)
+router.get('/fetchArtilceByCategory/:categoryId',protect,adviceController.getArticlesByCategory)
 
-router.get('/userReportWithMessages',adminControllerr.getUserReports)
-router.put('/updateReportStatus/:reportId',adminControllerr.updateReportStatus)
+router.get('/userReportWithMessages',protect,adminControllerr.getUserReports)
+router.put('/updateReportStatus/:reportId',protect,adminControllerr.updateReportStatus)
 
 
 

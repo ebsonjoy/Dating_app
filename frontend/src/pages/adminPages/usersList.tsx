@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Navbar from '../../components/admin/adminNavBar';
 import Header from '../../components/admin/adminHeader';
 import { useNavigate } from 'react-router-dom';
@@ -6,7 +6,7 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../store';
 import { useGetAllUsersQuery, useUpdateUserStatusMutation } from '../../slices/adminApiSlice';
 import GenericTable, { Column } from '../../components/admin/reusableTable/genericTable';
-
+import LoadingSpinner from '../../components/admin/Loader';
 interface ISubscription {
   isPremium: boolean;
   planId: string;
@@ -29,6 +29,7 @@ const UsersList: React.FC = () => {
   const [updateUserStatus] = useUpdateUserStatusMutation();
   const navigate = useNavigate();
   const { adminInfo } = useSelector((state: RootState) => state.adminAuth);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const usersList: IUser[] = Array.isArray(data) ? data : [];
 
@@ -50,8 +51,18 @@ const UsersList: React.FC = () => {
       console.error('Failed to update user status:', err);
     }
   };
+  
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        setLoading(false);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }, []);
 
-  if (isLoading) return <div>Loading...</div>;
+  if (loading || isLoading) return <LoadingSpinner />;
+
+  
+
   if (error) return <div>Error loading users</div>;
 
   const userColumns: Column<IUser>[] = [

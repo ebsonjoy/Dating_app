@@ -10,16 +10,20 @@ import {
   useGetUserChartDataQuery,
   useGetPaymentChartDataQuery 
 } from '../../slices/adminApiSlice';
+import LoadingSpinner from '../../components/admin/Loader';
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { adminInfo } = useSelector((state: RootState) => state.adminAuth);
+    const [loading, setLoading] = useState<boolean>(true);
   
   // Time range state
   const [timeRange, setTimeRange] = useState<'day' | 'month' | 'year'>('month');
 
+  
+
   // Queries
-  const { data: masterData } = useGetDashBoardMasterDataQuery();
+  const { data: masterData,isLoading: isMasterDataLoading, error: masterDataError } = useGetDashBoardMasterDataQuery();
   const { 
     data: userChartData, 
     isLoading: isUserChartLoading, 
@@ -37,14 +41,20 @@ const AdminDashboard: React.FC = () => {
     }
   }, [navigate, adminInfo]);
 
-  // Loading and error handling
-  if (isUserChartLoading || isPaymentChartLoading) {
-    return <div>Loading...</div>;
-  }
 
-  if (userChartError || paymentChartError) {
-    return <div>Error loading chart data</div>;
-  }
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Combined loading and error states
+  const isLoading = isMasterDataLoading || isUserChartLoading || isPaymentChartLoading || loading;
+  const hasError = masterDataError || userChartError || paymentChartError;
+
+  if (isLoading) return <LoadingSpinner />;
+  if (hasError) return <div className="text-red-500 text-center mt-10">Failed to load data. Please try again later.</div>;
 
   return (
     <div className="flex flex-col lg:flex-row h-screen">
