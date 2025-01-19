@@ -132,7 +132,7 @@ const AdvicePage: React.FC = () => {
                 placeholder="Search articles..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-3 border-2 border-purple-200 rounded-full focus:ring-4 focus:ring-purple-300 transition-all w-96"
+                className="pl-10 pr-4 py-3 border-2 border-purple-200 rounded-full focus:ring-4 focus:ring-purple-300 transition-all w-96 text-white"
               />
               <Search className="absolute left-3 top-4 text-purple-400" size={20} />
             </div>

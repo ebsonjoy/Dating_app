@@ -20,26 +20,31 @@ import AdviceCategory from "../../models/AdviceCategory";
 import { IAdviceCategory, IArticle } from "../../types/advice.types";
 import { INotification } from "../../types/notification.types";
 import { IReport } from "../../types/report.types";
+import { BaseRepository } from "../base/BaseRepository";
 
 
 
 
 
 @injectable()
-export class UserRepository  implements IUserRepository {
-    constructor(
-        private readonly UserModel = User,
-        private readonly UserInfoModel = UserInfo,
-        private readonly LikesModel = Like,
-        private readonly MatchModel = Match,
-        private readonly PlanModel = Plan,
-        private readonly PaymentModel = Payment,
-        private readonly AdviceCategoryModel = AdviceCategory,
-        private readonly ArticleModel = Article,
-        private readonly NotificationModel = Notification,
-        private readonly reportModel = Report,
+export class UserRepository extends BaseRepository<IUser>  implements IUserRepository {
+    
+        private readonly UserModel = User;
+        private readonly UserInfoModel = UserInfo;
+        private readonly LikesModel = Like;
+        private readonly MatchModel = Match;
+        private readonly PlanModel = Plan;
+        private readonly PaymentModel = Payment;
+        private readonly AdviceCategoryModel = AdviceCategory;
+        private readonly ArticleModel = Article;
+        private readonly NotificationModel = Notification;
+        private readonly reportModel = Report;
        
-    ){}
+    
+
+    constructor() {
+        super(User);
+      }
    
     async findByEmail(email: string): Promise<IUser | null> {
         try {

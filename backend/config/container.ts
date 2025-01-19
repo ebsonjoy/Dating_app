@@ -14,8 +14,8 @@ import { IAdminService } from '../interfaces/admin/IAdminService';
 import { AdminRepository } from '../repositories/admin/AdminRepository';
 import { AdminService } from '../services/admin/AdminService';
 import { AdminController } from '../controller/admin/AdminController';
-import Admin from '../models/AdminModel';
-import User from '../models/User';
+// import Admin from '../models/AdminModel';
+// import User from '../models/User';
 
 //User
 import { IUserRepository } from '../interfaces/user/IUserRepository';
@@ -23,7 +23,7 @@ import { IUserService } from '../interfaces/user/IUserService';
 import { UserRepository } from '../repositories/user/UserRepository';
 import { UserService } from '../services/user/UserService';
 import { UserController } from '../controller/user/UserController';
-import UserInfo from '../models/UserInfo';
+// import UserInfo from '../models/UserInfo';
 
 //Messages
 import { IMessageRepository } from '../interfaces/messages/IMessageRepository';
@@ -56,7 +56,7 @@ container.bind<PlanController>('PlanController').to(PlanController).inSingletonS
 
 // Admin Container
 container.bind<IAdminRepository>('IAdminRepository').toDynamicValue(() => {
-    return new AdminRepository(Admin, User);
+    return new AdminRepository();
 }).inSingletonScope();
 container.bind<IAdminService>('IAdminService').to(AdminService).inSingletonScope();
 container.bind<AdminController>('AdminController').to(AdminController).inSingletonScope();
@@ -64,7 +64,7 @@ container.bind<AdminController>('AdminController').to(AdminController).inSinglet
 
 // User Container
 container.bind<IUserRepository>('IUserRepository').toDynamicValue(() => {
-    return new UserRepository(User, UserInfo);
+    return new UserRepository();
 }).inSingletonScope();
 container.bind<IUserService>('IUserService').to(UserService).inSingletonScope();
 container.bind<UserController>('UserController').to(UserController).inSingletonScope();

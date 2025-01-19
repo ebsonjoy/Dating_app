@@ -1,16 +1,18 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Navbar from '../../components/admin/adminNavBar';
 import Header from '../../components/admin/adminHeader';
 import { useAddPlanMutation } from '../../slices/adminApiSlice';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 import { IApiError } from '../../types/error.types';
+import { RootState } from '../../store';
+import { useSelector } from 'react-redux';
 
 const AddPlan: React.FC = () => {
-    const [addPlan, { isLoading }] = useAddPlanMutation();
+    const [addPlan, { isLoading}] = useAddPlanMutation();
     const navigate = useNavigate();
-
+    const { adminInfo } = useSelector((state: RootState) => state.adminAuth);
     const [planDetails, setPlanDetails] = useState({
         planName: '',
         duration: '',
@@ -54,6 +56,11 @@ const AddPlan: React.FC = () => {
         
         setErrors(prev => ({ ...prev, [name]: '' }));
     };
+ useEffect(() => {
+    if (!adminInfo) {
+      navigate('/admin/login');
+    }
+  }, [navigate, adminInfo]);
 
     const validateFields = () => {
         const newErrors = {
@@ -150,6 +157,9 @@ const AddPlan: React.FC = () => {
         } catch (err: unknown) {
             const error = err as IApiError
             console.error('Failed to add plan:', error);
+            if(error.status === 401){
+                navigate('/admin/login')
+            }
             if (error?.data?.errors && Array.isArray(error.data.errors)) {
                 error.data.errors.forEach((errMsg: string) => {
                     toast.error(errMsg, { autoClose: 4000 });

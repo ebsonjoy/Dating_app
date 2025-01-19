@@ -6,10 +6,13 @@ import { useGetOnePlanQuery, useUpdatePlanMutation } from '../../slices/adminApi
 import { toast } from 'react-toastify'; 
 import { useNavigate } from 'react-router-dom';
 import { IApiError } from '../../types/error.types';
+import { RootState } from '../../store';
+import { useSelector } from 'react-redux';
 
 const EditPlan: React.FC = () => {
   const { planId } = useParams<{ planId: string }>(); 
   const navigate = useNavigate();
+  const { adminInfo } = useSelector((state: RootState) => state.adminAuth);
 
   const { data: plan, isLoading } = useGetOnePlanQuery(planId!,{skip:!planId});
 
@@ -34,6 +37,12 @@ const EditPlan: React.FC = () => {
     offerName: '',
     features: '',
   });
+
+    useEffect(() => {
+        if (!adminInfo) {
+          navigate('/admin/login');
+        }
+      }, [navigate, adminInfo]);
 
   useEffect(() => {
     if (plan) {
@@ -169,6 +178,9 @@ const EditPlan: React.FC = () => {
       navigate('/admin/subscriptionPlans?refresh=true');
     } catch (err: unknown) {
       const error = err as IApiError
+      if(error.status){
+        navigate('admin/login')
+      }
       console.error('Failed to update plan:', error);
       if (error?.data?.errors && Array.isArray(error.data.errors)) {
         error.data.errors.forEach((errMsg: string) => {

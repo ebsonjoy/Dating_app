@@ -7,6 +7,8 @@ import { RootState } from '../../store';
 import { useGetAllUsersQuery, useUpdateUserStatusMutation } from '../../slices/adminApiSlice';
 import GenericTable, { Column } from '../../components/admin/reusableTable/genericTable';
 import LoadingSpinner from '../../components/admin/Loader';
+import { IApiError } from '../../types/error.types';
+
 interface ISubscription {
   isPremium: boolean;
   planId: string;
@@ -25,73 +27,70 @@ interface IUser {
 }
 
 const UsersList: React.FC = () => {
-  const { data, error, isLoading, refetch } = useGetAllUsersQuery();
+  const { data, error, isLoading } = useGetAllUsersQuery();
+    const typedError = error as IApiError;
+  
   const [updateUserStatus] = useUpdateUserStatusMutation();
   const navigate = useNavigate();
   const { adminInfo } = useSelector((state: RootState) => state.adminAuth);
+  const [usersList, setUsersList] = useState<IUser[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const usersList: IUser[] = Array.isArray(data) ? data : [];
-
   useEffect(() => {
-    if (!adminInfo) {
+    if (!adminInfo || (typedError && typedError.status ==401)) {
       navigate('/admin/login');
     }
-  }, [navigate, adminInfo]);
+  }, [navigate, adminInfo,typedError]);
+
+  useEffect(() => {
+    if (data && Array.isArray(data)) {
+      setUsersList(data);
+    }
+  }, [data]);
 
   const handleStatusToggle = async (userId: string, currentStatus: boolean) => {
     try {
       const newStatus = !currentStatus;
       const res = await updateUserStatus({ userId, newStatus }).unwrap();
-      console.log('res',res)
       if (res) {
-        refetch();
+        // Update the state locally without refetching
+        setUsersList((prevUsers) =>
+          prevUsers.map((user) =>
+            user._id === userId ? { ...user, status: newStatus } : user
+          )
+        );
       }
     } catch (err) {
       console.error('Failed to update user status:', err);
     }
   };
-  
-    useEffect(() => {
-      const timer = setTimeout(() => {
-        setLoading(false);
-      }, 2000);
-      return () => clearTimeout(timer);
-    }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   if (loading || isLoading) return <LoadingSpinner />;
-
-  
-
+console.log('eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee',error)
   if (error) return <div>Error loading users</div>;
 
   const userColumns: Column<IUser>[] = [
-    {
-      key: 'name',
-      label: 'Name'
-    },
-    {
-      key: 'email',
-      label: 'Email'
-    },
-    {
-      key: 'mobileNumber',
-      label: 'Phone'
-    },
+    { key: 'name', label: 'Name' },
+    { key: 'email', label: 'Email' },
+    { key: 'mobileNumber', label: 'Phone' },
     {
       key: 'subscription',
       label: 'Premium/Free',
-      render: (value) => (value as ISubscription)?.isPremium ? 'Premium' : 'Free'
+      render: (value) => (value as ISubscription)?.isPremium ? 'Premium' : 'Free',
     },
-    {
-      key: 'matches',
-      label: 'Matches'
-    },
+    { key: 'matches', label: 'Matches' },
     {
       key: 'status',
       label: 'Status',
-      render: (value) => value ? 'Active' : 'Blocked'
-    }
+      render: (value) => (value ? 'Active' : 'Blocked'),
+    },
   ];
 
   return (
@@ -100,10 +99,10 @@ const UsersList: React.FC = () => {
       <div className="flex-1 flex flex-col overflow-y-auto">
         <Header title="Users" />
         <div className="flex-1 p-3 bg-gray-100 p-4">
-        <div className="flex justify-end mb-4">
+          <div className="flex justify-end mb-4">
             <button
               className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200 mr-2"
-              onClick={() => navigate("/admin/userReportDetails/")}
+              onClick={() => navigate('/admin/userReportDetails/')}
             >
               User Reports
             </button>

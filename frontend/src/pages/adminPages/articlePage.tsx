@@ -12,6 +12,10 @@ import {
   useGetAdminAdviceCategoriesQuery
 } from "../../slices/adminApiSlice";
 
+import { RootState } from '../../store';
+import { useSelector } from 'react-redux';
+import { IApiError } from "../../types/error.types";
+
 interface ArticleFormData {
   title: string;
   content: string;
@@ -22,8 +26,10 @@ interface ArticleFormData {
 const ArticleManagement: React.FC = () => {
   const navigate = useNavigate();
   const { articleId } = useParams<{ articleId: string }>();
-  
+  const { adminInfo } = useSelector((state: RootState) => state.adminAuth);
   const { data: articles, isLoading, error, refetch } = useGetArticlesQuery();
+  const typedError = error as IApiError;
+  
   const { data: categories } = useGetAdminAdviceCategoriesQuery();
   const { data: singleArticle } = useGetSingleArticleQuery(articleId || '', {
     skip: !articleId
@@ -40,6 +46,12 @@ const ArticleManagement: React.FC = () => {
     image: null, 
     categoryId: '' 
   });
+
+   useEffect(() => {
+          if (!adminInfo || (typedError && typedError.status ==401)) {
+            navigate('/admin/login');
+          }
+        }, [navigate, adminInfo, typedError])
 
   useEffect(() => {
     if (articleId && singleArticle) {

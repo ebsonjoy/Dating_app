@@ -38,24 +38,7 @@ export class UserService implements IUserService {
          throw new Error('Failed to autheticate user');
     }
     }
-    // async registerUser(userData: IUser): Promise<IUser | null> {
-
-    //     try {
-    //         const otp = generateOTP();
-    //         const otpExpiresAt = new Date(Date.now() + 1 * 60 * 1000);
-    //         const user = await this.userRepository.register({
-    //             ...userData,
-    //             otp,
-    //             otpExpiresAt
-    //         });
-    
-    //         await sendOTP(userData.email, otp);
-    //         return user;
-    //     } catch (error) {
-    //         console.log(error);
-    //         throw new Error('Failed to register user');
-    //     }
-    // }
+   
 
 
     async registerUser(userData: IUser): Promise<IUser | null> {
@@ -80,7 +63,7 @@ export class UserService implements IUserService {
     
             const otp = generateOTP();
             const otpExpiresAt = new Date(Date.now() + 1 * 60 * 1000); 
-            const user = await this.userRepository.register({
+            const user = await this.userRepository.createNewData({
                 ...userData,
                 otp,
                 otpExpiresAt,
@@ -91,9 +74,8 @@ export class UserService implements IUserService {
             }
     
             await sendOTP(userData.email, otp);
-    
             if (dataToUpdate) {
-                await this.userRepository.update(user._id.toString(), dataToUpdate);
+                await this.userRepository.updateOneById(user._id.toString(), dataToUpdate);
             }
     
             return user;

@@ -1,7 +1,7 @@
-export interface IRepository<T> {
-  getAll(): Promise<T[]>;
-  getById(id: string): Promise<T>;
-  create(item: T): Promise<T>;
-  update(id: string, item: T): Promise<T>;
-  delete(id: string): Promise<boolean>;
+export interface IBaseRepository<T> {
+  createNewData(data: Partial<T>): Promise<T>;
+  findOneById(id: string): Promise<T | null>;
+  findAllData(): Promise<T[]>;
+  updateOneById(id: string, data: Partial<T>): Promise<T | null>;
+  deleteOneById(id: string): Promise<boolean>;
 }

@@ -11,18 +11,20 @@ import { IUser } from "../../types/user.types";
 import { IPayment } from "../../types/payment.types";
 import { IMessage } from "../../types/message.types";
 import { IReport } from "../../types/report.types";
+import { BaseRepository } from "../base/BaseRepository";
+
 @injectable()
-export class AdminRepository implements IAdminRepository {
-  constructor(
-    private readonly adminModel = Admin,
-    private readonly userModel = User,
-    private readonly paymentModel = Payment,
-    private readonly matchModel = Match,
-    private readonly MessageModel = Message,
-    private readonly reportModel = Report,
-
-  ) {}
-
+export class AdminRepository  extends BaseRepository<IAdmin> implements IAdminRepository {
+  
+    private readonly adminModel = Admin;
+    private readonly userModel = User;
+    private readonly paymentModel = Payment;
+    private readonly matchModel = Match;
+    private readonly MessageModel = Message;
+    private readonly reportModel = Report;
+  constructor() {
+    super(Admin);
+  }
   async authenticate(email: string): Promise<IAdmin | null> {
     try {
       return await this.adminModel.findOne({ email });

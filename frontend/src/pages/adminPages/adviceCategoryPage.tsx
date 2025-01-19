@@ -9,6 +9,9 @@ import {
   useGetSingleAdviceCategoryQuery,
   useUpdateAdviceCategoryMutation,
 } from "../../slices/adminApiSlice";
+import { RootState } from '../../store';
+import { useSelector } from 'react-redux';
+import { IApiError } from "../../types/error.types";
 
 interface ICategory {
   _id: string;
@@ -19,6 +22,7 @@ interface ICategory {
 }
 
 const AdviceManagement: React.FC = () => {
+      const { adminInfo } = useSelector((state: RootState) => state.adminAuth);
   const navigate = useNavigate();
   const { categoryId } = useParams<{ categoryId: string }>();
 
@@ -28,6 +32,8 @@ const AdviceManagement: React.FC = () => {
     error,
     refetch,
   } = useGetAdminAdviceCategoriesQuery();
+
+  const typedError = error as IApiError;
   console.log('cccccccccsterrrrrr',categories)
   const { data: singleCategory } = useGetSingleAdviceCategoryQuery(
     categoryId || "",
@@ -35,7 +41,7 @@ const AdviceManagement: React.FC = () => {
       skip: !categoryId,
     }
   );
-
+console.log('eeeeeeeeeeeeeeeeeeeeeeeeeee',error)
   const [createCategory] = useAddAdviceCategoryMutation();
   const [updateCategory] = useUpdateAdviceCategoryMutation();
   const [blockCategory] = useBlockAdviceCategoryMutation();
@@ -50,7 +56,12 @@ const AdviceManagement: React.FC = () => {
     description: "",
     image: null,
   });
-
+ useEffect(() => {
+        if (!adminInfo || (typedError && typedError.status ==401)) {
+          navigate('/admin/login');
+        }
+      }, [navigate, adminInfo, typedError])
+  
   useEffect(() => {
     if (categoryId && singleCategory) {
       setFormData({

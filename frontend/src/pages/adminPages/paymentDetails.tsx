@@ -1,10 +1,15 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Navbar from "../../components/admin/adminNavBar";
 import Header from "../../components/admin/adminHeader";
 import { useGetPaymentQuery } from "../../slices/adminApiSlice";
 import * as XLSX from "xlsx";
 import { jsPDF } from "jspdf";
 import "jspdf-autotable";
+import { useNavigate } from 'react-router-dom';
+import { IApiError } from '../../types/error.types';
+import { RootState } from '../../store';
+import { useSelector } from 'react-redux';
+
 
 interface IPayment {
   paymentId: string;
@@ -17,12 +22,19 @@ interface IPayment {
 
 
 const RevenueDetails: React.FC = () => {
+
+    const navigate = useNavigate();
+    const { adminInfo } = useSelector((state: RootState) => state.adminAuth);
   const { data: payments, isLoading, error } = useGetPaymentQuery();
+  const typedError = error as IApiError;
+     useEffect(() => {
+            if (!adminInfo || (typedError && typedError.status ==401)) {
+              navigate('/admin/login');
+            }
+          }, [navigate, adminInfo, typedError])
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error loading payments</div>;
-
-
+      if (isLoading) return <div>Loading...</div>;
+      if (typedError) return <div>Error loading payments</div>;
   if (!payments || payments.length === 0) {
     return (
       <div className="flex flex-col md:flex-row h-screen">

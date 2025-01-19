@@ -51,6 +51,7 @@ export class AdminController{
                 expires: new Date(0),
             });
             res.status(HttpStatusCode.OK).json({ message: StatusMessage.SUCCESS });
+            console.log('log Out success')
         } catch (error) {
             console.error(error);
             res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
@@ -118,7 +119,6 @@ export class AdminController{
     
           const data = await this.adminService.getUserChartData(timeRange as 'day' | 'month' | 'year');
           res.status(200).json(data);
-          console.log('user data',data)
 
         } catch (error) {
           res.status(500).json({ message: 'Error fetching user chart data', error });
@@ -135,7 +135,6 @@ export class AdminController{
           }
     
           const data = await this.adminService.getPaymentChartData(timeRange as 'day' | 'month' | 'year');
-          console.log('payment data',data)
           res.status(200).json(data);
         } catch (error) {
           res.status(500).json({ message: 'Error fetching payment chart data', error });
@@ -162,7 +161,6 @@ export class AdminController{
       updateReportStatus = asyncHandler(async (req: Request, res: Response) => {
         const { reportId } = req.params;
         const { status } = req.body;
-        console.log('reportId',reportId,'status',status)
         if (!['Pending', 'Reviewed', 'Resolved'].includes(status)) {
              res.status(400).json({ message: 'Invalid status value' });
              return

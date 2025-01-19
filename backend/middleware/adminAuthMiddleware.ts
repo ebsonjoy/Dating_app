@@ -18,6 +18,7 @@ const protect = expressAsyncHandler(async (
   res: Response, 
   next: NextFunction
 ) => {
+  console.log('protect routerrrrrrrrr is running')
   const token: string | undefined = req.cookies.admin_jwt;  
   if (token) {
     try {

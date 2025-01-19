@@ -2,6 +2,10 @@ import React, { useEffect, useState } from 'react';
 import Navbar from "../../components/admin/adminNavBar";
 import Header from "../../components/admin/adminHeader";
 import { useGetUserReportsQuery,useUpdateReportStatusMutation } from '../../slices/adminApiSlice';
+import { IApiError } from '../../types/error.types';
+import { RootState } from '../../store';
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 interface Reporter {
   _id: string;
@@ -36,7 +40,10 @@ interface BlockedUser {
 
 
 const UserReportDetails: React.FC = () => {
-  const { data: reportData,refetch } = useGetUserReportsQuery();
+   const navigate = useNavigate();
+  const { adminInfo } = useSelector((state: RootState) => state.adminAuth);
+  const { data: reportData,refetch,error } = useGetUserReportsQuery();
+  const typedError = error as IApiError;
   const [updateReportStatus] = useUpdateReportStatusMutation();
   const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
   const [selectedUser, setSelectedUser] = useState<BlockedUser | null>(null);
@@ -52,7 +59,12 @@ const UserReportDetails: React.FC = () => {
       console.error("Failed to block category:", err);
     }
   };
-
+      useEffect(() => {
+        if (!adminInfo || (typedError&& typedError.status == 401)) {
+            navigate('/admin/login');
+        }
+      }, [navigate, adminInfo, typedError]);
+  
   useEffect(() => {
     if (reportData?.data) {
       setBlockedUsers(reportData.data);

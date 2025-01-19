@@ -12,6 +12,9 @@ import { IReport } from "../../types/report.types";
 
 
 export interface IUserRepository {
+    createNewData(userData: Partial<IUser>): Promise<IUser | null>;
+    updateOneById(id: string, data: Partial<IUser>): Promise<IUser | null>;
+    // findUseById(id: string): Promise<IUser | null>;
     findByEmail(email: string): Promise<IUser | null>;
     register(userData: Partial<IUser>): Promise<IUser | null>;
     findById(id: string): Promise<IUser | null>;

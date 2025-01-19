@@ -6,6 +6,7 @@ import { inject, injectable } from 'inversify';
 import { StatusMessage } from '../../enums/StatusMessage';
 import { GoogleAuthService } from '../../services/user/googleAuthService';
 import TokenService from '../../utils/tokenService';
+// import { s3Service  } from '../../config/s3Service';
 
 @injectable()
 export class UserController {
@@ -210,8 +211,28 @@ export class UserController {
             res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({ message: StatusMessage.INTERNAL_SERVER_ERROR }); 
         }
     });
+
+    // getPresignedUrl = asyncHandler(async(req: Request, res: Response) => {
+    //     const { fileTypes } = req.body;
+    
+    //     if (!fileTypes || !Array.isArray(fileTypes)) {
+    //        res.status(HttpStatusCode.BAD_REQUEST)
+    //         .json({ message: "File types are required" });
+    //         return
+    //     }
+    
+    //     try {
+    //       const signedUrls = await s3Service.generateSignedUrls(fileTypes);
+    //       res.json({ signedUrls });
+    //     } catch (error) {
+    //       console.error('Error generating signed URLs:', error);
+    //       res.status(HttpStatusCode.INTERNAL_SERVER_ERROR)
+    //         .json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
+    //     }
+    //   });
   
-    createUserInfo = asyncHandler(async (req: Request, res: Response) => {     
+    createUserInfo = asyncHandler(async (req: Request, res: Response) => {    
+        console.log(req.body) 
         const profilePhotos = (req.files as Express.MulterS3.File[]) || [];
         if (typeof req.body.location === 'string') {
             req.body.location = JSON.parse(req.body.location);

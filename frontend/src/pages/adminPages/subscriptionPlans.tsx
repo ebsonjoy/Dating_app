@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Navbar from '../../components/admin/adminNavBar';
 import Header from '../../components/admin/adminHeader';
 import { useNavigate } from 'react-router-dom';
 import { useGetPlansQuery, useUpdatePlanStatusMutation } from '../../slices/adminApiSlice';
 import GenericTable, { Column } from '../../components/admin/reusableTable/genericTable';
-
+import { IApiError } from '../../types/error.types';
+import { RootState } from '../../store';
+import { useSelector } from 'react-redux';
 interface IPlan {
   _id: string;
   planName: string;
@@ -17,22 +19,40 @@ interface IPlan {
 }
 
 const PlanList: React.FC = () => {
-  const { data, error, isLoading, refetch } = useGetPlansQuery();
+    const { adminInfo } = useSelector((state: RootState) => state.adminAuth);
+  const { data, error, isLoading } = useGetPlansQuery();
+    const typedError = error as IApiError;
+  console.log('wwwwwwwwwwwwwwwwwwwwwwww',error)
   const [updatePlanStatus] = useUpdatePlanStatusMutation();
   const navigate = useNavigate();
+  const [planList, setPlanList] = useState<IPlan[]>([]);
 
-  const planList: IPlan[] = Array.isArray(data) ? data : [];
+  useEffect(() => {
+    if (Array.isArray(data)) {
+      setPlanList(data);
+    }
+  }, [data]);
 
+    useEffect(() => {
+        if (!adminInfo || (typedError && typedError.status ==401)) {
+          navigate('/admin/login');
+        }
+      }, [navigate, adminInfo, typedError])
+      
   const handleUpdatePlanStatus = async (planId: string, currentStatus: boolean) => {
     try {
       const newStatus = !currentStatus;
       const res = await updatePlanStatus({ planId, newStatus }).unwrap();
-      console.log('resssss',res)
       if (res) {
-        refetch();
+        // Update the state locally without refetching
+        setPlanList((prevPlans) =>
+          prevPlans.map((plan) =>
+            plan._id === planId ? { ...plan, status: newStatus } : plan
+          )
+        );
       }
     } catch (err) {
-      console.error("Failed to update plan status:", err);
+      console.error('Failed to update plan status:', err);
     }
   };
 
@@ -40,33 +60,33 @@ const PlanList: React.FC = () => {
   if (error) return <div>Error loading plans</div>;
 
   const planColumns: Column<IPlan>[] = [
-    { 
-      key: 'planName', 
-      label: 'Plan Name' 
+    {
+      key: 'planName',
+      label: 'Plan Name',
     },
-    { 
-      key: 'duration', 
-      label: 'Duration' 
+    {
+      key: 'duration',
+      label: 'Duration',
     },
-    { 
-      key: 'offerPercentage', 
+    {
+      key: 'offerPercentage',
       label: 'Offer %',
-      render: (value) => `${value}%`
+      render: (value) => `${value}%`,
     },
-    { 
-      key: 'actualPrice', 
+    {
+      key: 'actualPrice',
       label: 'Actual Price',
-      render: (value) => `₹${value}`
+      render: (value) => `₹${value}`,
     },
-    { 
-      key: 'offerPrice', 
+    {
+      key: 'offerPrice',
       label: 'Offer Price',
-      render: (value) => `₹${value}`
+      render: (value) => `₹${value}`,
     },
-    { 
-      key: 'offerName', 
-      label: 'Offer Name' 
-    }
+    {
+      key: 'offerName',
+      label: 'Offer Name',
+    },
   ];
 
   return (
@@ -78,13 +98,13 @@ const PlanList: React.FC = () => {
           <div className="flex justify-end mb-4">
             <button
               className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200 mr-2"
-              onClick={() => navigate("/admin/paymentDetails")}
+              onClick={() => navigate('/admin/paymentDetails')}
             >
               Revenue Details
             </button>
             <button
               className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-200"
-              onClick={() => navigate("/admin/addPlans")}
+              onClick={() => navigate('/admin/addPlans')}
             >
               Add Plan
             </button>
@@ -98,11 +118,11 @@ const PlanList: React.FC = () => {
               <>
                 <button
                   className={`px-3 py-1 text-white rounded-md mr-2 ${
-                    plan.status ? "bg-red-500" : "bg-green-500"
+                    plan.status ? 'bg-red-500' : 'bg-green-500'
                   } hover:opacity-80 transition-opacity`}
                   onClick={() => handleUpdatePlanStatus(plan._id, plan.status)}
                 >
-                  {plan.status ? "Hide" : "Unhide"}
+                  {plan.status ? 'Hide' : 'Unhide'}
                 </button>
                 <button
                   className="bg-blue-600 text-white py-1 px-3 rounded-md hover:bg-blue-700 transition duration-200"
