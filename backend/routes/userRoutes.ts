@@ -5,6 +5,8 @@ import { userProtect } from "../middleware/userAuth";
 import validateSignup from "../validation/userValidation";
 import multer from "multer";
 import { checkSubscription } from "../middleware/checkSubscription ";
+import { checkRole } from '../middleware/roleMiddleware';
+
 
 const upload = multer();
 const router = express.Router();
@@ -27,47 +29,47 @@ router.post("/getSignedUrls",userController.getPresignedUrl);
 // Google Login
 router.post('/auth/google', userController.googleAuth);
 
-router.get("/getHomeUsersProfiles/:userId", userProtect, userController.getHomeUsersProfiles);
-router.get("/getUserProfile/:userId",userProtect, userController.getUserProfile);
-router.get('/getUserDetails/:userId',userProtect,userController.getUserDetails)
-router.put("/updatePersonalInfo/:userId",userProtect,upload.none(),userController.updatedPersonalInfo)
-router.put("/updateDatingInfo/:userId",userProtect,upload.none(),userController.updateUserDatingInfo);
+router.get("/getHomeUsersProfiles/:userId", userProtect,checkRole(['user']), userController.getHomeUsersProfiles);
+router.get("/getUserProfile/:userId",userProtect,checkRole(['user']), userController.getUserProfile);
+router.get('/getUserDetails/:userId',userProtect,checkRole(['user']),userController.getUserDetails)
+router.put("/updatePersonalInfo/:userId",userProtect,checkRole(['user']),upload.none(),userController.updatedPersonalInfo)
+router.put("/updateDatingInfo/:userId",userProtect,checkRole(['user']),upload.none(),userController.updateUserDatingInfo);
 
 
 // Plan
-router.get('/getUserPlans/:userId',userProtect,userController.getUserPlan)
-router.put('/updateUserSubscription/:userId',userProtect,userController.updateUserSubscription)
-router.get('/getUserPlanDetails/:userId',userProtect,userController.userSubscriptionDetails)
-router.put('/cancelUserPlan/:userId',userProtect,userController.cancelSubscriptionPlan)
+router.get('/getUserPlans/:userId',userProtect,checkRole(['user']),userController.getUserPlan)
+router.put('/updateUserSubscription/:userId',userProtect,checkRole(['user']),userController.updateUserSubscription)
+router.get('/getUserPlanDetails/:userId',userProtect,checkRole(['user']),userController.userSubscriptionDetails)
+router.put('/cancelUserPlan/:userId',userProtect,checkRole(['user']),userController.cancelSubscriptionPlan)
 
 
 
 //LIKE
-router.post('/handleHomeLikes',userProtect,checkSubscription,userController.handleHomeLikes)
-router.get("/sentLikes/:userId",userProtect,userController.getSentLikesProfiles);
-router.get("/receivedLikes/:userId",userProtect, userController.getReceivedLikesProfiles);
-router.get('/getReceivedLikesCount/:userId',userProtect,userController.getReceivedLikesCount)
+router.post('/handleHomeLikes',userProtect,checkRole(['user']),checkSubscription,userController.handleHomeLikes)
+router.get("/sentLikes/:userId",userProtect,checkRole(['user']),userController.getSentLikesProfiles);
+router.get("/receivedLikes/:userId",userProtect,checkRole(['user']), userController.getReceivedLikesProfiles);
+router.get('/getReceivedLikesCount/:userId',userProtect,checkRole(['user']),userController.getReceivedLikesCount)
 
 //MATCH
-router.get('/getMathProfiles/:userId',userProtect,userController.getMathProfiles)
+router.get('/getMathProfiles/:userId',userProtect,checkRole(['user']),userController.getMathProfiles)
 
 //ADVICE
-router.get('/getAdviceCategory',userProtect,userController.getCategories)
-router.get('/getArticleByCategoryId/:categoryId',userProtect,userController.getArticleByCategoryId)
-router.get('/getArticleById/:articleId',userProtect,userController.getArticleById)
+router.get('/getAdviceCategory',userProtect,checkRole(['user']),userController.getCategories)
+router.get('/getArticleByCategoryId/:categoryId',userProtect,checkRole(['user']),userController.getArticleByCategoryId)
+router.get('/getArticleById/:articleId',userProtect,checkRole(['user']),userController.getArticleById)
 
 //NOTIFICATION
-router.post('/createNotification',userProtect,userController.createNotification)
-router.get('/getNotifications/:userId',userProtect,userController.getNotification)
-router.delete('/clearNotifications/:userId',userProtect,userController.clearNotifications)
+router.post('/createNotification',userProtect,checkRole(['user']),userController.createNotification)
+router.get('/getNotifications/:userId',userProtect,checkRole(['user']),userController.getNotification)
+router.delete('/clearNotifications/:userId',userProtect,checkRole(['user']),userController.clearNotifications)
 
 // BlOCK&UNBLOCK
-router.put('/userBlocked',userProtect,userController.userBlocked)
-router.put('/userUnblocked',userProtect,userController.userUnBlocked)
-router.get('/userBlockedList/:userId',userProtect,userController.fetchBlockedUserList)
+router.put('/userBlocked',userProtect,checkRole(['user']),userController.userBlocked)
+router.put('/userUnblocked',userProtect,checkRole(['user']),userController.userUnBlocked)
+router.get('/userBlockedList/:userId',userProtect,checkRole(['user']),userController.fetchBlockedUserList)
 
 //REPORT
-router.post('/createReport',userProtect,userController.createReport)
+router.post('/createReport',userProtect,checkRole(['user']),userController.createReport)
 
 
 

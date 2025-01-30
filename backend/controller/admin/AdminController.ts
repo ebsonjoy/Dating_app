@@ -17,8 +17,8 @@ export class AdminController{
         try {
             const admin = await this.adminService.authenticateAdmin(email, password);
             if (admin) {
-                const adminAccessToken = AdminTokenService.generateAdminAccessToken(admin._id.toString());
-                const adminRefreshToken = AdminTokenService.generateAdminRefreshToken(admin._id.toString())
+                const adminAccessToken = AdminTokenService.generateAdminAccessToken(admin._id.toString(),admin.role);
+                const adminRefreshToken = AdminTokenService.generateAdminRefreshToken(admin._id.toString(),admin.role)
                 AdminTokenService.setAdminTokenCookies(res, adminAccessToken, adminRefreshToken);
                 res.status(HttpStatusCode.OK).json({
                     _id: admin._id,

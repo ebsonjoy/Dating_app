@@ -28,8 +28,8 @@ export class UserController {
                 res.status(HttpStatusCode.FORBIDDEN).json({ message: StatusMessage.ACCOUNT_BLOCKED });
                 return;
             }
-            const accessToken = TokenService.generateAccessToken(user._id.toString());
-            const refreshToken = TokenService.generateRefreshToken(user._id.toString())
+            const accessToken = TokenService.generateAccessToken(user._id.toString(),user.role);
+            const refreshToken = TokenService.generateRefreshToken(user._id.toString(),user.role)
 
             TokenService.setTokenCookies(res, accessToken, refreshToken);
             res.status(HttpStatusCode.OK).json({
@@ -83,7 +83,7 @@ export class UserController {
            return 
         }
     
-        const newAccessToken = TokenService.generateAccessToken(user._id.toString());
+        const newAccessToken = TokenService.generateAccessToken(user._id.toString(),user.role);
     
         TokenService.setTokenCookies(res, newAccessToken, refreshToken);
     
@@ -130,8 +130,8 @@ export class UserController {
             });
             return;
           }
-            const accessToken = TokenService.generateAccessToken(user._id.toString());
-            const refreshToken = TokenService.generateRefreshToken(user._id.toString())
+            const accessToken = TokenService.generateAccessToken(user._id.toString(),user.role);
+            const refreshToken = TokenService.generateRefreshToken(user._id.toString(),user.role)
 
             TokenService.setTokenCookies(res, accessToken, refreshToken);
           

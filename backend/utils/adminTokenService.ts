@@ -3,21 +3,22 @@ import { Response } from 'express';
 
 interface AdminTokenPayload {
   adminId: string;
+  role: string;
   adminTokenType: 'access' | 'refresh';
 }
 
 class AdminTokenService {
-  static generateAdminAccessToken(adminId: string): string {
+  static generateAdminAccessToken(adminId: string,role:string): string {
     return jwt.sign(
-      { adminId, adminTokenType: 'access' }, 
+      { adminId,role, adminTokenType: 'access' }, 
       process.env.ACCESS_TOKEN_SECRET_ADMIN as string, 
       { expiresIn: '15m' }
     );
   }
 
-  static generateAdminRefreshToken(adminId: string): string {
+  static generateAdminRefreshToken(adminId: string,role:string): string {
     return jwt.sign(
-      { adminId, adminTokenType: 'refresh' },
+      { adminId,role, adminTokenType: 'refresh' },
       process.env.REFRESH_TOKEN_SECRET_ADMIN as string, 
       { expiresIn: '7d' }
     );

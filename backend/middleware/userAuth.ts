@@ -15,6 +15,7 @@ const userProtect = asyncHandler(async (req: AuthenticatedRequest, res: Response
     const decodedAccess = TokenService.verifyAccessToken(accessToken);
     if (decodedAccess) {
       req.user = await User.findById(decodedAccess.userId).select('-password');
+      if (req.user) req.user.role = decodedAccess.role;
       return next();
     }
   }
@@ -24,11 +25,12 @@ const userProtect = asyncHandler(async (req: AuthenticatedRequest, res: Response
       const user = await User.findById(decodedRefresh.userId);
       
       if (user) {
-        const newAccessToken = TokenService.generateAccessToken(user._id.toString());
+        const newAccessToken = TokenService.generateAccessToken(user._id.toString(),user.role);
         
         TokenService.setTokenCookies(res, newAccessToken, refreshToken);
         
         req.user = user;
+        if (req.user) req.user.role = decodedRefresh.role;
         return next();
       }
     }

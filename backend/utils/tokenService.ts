@@ -3,21 +3,22 @@ import { Response } from 'express';
 
 interface TokenPayload {
   userId: string;
+  role: string
   tokenType: 'access' | 'refresh';
 }
 
 class TokenService {
-  static generateAccessToken(userId: string): string {
+  static generateAccessToken(userId: string,role:string): string {
     return jwt.sign(
-      { userId, tokenType: 'access' }, 
+      { userId,role, tokenType: 'access' }, 
       process.env.ACCESS_TOKEN_SECRET as string, 
       { expiresIn: '15m' }
     );
   }
 
-  static generateRefreshToken(userId: string): string {
+  static generateRefreshToken(userId: string,role:string): string {
     return jwt.sign(
-      { userId, tokenType: 'refresh' },
+      { userId,role, tokenType: 'refresh' },
       process.env.REFRESH_TOKEN_SECRET as string, 
       { expiresIn: '7d' }
     );

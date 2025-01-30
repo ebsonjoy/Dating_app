@@ -15,6 +15,7 @@ const adminProtect = asyncHandler(async (req: AuthenticatedRequest, res: Respons
     const decodedAccess = AdminTokenService.verifyAdminAccessToken(adminAccessToken);
     if (decodedAccess) {
       req.admin = await Admin.findById(decodedAccess.adminId).select('-password');
+      if (req.admin) req.admin.role = decodedAccess.role;
       return next();
     }
   }
@@ -24,11 +25,12 @@ const adminProtect = asyncHandler(async (req: AuthenticatedRequest, res: Respons
       const admin = await Admin.findById(decodedRefresh.adminId);
       
       if (admin) {
-        const newAdminAccessToken = AdminTokenService.generateAdminAccessToken(admin._id.toString());
+        const newAdminAccessToken = AdminTokenService.generateAdminAccessToken(admin._id.toString(),admin.role);
         
         AdminTokenService.setAdminTokenCookies(res, newAdminAccessToken, adminRefreshToken);
         
         req.admin = admin;
+        if (req.admin) req.admin.role = decodedRefresh.role;
         return next();
       }
     }
