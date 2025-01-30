@@ -1,12 +1,13 @@
 import express from 'express';
-import { protect } from '../middleware/adminAuthMiddleware';
 import { container } from '../config/container';
 import { AdminController } from '../controller/admin/AdminController';
 import { PlanController } from '../controller/plan/PlanController';
 import { validatePlanDetails } from '../validation/validatePlanDetails';
 import { AdviceController } from '../controller/advice/AdviceController';
-import { multerUploadUserImg } from "../config/multer";
+import { adminProtect } from '../middleware/adminAuth';
+import multer from 'multer';
 const router = express.Router();
+const upload = multer();
 
 
 const adminControllerr = container.get<AdminController>('AdminController')
@@ -16,43 +17,46 @@ const adviceController = container.get<AdviceController>('AdviceController');
 
 
 // container admin
-router.get('/getAllUsers',protect,adminControllerr.getAllUsers)
-router.post('/login',adminControllerr.login)
-router.put('/updateUserStatus/:userId',protect,adminControllerr.updateUserStatus)
 router.post('/logoutAdmin',adminControllerr.logout)
 router.post('/create',adminControllerr.register)
-router.get('/paymentDetails',protect,adminControllerr.fetchPayments)
-router.get('/dashBoardMasterData',protect,adminControllerr.getDashboardMasterData)
-router.get('/dashboard/users',protect,adminControllerr.getUserChartData)
-router.get('/dashboard/payments',protect,adminControllerr.getPaymentChartData)
+router.post('/login',adminControllerr.login)
+router.get('/getAllUsers',adminProtect,adminControllerr.getAllUsers)
+router.put('/updateUserStatus/:userId',adminProtect,adminControllerr.updateUserStatus)
+router.get('/paymentDetails',adminProtect,adminControllerr.fetchPayments)
+router.get('/dashBoardMasterData',adminProtect,adminControllerr.getDashboardMasterData)
+router.get('/dashboard/users',adminProtect,adminControllerr.getUserChartData)
+router.get('/dashboard/payments',adminProtect,adminControllerr.getPaymentChartData)
 
 //contaner Plan
-router.get('/getAllPlans',protect,planController.getPlans)
-router.get('/getOnePlan/:planId',protect,planController.getOnePlan)
-router.post('/createNewPlan',protect,validatePlanDetails,planController.createPlan)
-router.put('/updatePlan/:planId',protect,planController.updatePlan)
-router.put('/updatePlanStatus/:planId',protect,planController.updatePlanStatus)
+router.get('/getAllPlans',adminProtect,planController.getPlans)
+router.get('/getOnePlan/:planId',adminProtect,planController.getOnePlan)
+router.post('/createNewPlan',adminProtect,validatePlanDetails,planController.createPlan)
+router.put('/updatePlan/:planId',adminProtect,planController.updatePlan)
+router.put('/updatePlanStatus/:planId',adminProtect,planController.updatePlanStatus)
 
 //container Advice
 
 //Category
-router.post('/createAdviceCategory',protect,multerUploadUserImg.single("image"),adviceController.createAdviceCategory)
-router.get('/getAdviceCategories',protect,adviceController.getAdviceCategory)
-router.put('/blockAdviceCategory/:categoryId',protect,adviceController.blockAdviceCategory)
-router.get('/getSingleAdviceCategory/:categoryId',protect,adviceController.getSingleAdviceCategory)
-router.put('/updateAdviceCategory/:categoryId',protect,multerUploadUserImg.single("image"),adviceController.updateAdviceCategory)
+router.post('/createAdviceCategory',adminProtect,upload.none(),adviceController.createAdviceCategory)
+router.get('/getAdviceCategories',adminProtect,adviceController.getAdviceCategory)
+router.put('/blockAdviceCategory/:categoryId',adminProtect,adviceController.blockAdviceCategory)
+router.get('/getSingleAdviceCategory/:categoryId',adminProtect,adviceController.getSingleAdviceCategory)
+router.put('/updateAdviceCategory/:categoryId',adminProtect,upload.none(),adviceController.updateAdviceCategory)
+
+//admin imageSigned
+router.post("/getSignedUrlsAdmin",adviceController.getPresignedUrl);
 
 //Article
-router.post('/createArticle',protect,multerUploadUserImg.single("image"),adviceController.createArticle)
-router.get('/getArticles',protect,adviceController.getArticles)
-router.put('/blockArticle/:articleId',protect,adviceController.blockArticle)
-router.get('/getSingleArticle/:articleId',protect,adviceController.getSingleArticle)
-router.put('/updateArticle/:articleId',protect,multerUploadUserImg.single("image"),adviceController.updateArticle)
-router.delete('/deleteArtilce/:articleId',protect,adviceController.deleteArticle)
-router.get('/fetchArtilceByCategory/:categoryId',protect,adviceController.getArticlesByCategory)
-
-router.get('/userReportWithMessages',protect,adminControllerr.getUserReports)
-router.put('/updateReportStatus/:reportId',protect,adminControllerr.updateReportStatus)
+router.post('/createArticle',adminProtect,upload.none(),adviceController.createArticle)
+router.get('/getArticles',adminProtect,adviceController.getArticles)
+router.put('/blockArticle/:articleId',adminProtect,adviceController.blockArticle)
+router.get('/getSingleArticle/:articleId',adminProtect,adviceController.getSingleArticle)
+router.put('/updateArticle/:articleId',adminProtect,upload.none(),adviceController.updateArticle)
+router.delete('/deleteArtilce/:articleId',adminProtect,adviceController.deleteArticle)
+router.get('/fetchArtilceByCategory/:categoryId',adminProtect,adviceController.getArticlesByCategory)
+//Reports
+router.get('/userReportWithMessages',adminProtect,adminControllerr.getUserReports)
+router.put('/updateReportStatus/:reportId',adminProtect,adminControllerr.updateReportStatus)
 
 
 

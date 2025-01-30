@@ -23,7 +23,7 @@ export interface IUserService {
     getUserDetails(userId: string): Promise<IUserProfile[] | null>;
     updateUserPersonalInfo(userId: string, data: IUser): Promise<IUser | null>;
     updateUserSubscription(userId: string, subscriptionData: ISubscriptionDetails): Promise<IUser | null>;
-    updateUserDatingInfo(userId: string, data: IUserInfo, files: Express.Multer.File[]): Promise<IUserInfo | null>;
+    updateUserDatingInfo(userId: string, data: IUserInfo, uploadedPhotos: string[]): Promise<IUserInfo | null>;
     getUserSubscriptionDetails(userId: string): Promise<{ subscription: IUser['subscription']; plan: IPlan | null } | null>;
     fetchUserPlans(userId:string): Promise<IPlanDocument[]>;
     cancelSubscriptionPlan(userId:string): Promise<IUser | null>;

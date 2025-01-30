@@ -18,3 +18,12 @@ declare module '*.jpg' {
     export default value;
   }
   
+  interface ImportMetaEnv {
+    VITE_AWS_BUCKET_NAME: string;
+    VITE_AWS_REGION: string;
+
+  }
+  
+  interface ImportMeta {
+    readonly env: ImportMetaEnv;
+  }

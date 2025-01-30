@@ -5,13 +5,15 @@ import { setCredentials } from "../../slices/authSlice";
 import { 
   useGetUserProfileQuery, 
   useUpdateUserPersonalInfoMutation,
-  useUpdateUserDatingInfoMutation 
+  useUpdateUserDatingInfoMutation,
+  useGetPresignedUrlsMutation 
 } from "../../slices/apiUserSlice";
 import { toast } from "react-toastify";
 import Navbar from "../../components/user/Navbar";
 import SkeletonLoader from '../../components/skeletonLoader';
 import { RootState } from "../../store";
 import { AppDispatch } from "../../store";
+import axios from "axios";
 
 const ProfilePage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -23,6 +25,7 @@ const ProfilePage = () => {
   // State management
   const [updateUserPersonalInfo] = useUpdateUserPersonalInfoMutation();
   const [updateUserDatingInfo] = useUpdateUserDatingInfoMutation();
+  const [getPresignedUrls] = useGetPresignedUrlsMutation();
   
   // Personal Info States
   const [name, setFirstName] = useState<string>("");
@@ -169,6 +172,40 @@ const ProfilePage = () => {
       return;
     }
 
+      // Get file types for presigned URLs (only for new/changed images)
+      const newImageFileTypes = imgIndex.map(index => profilePhotos[index].type);
+    
+      // Get signed URLs from backend if there are new images
+      let signedUrls: { signedUrls: Array<{signedUrl: string, publicUrl: string}> } | null = null;
+      if (newImageFileTypes.length > 0) {
+        const { data } = await getPresignedUrls({ fileTypes: newImageFileTypes });
+        
+        if (!data || !data.signedUrls) {
+          toast.error('Failed to generate upload URLs');
+          return;
+        }
+        signedUrls = data;
+      }
+  
+      // Upload new photos to S3
+      let profilePhotoUrls: string[] = [];
+      if (signedUrls) {
+        const uploadPromises = signedUrls.signedUrls.map(async (urlInfo, index) => {
+          const fileIndex = imgIndex[index];
+          const success = await uploadToS3(profilePhotos[fileIndex], urlInfo.signedUrl);
+          return success ? urlInfo.publicUrl : null;
+        });
+  
+        profilePhotoUrls = (await Promise.all(uploadPromises)).filter(url => url !== null);
+  
+        if (profilePhotoUrls.length !== imgIndex.length) {
+          toast.error('Failed to upload all photos');
+          return;
+        }
+      }
+
+      console.log('profilePhotoUrlsprofilePhotoUrls',profilePhotoUrls)
+
     const formData = new FormData();
     formData.append("gender", gender);
     formData.append("lookingFor", lookingFor);
@@ -181,14 +218,13 @@ const ProfilePage = () => {
     formData.append("bio", bio);
     formData.append("smoking", smoking);
     formData.append("drinking", drinking);
-    formData.append('imgIndex', imgIndex.join(','));
-
-    profilePhotos.forEach((photo) => {
-      if (photo instanceof File) {
-        formData.append('profilePhotos', photo);
-      }
-    });
-
+    // formData.append('imgIndex', imgIndex.join(','));
+if (profilePhotoUrls.length > 0) {
+  formData.append('imgIndex', imgIndex.join(','));
+  profilePhotoUrls.forEach(url => {
+    formData.append('profilePhotos', url);
+  });
+}
     try {
       await updateUserDatingInfo({ userId, data: formData }).unwrap();
       toast.success("Dating Info Updated Successfully");
@@ -198,6 +234,21 @@ const ProfilePage = () => {
     } catch (error) {
       console.log(error)
       toast.error("Failed to update dating info");
+    }
+  };
+
+  const uploadToS3 = async (file: File, signedUrl: string) => {
+    try {
+      await axios.put(signedUrl, file, {
+        headers: {
+          'Content-Type': file.type
+        }
+      });
+      return true;
+    } catch (error) {
+      console.error('S3 upload error:', error);
+      toast.error('Failed to upload photo');
+      return false;
     }
   };
 

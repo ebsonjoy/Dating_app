@@ -14,8 +14,7 @@ import { IAdminService } from '../interfaces/admin/IAdminService';
 import { AdminRepository } from '../repositories/admin/AdminRepository';
 import { AdminService } from '../services/admin/AdminService';
 import { AdminController } from '../controller/admin/AdminController';
-// import Admin from '../models/AdminModel';
-// import User from '../models/User';
+
 
 //User
 import { IUserRepository } from '../interfaces/user/IUserRepository';

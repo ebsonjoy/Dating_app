@@ -7,7 +7,7 @@ export interface IAdviceService{
     getCategories(): Promise<IAdviceCategory[] | null>
     blockAdviceCategory(id:string,status:boolean):Promise<IAdviceCategory>
     getSingleAdviceCategory(categoryId:string):Promise<IAdviceCategory>
-    updateAdiveCategory(id:string,category: Partial<IAdviceCategory>,file?: Express.Multer.File) :Promise<IAdviceCategory | null>
+    updateAdiveCategory(id:string,category: Partial<IAdviceCategory>,imageUrl?:string) :Promise<IAdviceCategory | null>
     //Article
     createArticle(articleData:ICreateArticle): Promise<IArticle | null>
     getArticles() : Promise<IArticle[] | null>
@@ -16,7 +16,7 @@ export interface IAdviceService{
     updateArticle(
     articleId: string,
     updateData: Partial<IArticle>,
-    file?: Express.Multer.File
+    imageUrl?:string
     ): Promise<IArticle | null>;
     deleteArticle(articleId: string): Promise<IArticle | null>;
     blockArticle(articleId: string, status: boolean): Promise<IArticle | null>;

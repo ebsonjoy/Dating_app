@@ -1,6 +1,5 @@
 import { ApiResponse, IUpdateReportStatus } from "../types/report.types";
 import { apiSlice } from "./apiSlice";
-
 const ADMIN_URL = "/api/admin";
 // const PLAN_URL = "/api/plans"
 
@@ -245,6 +244,14 @@ export const adminApiSlice = apiSlice.injectEndpoints({
     //Advice
     // category
 
+    getPresignedUrlsAdmin: builder.mutation({
+      query: (data) => ({
+        url: `${ADMIN_URL}/getSignedUrlsAdmin`,
+        method: 'POST',
+        body: data
+      }),
+    }),
+
     getAdminAdviceCategories : builder.query<IAdviceCategory[], void>({
       query: () => ({
         url: `${ADMIN_URL}/getAdviceCategories`,
@@ -370,6 +377,7 @@ export const {
   useBlockArticleMutation,
   useGetSingleArticleQuery,
   useUpdateArticleMutation,
+  useGetPresignedUrlsAdminMutation,
 
   useGetUserChartDataQuery,
   useGetPaymentChartDataQuery,

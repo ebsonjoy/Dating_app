@@ -2,11 +2,9 @@ import express from "express";
 import { container } from '../config/container';
 import { UserController } from "../controller/user/UserController";
 import { userProtect } from "../middleware/userAuth";
-import { multerUploadUserImg } from "../config/multer";
 import validateSignup from "../validation/userValidation";
 import multer from "multer";
 import { checkSubscription } from "../middleware/checkSubscription ";
-
 
 const upload = multer();
 const router = express.Router();
@@ -23,9 +21,8 @@ router.post("/verifyOtp", userController.verifyOTP);
 router.post("/resendOtp", userController.resendOTP);
 router.post("/password-reset-request", userController.requestPasswordReset);
 router.post("/reset-password/:token", userController.resetPassword);
-router.post("/userInfoSignUp",multerUploadUserImg.array("profilePhotos", 4),userController.createUserInfo);
-// router.post("/userInfoSignUp",userController.createUserInfo);
-// router.post("/getSignedUrls",userController.getPresignedUrl);
+router.post("/userInfoSignUp",userController.createUserInfo);
+router.post("/getSignedUrls",userController.getPresignedUrl);
 
 // Google Login
 router.post('/auth/google', userController.googleAuth);
@@ -34,7 +31,8 @@ router.get("/getHomeUsersProfiles/:userId", userProtect, userController.getHomeU
 router.get("/getUserProfile/:userId",userProtect, userController.getUserProfile);
 router.get('/getUserDetails/:userId',userProtect,userController.getUserDetails)
 router.put("/updatePersonalInfo/:userId",userProtect,upload.none(),userController.updatedPersonalInfo)
-router.put("/updateDatingInfo/:userId",userProtect, multerUploadUserImg.array("profilePhotos", 4), userController.updateUserDatingInfo);
+router.put("/updateDatingInfo/:userId",userProtect,upload.none(),userController.updateUserDatingInfo);
+
 
 // Plan
 router.get('/getUserPlans/:userId',userProtect,userController.getUserPlan)

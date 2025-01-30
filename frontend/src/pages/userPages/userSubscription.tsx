@@ -106,7 +106,7 @@ const SubscriptionPage: React.FC = () => {
                     data: subscriptionData,
                     userId: userId || ''
                 });
-
+                console.log('subvvvvvvvvvvvvvvvv',subscriptionData)
                 if (updateResult.error) {
                     console.error('Failed to update user subscription:', updateResult.error);
                     setPaymentStatus("Failed to update subscription after payment.");

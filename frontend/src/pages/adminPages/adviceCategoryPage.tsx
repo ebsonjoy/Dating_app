@@ -8,10 +8,13 @@ import {
   useBlockAdviceCategoryMutation,
   useGetSingleAdviceCategoryQuery,
   useUpdateAdviceCategoryMutation,
+  useGetPresignedUrlsAdminMutation,
 } from "../../slices/adminApiSlice";
 import { RootState } from '../../store';
 import { useSelector } from 'react-redux';
 import { IApiError } from "../../types/error.types";
+import { toast } from "react-toastify";
+import axios from "axios";
 
 interface ICategory {
   _id: string;
@@ -32,16 +35,15 @@ const AdviceManagement: React.FC = () => {
     error,
     refetch,
   } = useGetAdminAdviceCategoriesQuery();
+  const [getPresignedUrls] = useGetPresignedUrlsAdminMutation();
 
   const typedError = error as IApiError;
-  console.log('cccccccccsterrrrrr',categories)
   const { data: singleCategory } = useGetSingleAdviceCategoryQuery(
     categoryId || "",
     {
       skip: !categoryId,
     }
   );
-console.log('eeeeeeeeeeeeeeeeeeeeeeeeeee',error)
   const [createCategory] = useAddAdviceCategoryMutation();
   const [updateCategory] = useUpdateAdviceCategoryMutation();
   const [blockCategory] = useBlockAdviceCategoryMutation();
@@ -73,6 +75,21 @@ console.log('eeeeeeeeeeeeeeeeeeeeeeeeeee',error)
     }
   }, [categoryId, singleCategory]);
 
+  const uploadToS3 = async (file: File, signedUrl: string) => {
+    try {
+      await axios.put(signedUrl, file, {
+        headers: {
+          'Content-Type': file.type
+        }
+      });
+      return true;
+    } catch (error) {
+      console.error('S3 upload error:', error);
+      toast.error('Failed to upload image');
+      return false;
+    }
+  };
+
 
   const handleSubmitCategory = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,17 +118,33 @@ console.log('eeeeeeeeeeeeeeeeeeeeeeeeeee',error)
 
  
       if (formData.image instanceof File) {
-        formDataToSend.append("image", formData.image);
+        const response = await getPresignedUrls({ fileTypes: [formData.image.type] });
+        if (!response.data || !response.data.signedUrls) {
+          toast.error('Failed to generate upload URL');
+          return;
+        }
+        const uploadSuccess = await uploadToS3(formData.image, response.data.signedUrls[0].signedUrl);
+        if (!uploadSuccess) {
+          return;
+        }
+        formDataToSend.append("image", response.data.signedUrls[0].publicUrl);
       }
-
+      console.log("Form Data Contents:");
+      for (const [key, value] of formDataToSend.entries()) {
+        console.log(`${key}:`, value);
+      }
       if (categoryId) {
        
         await updateCategory({ categoryId, formData: formDataToSend }).unwrap();
         navigate("/admin/adviceCatergory");
+        toast.success('Advice Is Updated');
+        
       } else {
      
         await createCategory(formDataToSend);
         navigate("/admin/adviceCatergory");
+        toast.success('New Advice Is Created');
+        
       }
 
       setShowForm(false);

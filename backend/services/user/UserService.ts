@@ -11,13 +11,12 @@ import { calculateAge } from "../../utils/calculateAge";
 import { ISubscriptionDetails } from "../../types/user.types";
 import mongoose from "mongoose";
 import { IPlan, IPlanDocument } from "../../types/plan.types";
-import { deleteImageFromS3 } from "../../config/multer";
 import { ILikeData, ILikeProfile } from "../../types/like.types";
 import { calculateExpiryDate } from "../../utils/calculateExpDate";
 import { IAdviceCategory, IArticle } from "../../types/advice.types";
 import { INotification } from "../../types/notification.types";
 import { IReport } from "../../types/report.types";
-
+import {s3Service} from "../../config/s3Service"
 
 
 
@@ -375,9 +374,14 @@ export class UserService implements IUserService {
                 throw new Error(`Plan not found for ID: ${subscriptionData.planId}`);
             }
 
-            const count = await this.userRepository.paymentsCount()
-            const paymentCount = count === null ? 0 : count;
-            const paymentId = (paymentCount + 1).toString().padStart(4, '0');
+
+            const lastPayment = await this.userRepository.findLastPayment();
+            let paymentId = '0001';
+            if (lastPayment) {
+            const lastId = parseInt(lastPayment.paymentId, 10);
+            paymentId = (lastId + 1).toString().padStart(4, '0');
+}
+
 
             const paymentData = {
                 paymentId,
@@ -390,7 +394,7 @@ export class UserService implements IUserService {
             if (!paymentData.userName || !paymentData.planName || !paymentData.amount) {
                 throw new Error('Invalid payment data');
             }
-                await this.userRepository.createPayment(paymentData);
+            await this.userRepository.createPayment(paymentData);
             return await this.userRepository.update(userId, dataToUpdate);
         } catch (error) {
             console.log(error);
@@ -399,17 +403,18 @@ export class UserService implements IUserService {
     }
     
 
-    async updateUserDatingInfo(userId: string, data: UserInfoUpdate, uploadedPhotos: Express.MulterS3.File[]): Promise<IUserInfo | null> {
+    async updateUserDatingInfo(userId: string, data: UserInfoUpdate, uploadedPhotos:string[]): Promise<IUserInfo | null> {
         try {
         const currentUserInfo = await this.userRepository.findUserInfo(userId);
         if (!currentUserInfo) {
             throw new Error('User info not found');
         }
+        console.log('uploadedPhotoservice',uploadedPhotos)
         const imgIndex = data.imgIndex && data.imgIndex.trim() !== '' ? data.imgIndex.split(',').map(Number) : [];  
         if(imgIndex.length>0){
             imgIndex.forEach((index:number, i:number)=>{
-                deleteImageFromS3(currentUserInfo.profilePhotos[index])
-                currentUserInfo.profilePhotos[index] = uploadedPhotos[i].location
+                s3Service.deleteImageFromS3Bucket(currentUserInfo.profilePhotos[index])
+                currentUserInfo.profilePhotos[index] = uploadedPhotos[i]
             })
         }
         imgIndex.length = 0;
@@ -428,6 +433,8 @@ export class UserService implements IUserService {
             caste: data.caste,
             profilePhotos: currentUserInfo.profilePhotos,
           };
+
+          console.log('updatedDataupdatedData',updatedData)
   return await this.userRepository.updateUserInfo(userId,updatedData)
 } catch (error) {
     console.log(error);

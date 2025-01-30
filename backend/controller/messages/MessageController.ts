@@ -77,8 +77,6 @@ export class MessageController {
   createCallHistroy = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {
       const { callerId, receiverId, type, duration, status } = req.body;
-      console.log("hissssssssssssssssssssssssssssssss", req.body);
-
       try {
         const callHistory = await this.messageService.createCallHistory({
           callerId,
@@ -90,7 +88,6 @@ export class MessageController {
         res
           .status(HttpStatusCode.OK)
           .json({ success: true, data: callHistory });
-        console.log("caaaaaaaaaaaaaaaaaa", callHistory);
       } catch (error) {
         console.error(error);
         res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
@@ -111,18 +108,6 @@ export class MessageController {
           senderId
         );
         console.log(updatedMessages)
-  
-        // Emit socket event for each updated message
-      //   const senderSocketId = getReceiverSocketId(senderId);
-      // if (senderSocketId) {
-      //   updatedMessages.forEach((message) => {
-      //     io.to(senderSocketId).emit("messageRead", {
-      //       messageId: message._id,
-      //       readerId: userId,
-      //     });
-      //   });
-      // }
-  
         res.status(HttpStatusCode.OK).json({ success: true });
       } catch (error) {
         console.error(error);
@@ -133,23 +118,6 @@ export class MessageController {
       }
     }
   );
-  // markMessagesAsRead = asyncHandler(
-  //   async (req: Request, res: Response): Promise<void> => {
-  //     const { userId, senderId } = req.body;
-
-  //     try {
-  //       await this.messageService.markMessagesAsRead(userId, senderId);
-  //       res.status(HttpStatusCode.OK).json({ success: true });
-  //     } catch (error) {
-  //       console.error(error);
-  //       res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
-  //         success: false,
-  //         error: "Failed to mark messages as read",
-  //       });
-  //     }
-  //   }
-  // );
-
   getUnreadMessageCount = asyncHandler(
     async (req: Request, res: Response): Promise<void> => {
       const { userId } = req.query;

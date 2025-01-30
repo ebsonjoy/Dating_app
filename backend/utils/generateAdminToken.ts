@@ -1,17 +1,17 @@
-import jwt from 'jsonwebtoken';
-import { Response } from 'express';
+// import jwt from 'jsonwebtoken';
+// import { Response } from 'express';
 
-const generateAdminToken = (res: Response, adminId: string): void => {
-    const token = jwt.sign({ adminId }, process.env.JWT_SECRET as string, {
-        expiresIn: '30d',
-    });
+// const generateAdminToken = (res: Response, adminId: string): void => {
+//     const token = jwt.sign({ adminId }, process.env.JWT_SECRET as string, {
+//         expiresIn: '30d',
+//     });
 
-    res.cookie('admin_jwt', token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV !== 'development', 
-        sameSite: 'strict', 
-        maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-    });
-};
+//     res.cookie('admin_jwt', token, {
+//         httpOnly: true,
+//         secure: process.env.NODE_ENV !== 'development', 
+//         sameSite: 'strict', 
+//         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+//     });
+// };
 
-export default generateAdminToken;
+// export default generateAdminToken;

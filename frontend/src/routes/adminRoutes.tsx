@@ -23,15 +23,9 @@ const adminRoutes = (
     <Route path="/admin/paymentDetails" element={<PaymentDetails />} />
     <Route path="/admin/adviceCatergory" element={<AdviceManagement />} />
     <Route path="/admin/editAdviceCatergory/:categoryId" element={<AdviceManagement />} />
-
-
     <Route path="/admin/article" element={<ArticleManagement />} />
     <Route path="/admin/editArticle/:articleId" element={<ArticleManagement />} />
     <Route path="/admin/userReportDetails/" element={<UserReportDetials />} />
-
-
-
-
   </Route>
 );
 

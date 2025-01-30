@@ -20,8 +20,6 @@ import UserLikes from '../pages/userPages/userLikes';
 import NotFound from '../components/user/notFoundPage';
 import MessagesPage from '../pages/userPages/messagePage';
 import UserDetails from '../pages/userPages/userDetailsPage';
-
-
 import GamePage from '../pages/userPages/gamePage'
 import AdviceCategories from '../pages/userPages/AdviceCategories';
 
@@ -29,7 +27,6 @@ import AdviceCategories from '../pages/userPages/AdviceCategories';
 const userRoutes = (
   
   <Route path="/" element={<App />}>
-    
     {/* Public Routes */}
     <Route path="/landing" element={<LandingScreen />} />
     <Route path="/login" element={<LoginScreen />} />
@@ -38,8 +35,6 @@ const userRoutes = (
     <Route path="/forgotPasswordRequesting" element={<ForgotPasswordRequesting />} />
     <Route path="/reset-password/:token" element={<ResetPassword />} />
     <Route path="/userInfoSignUp" element={<UserInformation />} />
-
-
     {/* Protected Routes */}
     <Route element={<PrivateRoute />}>
       <Route index path="/" element={<HomeScreen />} />
@@ -50,8 +45,6 @@ const userRoutes = (
       <Route path="/userLikes" element={<UserLikes />} />
       <Route path="/message" element={<MessagesPage />} />
       <Route path="/userDetails" element={<UserDetails />} />
-
-
       <Route path="/dating-advice" element={<AdviceCategories />} />
       <Route path="/game-zone" element={<GamePage />} />
 

@@ -3,10 +3,9 @@ import { inject, injectable } from 'inversify';
 import asyncHandler from 'express-async-handler';
 import { IAdminService } from '../../interfaces/admin/IAdminService';
 import { HttpStatusCode } from '../../enums/HttpStatusCode';
-import generateAdminToken from '../../utils/generateAdminToken'; 
 import { StatusMessage } from '../../enums/StatusMessage';
 import { getReceiverSocketId, io } from "../../socket/socket";
-
+import AdminTokenService from '../../utils/adminTokenService';
 
 @injectable()
 export class AdminController{
@@ -18,10 +17,13 @@ export class AdminController{
         try {
             const admin = await this.adminService.authenticateAdmin(email, password);
             if (admin) {
-                generateAdminToken(res, admin._id.toString());
+                const adminAccessToken = AdminTokenService.generateAdminAccessToken(admin._id.toString());
+                const adminRefreshToken = AdminTokenService.generateAdminRefreshToken(admin._id.toString())
+                AdminTokenService.setAdminTokenCookies(res, adminAccessToken, adminRefreshToken);
                 res.status(HttpStatusCode.OK).json({
                     _id: admin._id,
                     email: admin.email,
+                    role:admin.role,
                 });
             } else {
                 res.status(HttpStatusCode.UNAUTHORIZED).json({ message: StatusMessage.UNAUTHORIZED });
@@ -46,10 +48,14 @@ export class AdminController{
 
     logout = asyncHandler(async (req: Request, res: Response) => {
         try {
-            res.cookie("admin_jwt", "", {
+            res.cookie("adminAccessToken", "", {
                 httpOnly: true,
                 expires: new Date(0),
             });
+            res.cookie('adminRefreshToken', '', { 
+                httpOnly: true, 
+                expires: new Date(0) 
+              });
             res.status(HttpStatusCode.OK).json({ message: StatusMessage.SUCCESS });
             console.log('log Out success')
         } catch (error) {

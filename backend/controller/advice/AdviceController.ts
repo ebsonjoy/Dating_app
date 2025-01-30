@@ -7,6 +7,7 @@ import { HttpStatusCode } from "../../enums/HttpStatusCode";
 import { IAdviceCategory,ICreateAdviceCategory } from '../../types/advice.types';
 import { IArticle,ICreateArticle } from '../../types/advice.types';
 import { IAdviceService } from '../../interfaces/advice/IAdviceService';
+import { s3Service } from '../../config/s3Service';
 
 
 
@@ -19,26 +20,18 @@ export class AdviceController {
   //category
 
   createAdviceCategory = asyncHandler(async (req: Request, res: Response) => {
-    const { name, description } = req.body;
-    const file = req.file as Express.MulterS3.File;
-
-  if (!file) {
-     res.status(400).json({ error: "Image is required" });
-     return
-  }
-
-  const imageUrl = file.location
-
+    const { name, description,image } = req.body;
   try {
     const categoryData:ICreateAdviceCategory = {
       name,
       description,
-      image: imageUrl,
+      image,
     };
 
-    console.log(categoryData)
+
 
       const newCategory = await this.adviceService.createCategory(categoryData);
+
       res.status(HttpStatusCode.CREATED).json(newCategory);
     } catch (error:any) {
       if (error.message.includes("already exists")) {
@@ -52,11 +45,28 @@ export class AdviceController {
       }
     }
   });
+
+      getPresignedUrl = asyncHandler(async(req: Request, res: Response) => {
+          const { fileTypes } = req.body;
+          if (!fileTypes || !Array.isArray(fileTypes)) {
+             res.status(HttpStatusCode.BAD_REQUEST)
+              .json({ message: "File types are required" });
+              return
+          }
+      
+          try {
+            const signedUrls = await s3Service.generateSignedUrls(fileTypes);
+            res.json({ signedUrls });
+          } catch (error) {
+            console.error('Error generating signed URLs:', error);
+            res.status(HttpStatusCode.INTERNAL_SERVER_ERROR)
+              .json({ message: StatusMessage.INTERNAL_SERVER_ERROR });
+          }
+        });
+        
   getAdviceCategory = asyncHandler(async(req:Request,res:Response)=>{
-    console.log('hlll')
     try{
         const categories = await this.adviceService.getCategories()
-        console.log(categories)
         res.status(HttpStatusCode.OK).json(categories);
 
     }catch (error) {
@@ -102,9 +112,9 @@ export class AdviceController {
   updateAdviceCategory = asyncHandler(async (req: Request, res: Response) => {
     const { categoryId } = req.params;
     const updateData: IAdviceCategory = req.body;
-    const file = req.file as Express.MulterS3.File;   
+    const imageUrl = req.body.image
     try {
-        const updatedCategory = await this.adviceService.updateAdiveCategory(categoryId, updateData,file);
+        const updatedCategory = await this.adviceService.updateAdiveCategory(categoryId, updateData,imageUrl);
         if (!updatedCategory) {
             res.status(HttpStatusCode.NOT_FOUND).json({ message: StatusMessage.NOT_FOUND });
             return
@@ -125,19 +135,13 @@ export class AdviceController {
   //Article
 
   createArticle = asyncHandler(async(req:Request,res:Response)=>{
-    const {title,content,categoryId} = req.body
-    const file = req.file as Express.MulterS3.File;
-    if (!file) {
-      res.status(400).json({ error: "Image is required" });
-      return
-   }
-   const imageUrl = file.location
+    const {title,content,categoryId,image} = req.body
     try{
       const articleData:ICreateArticle ={
         title,
         content,
         categoryId,
-        image:imageUrl
+        image,
       }
         const newArticle = await this.adviceService.createArticle(articleData)
       res.status(HttpStatusCode.CREATED).json(newArticle);
@@ -181,10 +185,10 @@ export class AdviceController {
   updateArticle = asyncHandler(async (req: Request, res: Response) => {
     const { articleId } = req.params;
     const updateData: Partial<IArticle> = req.body;
-    const file = req.file as Express.MulterS3.File;
+    const imageUrl = req.body.image
 
     try {
-      const updatedArticle = await this.adviceService.updateArticle(articleId, updateData, file);
+      const updatedArticle = await this.adviceService.updateArticle(articleId, updateData, imageUrl);
       res.status(HttpStatusCode.OK).json(updatedArticle);
     } catch (error) {
       console.log(error);

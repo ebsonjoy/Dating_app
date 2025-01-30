@@ -9,12 +9,15 @@ import {
   useBlockArticleMutation,
   useGetSingleArticleQuery,
   useUpdateArticleMutation,
-  useGetAdminAdviceCategoriesQuery
+  useGetAdminAdviceCategoriesQuery,
+  useGetPresignedUrlsAdminMutation,
 } from "../../slices/adminApiSlice";
 
 import { RootState } from '../../store';
 import { useSelector } from 'react-redux';
 import { IApiError } from "../../types/error.types";
+import axios from "axios";
+import { toast } from "react-toastify";
 
 interface ArticleFormData {
   title: string;
@@ -34,7 +37,7 @@ const ArticleManagement: React.FC = () => {
   const { data: singleArticle } = useGetSingleArticleQuery(articleId || '', {
     skip: !articleId
   });
-  
+    const [getPresignedUrls] = useGetPresignedUrlsAdminMutation();
   const [createArticle] = useAddArticleMutation();
   const [updateArticle] = useUpdateArticleMutation();
   const [blockArticle] = useBlockArticleMutation();
@@ -70,6 +73,23 @@ const ArticleManagement: React.FC = () => {
     setFormData({ ...formData, image: null });
   };
 
+  const uploadToS3 = async (file: File, signedUrl: string) => {
+    try {
+      await axios.put(signedUrl, file, {
+        headers: {
+          'Content-Type': file.type
+        }
+      });
+      return true;
+    } catch (error) {
+      console.error('S3 upload error:', error);
+      toast.error('Failed to upload image');
+      return false;
+    }
+  };
+
+
+
 
   const handleSubmitArticle = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,19 +122,27 @@ const ArticleManagement: React.FC = () => {
       formDataToSend.append("content", formData.content);
       formDataToSend.append("categoryId", formData.categoryId);
   
-      // Append image only if it's a new file
       if (formData.image instanceof File) {
-        formDataToSend.append("image", formData.image);
+         const response = await getPresignedUrls({ fileTypes: [formData.image.type] });
+                if (!response.data || !response.data.signedUrls) {
+                  toast.error('Failed to generate upload URL');
+                  return;
+                }
+                const uploadSuccess = await uploadToS3(formData.image, response.data.signedUrls[0].signedUrl);
+                if (!uploadSuccess) {
+                  return;
+                }
+        formDataToSend.append("image",response.data.signedUrls[0].publicUrl);
       }
   
       if (articleId) {
-        // Update existing article
         await updateArticle({ articleId, formData: formDataToSend }).unwrap();
         navigate('/admin/article');
+        toast.success('Article Is Updated');
       } else {
-        // Create new article
         await createArticle(formDataToSend);
         navigate('/admin/article');
+        toast.success('New Article Is Created');
       }
       
       // Reset form

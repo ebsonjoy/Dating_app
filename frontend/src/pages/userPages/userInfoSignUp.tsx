@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { useCreateUserInfoMutation } from '../../slices/apiUserSlice';
+import { useCreateUserInfoMutation,useGetPresignedUrlsMutation  } from '../../slices/apiUserSlice';
 import { RootState } from '../../store';
 import { useSelector } from 'react-redux';
 import { Camera, MapPin, Briefcase, Book, MessageSquare, Heart } from 'lucide-react';
 import { IApiError } from '../../types/error.types';
-
+import axios from 'axios';
 interface FormErrors {
   gender?: string;
   lookingFor?: string;
@@ -24,6 +24,12 @@ interface FormErrors {
 interface ILocation {
   latitude: number;
   longitude: number;
+}
+
+interface ISignedUrl {
+  fileKey: string;
+  publicUrl: string;
+  signedUrl: string;
 }
 
 
@@ -47,6 +53,7 @@ const UserInformation = () => {
 
   const { userInfo } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
+  const [getPresignedUrls] = useGetPresignedUrlsMutation();
   const [createUserInfo, { isLoading }] = useCreateUserInfoMutation();
   const [userId, setUserId] = useState<string | null>(null);
   // Available interests
@@ -70,6 +77,21 @@ const UserInformation = () => {
       navigate('/register');
     }
   }, []);
+
+  const uploadToS3 = async (file: File, signedUrl: string) => {
+    try {
+      await axios.put(signedUrl, file, {
+        headers: {
+          'Content-Type': file.type
+        }
+      });
+      return true;
+    } catch (error) {
+      console.error('S3 upload error:', error);
+      toast.error('Failed to upload photo');
+      return false;
+    }
+  };
 
   // Validation function
   const validateFields = () => {
@@ -185,55 +207,113 @@ const UserInformation = () => {
 
  
 
-
-    const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
     if (!validateFields()) return;
 
-    const formData = new FormData();
-    if (userId) {
-      formData.append('userId', userId);
-    }
-    
-    // Append all form data
-    formData.append('gender', gender);
-    formData.append('lookingFor', lookingFor);
-    profilePhotos.forEach((photo) => {
-      formData.append('profilePhotos', photo);
-    });
-    interests.forEach((interest) => {
-      formData.append('interests', interest);
-    });
-    formData.append('relationship', relationship);
-    formData.append('occupation', occupation);
-    formData.append('education', education);
-    formData.append('bio', bio);
-    formData.append('smoking', smoking);
-    formData.append('drinking', drinking);
-    formData.append('place', place);
-    
-    if (location) {
-      formData.append('location', JSON.stringify({
-        type: 'Point',
-        coordinates: [location.longitude, location.latitude]
-      }));
-    } else {
-      toast.error("Location is required.");
-      return;
-    }
-    
-    formData.append('caste', caste);
     try {
+      const fileTypes = profilePhotos.map(file => file.type);
+      const { data } = await getPresignedUrls({ fileTypes });
+      if (!data || !data.signedUrls) {
+        toast.error('Failed to generate upload URLs');
+        return;
+      }
+      const uploadPromises = data.signedUrls.map(async (urlInfo:ISignedUrl, index:number) => {
+        const success = await uploadToS3(profilePhotos[index], urlInfo.signedUrl);
+        return success ? urlInfo.publicUrl : null;
+      });
+
+      const profilePhotoUrls = await Promise.all(uploadPromises);
+
+      const validPhotoUrls = profilePhotoUrls.filter(url => url !== null);
+
+      if (validPhotoUrls.length !== 4) {
+        toast.error('Failed to upload all photos');
+        return;
+      }
+console.log(validPhotoUrls)
+      const formData = {
+        userId,
+        gender,
+        lookingFor,
+        profilePhotos: validPhotoUrls,
+        interests,
+        relationship,
+        occupation,
+        education,
+        bio,
+        smoking,
+        drinking,
+        place,
+        location: JSON.stringify({
+          type: 'Point',
+          coordinates: [location!.longitude, location!.latitude]
+        }),
+        caste
+      };
+
+      // Submit user info
       await createUserInfo(formData).unwrap();
+      
       toast.success("User information successfully submitted");
       localStorage.removeItem('emailId');
       localStorage.removeItem('userId');
       navigate('/login');
-    } catch (err:unknown) {
-      const error = err as IApiError
+
+    } catch (err: unknown) {
+      const error = err as IApiError;
       toast.error(error?.data?.message || "Failed to submit user information");
     }
   };
+
+  //   const handleSubmit = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  //   e.preventDefault();
+  //   if (!validateFields()) return;
+
+  //   const formData = new FormData();
+  //   if (userId) {
+  //     formData.append('userId', userId);
+  //   }
+    
+  //   // Append all form data
+  //   formData.append('gender', gender);
+  //   formData.append('lookingFor', lookingFor);
+  //   profilePhotos.forEach((photo) => {
+  //     formData.append('profilePhotos', photo);
+  //   });
+  //   interests.forEach((interest) => {
+  //     formData.append('interests', interest);
+  //   });
+  //   formData.append('relationship', relationship);
+  //   formData.append('occupation', occupation);
+  //   formData.append('education', education);
+  //   formData.append('bio', bio);
+  //   formData.append('smoking', smoking);
+  //   formData.append('drinking', drinking);
+  //   formData.append('place', place);
+    
+  //   if (location) {
+  //     formData.append('location', JSON.stringify({
+  //       type: 'Point',
+  //       coordinates: [location.longitude, location.latitude]
+  //     }));
+  //   } else {
+  //     toast.error("Location is required.");
+  //     return;
+  //   }
+    
+  //   formData.append('caste', caste);
+  //   try {
+  //     await createUserInfo(formData).unwrap();
+  //     toast.success("User information successfully submitted");
+  //     localStorage.removeItem('emailId');
+  //     localStorage.removeItem('userId');
+  //     navigate('/login');
+  //   } catch (err:unknown) {
+  //     const error = err as IApiError
+  //     toast.error(error?.data?.message || "Failed to submit user information");
+  //   }
+  // };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-100 via-rose-100 to-pink-100 py-12 px-4 sm:px-6 lg:px-8">

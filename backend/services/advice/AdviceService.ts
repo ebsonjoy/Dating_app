@@ -2,7 +2,8 @@ import { inject,injectable } from "inversify";
 import { IAdviceService } from "../../interfaces/advice/IAdviceService";
 import { IAdviceRepository } from "../../interfaces/advice/IAdviceRepository";
 import { IAdviceCategory, IArticle } from "../../types/advice.types";
-import { deleteImageFromS3 } from "../../config/multer";
+import {s3Service} from "../../config/s3Service"
+
 
 
 
@@ -63,7 +64,7 @@ export class AdviceService implements IAdviceService {
         }
     }
 
-    async updateAdiveCategory(id: string, updateData: Partial<IAdviceCategory>,file?: Express.MulterS3.File): Promise<IAdviceCategory | null> {
+    async updateAdiveCategory(id: string, updateData: Partial<IAdviceCategory>,imageUrl?:string): Promise<IAdviceCategory | null> {
         try {
 
             const currentCategory = await this.AdviceRepository.getSingleAdviceCategory(id);
@@ -79,9 +80,9 @@ export class AdviceService implements IAdviceService {
                 }
             }
 
-            if (file) {
-                await deleteImageFromS3(currentCategory.image);
-                updateData.image = file.location;
+            if (imageUrl) {
+                await s3Service.deleteImageFromS3Bucket(currentCategory.image);
+                updateData.image = imageUrl
             } else {
                 updateData.image = currentCategory.image;
             }
@@ -153,7 +154,7 @@ export class AdviceService implements IAdviceService {
       async updateArticle(
         articleId: string,
         updateData: Partial<IArticle>,
-        file?: Express.MulterS3.File
+        imageUrl?:string
       ): Promise<IArticle | null> {
         try {
           const currentArticle = await this.AdviceRepository.getSingleArtilce(articleId);
@@ -168,9 +169,9 @@ export class AdviceService implements IAdviceService {
            
           }
     
-          if (file) {
-            await deleteImageFromS3(currentArticle?.image || '');
-            updateData.image = file.location;
+          if (imageUrl) {
+            await s3Service.deleteImageFromS3Bucket(currentArticle?.image || '');
+            updateData.image = imageUrl
           }else{
             updateData.image = currentArticle?.image
           }
@@ -187,7 +188,7 @@ export class AdviceService implements IAdviceService {
           const article = await this.AdviceRepository.deleteArticle(articleId);
           if (!article) throw new Error('Article not found');
           if (article.image) {
-            await deleteImageFromS3(article.image);
+            await s3Service.deleteImageFromS3Bucket(article.image);
           }
           return article;
         } catch (error) {

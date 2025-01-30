@@ -90,11 +90,25 @@ export const usersApiSlice = apiSlice.injectEndpoints({
         body: data,
       }),
     }),
-    createUserInfo: builder.mutation<void, FormData>({      
-      query: (data) => ({
+    // createUserInfo: builder.mutation<void, FormData>({      
+    //   query: (data) => ({
+    //     url: `${USERS_URL}/userInfoSignUp`,
+    //     method: "POST",
+    //     body: data,
+    //   }),
+    // }),
+    createUserInfo: builder.mutation({
+      query: (userData) => ({
         url: `${USERS_URL}/userInfoSignUp`,
-        method: "POST",
-        body: data,
+        method: 'POST',
+        body: userData
+      })
+    }),
+    getPresignedUrls: builder.mutation({
+      query: (data) => ({
+        url: `${USERS_URL}/getSignedUrls`,
+        method: 'POST',
+        body: data
       }),
     }),
     getUsersProfiles: builder.query<IUserProfile[], string>({  
@@ -315,5 +329,6 @@ export const {
   useUserUnblockedMutation,
   useUserBlockedListQuery,
   useUserCreateReportMutation,
+  useGetPresignedUrlsMutation,
 
 } = usersApiSlice;

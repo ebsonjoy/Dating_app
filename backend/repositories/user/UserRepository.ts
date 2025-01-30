@@ -259,7 +259,10 @@ export class UserRepository extends BaseRepository<IUser>  implements IUserRepos
             ]
         })
     }
-
+    async findLastPayment(): Promise<IPaymentCreate | null> {
+        return await this.PaymentModel.findOne().sort({ paymentId: -1 });
+    }
+    
     async createPayment(paymentData: IPaymentCreate): Promise<void | null> {
          await this.PaymentModel.create(paymentData)
     }

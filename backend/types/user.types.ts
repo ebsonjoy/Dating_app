@@ -5,6 +5,7 @@ export interface IUser extends Document {
     name: string;
     email: string;
     password: string;
+    role:'user'
     resetPassword: {
         token: string | null;
         expDate: Date | null;

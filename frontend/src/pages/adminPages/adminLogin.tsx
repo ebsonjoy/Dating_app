@@ -32,6 +32,7 @@ const AdminLogin: React.FC = () => {
 
     try {
       const adminInfo = await loginAdmin({ email, password }).unwrap(); 
+      console.log(adminInfo)
       dispatch(setAdminCredentials({ ...adminInfo })); 
       navigate('/admin/Dashboard'); 
     } catch (err:unknown) {
