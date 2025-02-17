@@ -58,6 +58,8 @@ router.get('/fetchArtilceByCategory/:categoryId',adminProtect,checkRole(['admin'
 //Reports
 router.get('/userReportWithMessages',adminProtect,checkRole(['admin']),adminControllerr.getUserReports)
 router.put('/updateReportStatus/:reportId',adminProtect,checkRole(['admin']),adminControllerr.updateReportStatus)
+router.post('/createPlanFeature',adminProtect,adminControllerr.createPlanFeature)
+router.get('/fetchPlanFeatures',adminProtect,adminControllerr.getPlanFeatures)
 
 
 

@@ -49,6 +49,10 @@ const userSchema = new mongoose.Schema<IUser>(
                 type: Date,
                 default: null,
             },
+            features:{
+                type:[String],
+                default:[]
+            }
         },
         status: {
             type: Boolean,

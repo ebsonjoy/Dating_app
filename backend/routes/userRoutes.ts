@@ -6,6 +6,7 @@ import validateSignup from "../validation/userValidation";
 import multer from "multer";
 import { checkSubscription } from "../middleware/checkSubscription ";
 import { checkRole } from '../middleware/roleMiddleware';
+import {checkFeatureAccess} from '../middleware/checkFeatureAccess'
 
 
 const upload = multer();
@@ -46,17 +47,17 @@ router.put('/cancelUserPlan/:userId',userProtect,checkRole(['user']),userControl
 
 //LIKE
 router.post('/handleHomeLikes',userProtect,checkRole(['user']),checkSubscription,userController.handleHomeLikes)
-router.get("/sentLikes/:userId",userProtect,checkRole(['user']),userController.getSentLikesProfiles);
-router.get("/receivedLikes/:userId",userProtect,checkRole(['user']), userController.getReceivedLikesProfiles);
+router.get("/sentLikes/:userId",userProtect,checkRole(['user']),checkFeatureAccess('VIEW_SENT_LIKES'),userController.getSentLikesProfiles);
+router.get("/receivedLikes/:userId",userProtect,checkRole(['user']),checkFeatureAccess('VIEW_SENT_LIKES'),userController.getReceivedLikesProfiles);
 router.get('/getReceivedLikesCount/:userId',userProtect,checkRole(['user']),userController.getReceivedLikesCount)
 
 //MATCH
 router.get('/getMathProfiles/:userId',userProtect,checkRole(['user']),userController.getMathProfiles)
 
 //ADVICE
-router.get('/getAdviceCategory',userProtect,checkRole(['user']),userController.getCategories)
-router.get('/getArticleByCategoryId/:categoryId',userProtect,checkRole(['user']),userController.getArticleByCategoryId)
-router.get('/getArticleById/:articleId',userProtect,checkRole(['user']),userController.getArticleById)
+router.get('/getAdviceCategory',userProtect,checkRole(['user']),checkFeatureAccess('READ_DATING_ADVICE'),userController.getCategories)
+router.get('/getArticleByCategoryId/:categoryId',userProtect,checkRole(['user']),checkFeatureAccess('READ_DATING_ADVICE'),userController.getArticleByCategoryId)
+router.get('/getArticleById/:articleId',userProtect,checkRole(['user']),checkFeatureAccess('READ_DATING_ADVICE'),userController.getArticleById)
 
 //NOTIFICATION
 router.post('/createNotification',userProtect,checkRole(['user']),userController.createNotification)
@@ -70,6 +71,7 @@ router.get('/userBlockedList/:userId',userProtect,checkRole(['user']),userContro
 
 //REPORT
 router.post('/createReport',userProtect,checkRole(['user']),userController.createReport)
+router.get('/getUserPlanFeatures',userProtect,userController.getUserPlanFeatures)
 
 
 

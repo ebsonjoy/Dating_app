@@ -10,14 +10,8 @@ import { toast } from 'react-toastify';
 import { useSocketContext } from "../../context/SocketContext";
 import { IApiError } from '../../types/error.types';
 import { ILikeProfiles } from '../../types/like.types';
+import ErrorDisplay from '../../components/user/errorDisplay';
 
-// interface Profile {
-//   id: string;
-//   name: string;
-//   age: string;
-//   place: string;
-//   image: string[];
-// }
 
 const LikesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -157,7 +151,8 @@ const LikesPage: React.FC = () => {
   );
 
   if (isLoading) return <SkeletonLoader />;
-  if (error) return <div>Failed to load like details.</div>;
+  if (error) return <ErrorDisplay error={error as IApiError}/>
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">

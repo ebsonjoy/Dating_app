@@ -3,6 +3,8 @@ import Navbar from '../../components/user/Navbar';
 import { useGetAdviceCategoriesQuery, useGetArticlesByCategoryQuery } from "../../slices/apiUserSlice";
 import { IAdviceCategory, IArticle } from "../../types/advice.types";
 import { ChevronLeft, ArrowLeft, BookOpen, Search, Sparkles, BookmarkIcon, LayersIcon } from 'lucide-react';
+import ErrorDisplay from '../../components/user/errorDisplay';
+import { IApiError } from '../../types/error.types';
 
 
 const AdvicePage: React.FC = () => {
@@ -10,38 +12,41 @@ const AdvicePage: React.FC = () => {
   const [selectedArticle, setSelectedArticle] = useState<IArticle | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
 
-  // Fetch categories
-  const { data: categories, isLoading: loadingCategories } = useGetAdviceCategoriesQuery();
+  const { data: categories, isLoading: loadingCategories,error } = useGetAdviceCategoriesQuery();
+  console.log('fff',error)
 
-  // Fetch articles for the selected category
-  const { data: articles, isLoading: loadingArticles } = useGetArticlesByCategoryQuery(
+  const { data: articles, isLoading: loadingArticles,error:isCategoryError } = useGetArticlesByCategoryQuery(
     selectedCategory!,
     { skip: !selectedCategory }
   );
 
-  // Handle category click
   const handleCategoryClick = (categoryId: string) => {
     setSelectedCategory(categoryId);
     setSelectedArticle(null);
   };
 
-  // Handle article click
   const handleArticleClick = (article: IArticle) => {
     setSelectedArticle(article);
   };
 
-  // Handle back to categories
   const handleBackToCategories = () => {
     setSelectedCategory(null);
     setSelectedArticle(null);
   };
 
-  // Handle back to articles
   const handleBackToArticles = () => {
     setSelectedArticle(null);
   };
 
-  // Render loading state
+  
+
+  if (error) {
+    return <ErrorDisplay error={error as IApiError} />;
+  } else if (isCategoryError) {
+    return <ErrorDisplay error={isCategoryError as IApiError} />;
+  }
+
+
   if (loadingCategories) {
     return (
       <div className="flex flex-col h-screen bg-gradient-to-b from-rose-50 to-pink-50 overflow-hidden">
@@ -61,7 +66,6 @@ const AdvicePage: React.FC = () => {
     );
   }
 
-  // Render full article view
   if (selectedArticle) {
     return (
       <div className="flex flex-col h-screen bg-gradient-to-b from-rose-50 to-pink-50 overflow-hidden">
@@ -103,11 +107,12 @@ const AdvicePage: React.FC = () => {
     );
   }
 
-  // Render articles for a selected category
   if (selectedCategory) {
     const filteredArticles = articles?.filter(article => 
       article.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+
 
     return (
       <div className="flex flex-col h-screen bg-gradient-to-br from-indigo-50 to-purple-100 overflow-hidden">

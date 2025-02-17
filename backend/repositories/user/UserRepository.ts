@@ -8,10 +8,11 @@ import Plan from "../../models/PlanModel";
 import Payment from "../../models/PaymentModel";
 import Notification from "../../models/Notifications";
 import Report from '../../models/reportModel'
+import PlanFeatures from '../../models/PlanFeatures'
 import { IUserRepository } from "../../interfaces/user/IUserRepository";
 import { IUser,IBlockedUserResponse,IUnblockedUserResponse } from "../../types/user.types";
 import { IUserInfo, ILocation } from "../../types/userInfo.types";
-import { IPlan, IPlanDocument } from "../../types/plan.types";
+import { IFetchPlanFeatures, IPlan, IPlanDocument } from "../../types/plan.types";
 import { ILikeData,ILike} from "../../types/like.types";
 import { IMatch } from "../../types/match.types";
 import {IPaymentCreate } from "../../types/payment.types";
@@ -39,9 +40,7 @@ export class UserRepository extends BaseRepository<IUser>  implements IUserRepos
         private readonly ArticleModel = Article;
         private readonly NotificationModel = Notification;
         private readonly reportModel = Report;
-       
-    
-
+        private readonly PlanFeaturesModel = PlanFeatures;
     constructor() {
         super(User);
       }
@@ -345,6 +344,22 @@ export class UserRepository extends BaseRepository<IUser>  implements IUserRepos
         return await report.save();
     }
 
-  
+  async getUserPlanFeatures(): Promise<IFetchPlanFeatures[] | null> {
+      try{
+        return await this.PlanFeaturesModel.find()
+      }catch(error){
+        console.error("Error fetch feature:", error)
+        return null
+      }
+  }
+
+  async fetchUserPlanFeatureById(featureId: string): Promise<IFetchPlanFeatures | null> {
+      try{
+        return await this.PlanFeaturesModel.findById(featureId)
+      }catch(error){
+        console.error('Error fetch feature',error)
+        return null
+      }
+  }
 }
 

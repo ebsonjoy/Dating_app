@@ -29,3 +29,10 @@ export interface IPlansData{
     subscription: IUserSubscriptionResponse;
     plan: IPlansData;
   }
+
+  export interface IFetchPlanFeatures {
+    _id:string;
+    code: string;
+    name: string;
+    description?: string;
+  }

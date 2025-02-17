@@ -2,20 +2,34 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../../components/admin/adminNavBar';
 import Header from '../../components/admin/adminHeader';
 import { useParams } from 'react-router-dom';
-import { useGetOnePlanQuery, useUpdatePlanMutation } from '../../slices/adminApiSlice';
+import { useGetOnePlanQuery, useUpdatePlanMutation, useFetchPlanFeaturesQuery } from '../../slices/adminApiSlice';
 import { toast } from 'react-toastify'; 
 import { useNavigate } from 'react-router-dom';
 import { IApiError } from '../../types/error.types';
 import { RootState } from '../../store';
 import { useSelector } from 'react-redux';
+import { FaPlus, FaTimes } from "react-icons/fa";
+import { IFetchPlanFeatures } from '../../types/subscription.types';
+
+interface IFormData {
+  planName: string;
+  duration: string;
+  actualPrice: string;
+  offerPercentage: string;
+  offerPrice: string;
+  offerName: string;
+  features: string[];
+}
+
+type FormDataFields = keyof IFormData;
 
 const EditPlan: React.FC = () => {
   const { planId } = useParams<{ planId: string }>(); 
   const navigate = useNavigate();
   const { adminInfo } = useSelector((state: RootState) => state.adminAuth);
 
-  const { data: plan, isLoading } = useGetOnePlanQuery(planId!,{skip:!planId});
-
+  const { data: plan, isLoading } = useGetOnePlanQuery(planId!, {skip: !planId});
+  const { data: planFeatures } = useFetchPlanFeaturesQuery();
   const [updatePlan] = useUpdatePlanMutation();
 
   const [formData, setFormData] = useState({
@@ -38,14 +52,18 @@ const EditPlan: React.FC = () => {
     features: '',
   });
 
-    useEffect(() => {
-        if (!adminInfo) {
-          navigate('/admin/login');
-        }
-      }, [navigate, adminInfo]);
+  // Feature selection state
+  const [selectedFeatures, setSelectedFeatures] = useState<IFetchPlanFeatures[]>([]);
+  const [showOptions, setShowOptions] = useState<boolean[]>([]);
 
   useEffect(() => {
-    if (plan) {
+    if (!adminInfo) {
+      navigate('/admin/login');
+    }
+  }, [navigate, adminInfo]);
+
+  useEffect(() => {
+    if (plan && planFeatures) {
       setFormData({
         planName: plan.planName || '',
         duration: plan.duration || '',
@@ -55,41 +73,103 @@ const EditPlan: React.FC = () => {
         offerName: plan.offerName || '',
         features: plan.features || [],
       });
-      // Initialize currentFeatures with plan features
-      if (plan.features && plan.features.length > 0) {
-        const features = [...plan.features];
-        while (features.length < 3) {
-          features.push('');
-        }
-        setCurrentFeatures(features);
-      }
-    }
-  }, [plan]);
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [currentFeatures, setCurrentFeatures] = useState<string[]>(['', '', '']);
+      // Set selected features based on plan's features
+      const selectedPlanFeatures = planFeatures.filter(feature => 
+        plan.features.includes(feature._id)
+      );
+      setSelectedFeatures(selectedPlanFeatures);
+    }
+  }, [plan, planFeatures]);
+
+  const addFeature = () => {
+    setShowOptions([...showOptions, true]);
+  };
+
+  const selectFeature = (feature: IFetchPlanFeatures, index: number) => {
+    if (!selectedFeatures.some((f) => f._id === feature._id)) {
+      const updatedSelected = [...selectedFeatures, feature];
+      setSelectedFeatures(updatedSelected);
+
+      // Update formData.features with feature IDs
+      setFormData(prev => ({
+        ...prev,
+        features: updatedSelected.map(f => f._id)
+      }));
+
+      const updatedShowOptions = [...showOptions];
+      updatedShowOptions[index] = false;
+      setShowOptions(updatedShowOptions);
+    }
+  };
+
+  const removeFeature = (index: number) => {
+    const updatedSelected = selectedFeatures.filter((_, i) => i !== index);
+    setSelectedFeatures(updatedSelected);
+    
+    // Update formData.features with remaining feature IDs
+    setFormData(prev => ({
+      ...prev,
+      features: updatedSelected.map(f => f._id)
+    }));
+    
+    setShowOptions(showOptions.slice(0, -1));
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
     if (name === 'durationValue' || name === 'durationType') {
-      const durationValue = name === 'durationValue' ? value : formData.duration.split(' ')[0];
-      const durationType = name === 'durationType' ? value : formData.duration.split(' ')[1];
-      
-      setFormData(prev => ({
-        ...prev,
-        duration: `${durationValue} ${durationType}`.trim()
-      }));
-    } else {
-      setFormData(prev => ({
+        const durationValue = name === 'durationValue' ? value : formData.duration.split(' ')[0];
+        const durationType = name === 'durationType' ? value : formData.duration.split(' ')[1];
+        
+        setFormData(prev => ({
+            ...prev,
+            duration: `${durationValue} ${durationType}`.trim()
+        }));
+        return;
+    }
+
+    // Type guard to ensure name is a valid field
+    const isValidField = (fieldName: string): fieldName is FormDataFields => {
+        return [
+            'planName',
+            'duration',
+            'offerPercentage',
+            'actualPrice',
+            'offerPrice',
+            'offerName',
+            'features'
+        ].includes(fieldName);
+    };
+
+    if (!isValidField(name)) {
+        return;
+    }
+
+    setFormData(prev => ({
         ...prev,
         [name]: value.trim()
-      }));
+    }));
+
+    // Calculate offer price when actual price or offer percentage changes
+    if (name === 'actualPrice' || name === 'offerPercentage') {
+        const actualPrice = name === 'actualPrice' ? Number(value) : Number(formData.actualPrice);
+        const offerPercentage = name === 'offerPercentage' ? Number(value) : Number(formData.offerPercentage);
+
+        if (!isNaN(actualPrice) && !isNaN(offerPercentage)) {
+            const discount = (actualPrice * offerPercentage) / 100;
+            const calculatedOfferPrice = actualPrice - discount;
+            
+            setFormData(prev => ({
+                ...prev,
+                offerPrice: calculatedOfferPrice.toFixed(2)
+            }));
+        }
     }
     
     setErrors(prev => ({ ...prev, [name]: '' }));
-  };
-
+};
   const validateFields = () => {
     const newErrors = {
       planName: '',
@@ -145,7 +225,7 @@ const EditPlan: React.FC = () => {
     else if (!/^[A-Za-z\s]+$/.test(formData.offerName)) newErrors.offerName = 'Offer Name must contain only letters.';
 
     // Validate Features
-    if (formData.features.length < 3) {
+    if (formData.features.length < 1) {
       newErrors.features = 'You must add at least 3 features.';
     }
 
@@ -158,30 +238,24 @@ const EditPlan: React.FC = () => {
     if (!validateFields()) return;
 
     try {
-      await updatePlan({ planId: String(planId), data: {
-        ...formData,
-        status: true,
-        actualPrice: Number(formData.actualPrice) || 0,
-        offerPercentage: Number(formData.offerPercentage) || 0,
-        offerPrice: Number(formData.offerPrice) || 0,
-      }, }).unwrap();
+      await updatePlan({
+        planId: String(planId),
+        data: {
+          ...formData,
+          status: true,
+          actualPrice: Number(formData.actualPrice) || 0,
+          offerPercentage: Number(formData.offerPercentage) || 0,
+          offerPrice: Number(formData.offerPrice) || 0,
+        },
+      }).unwrap();
+      
       toast.success('Plan updated successfully');
-      setFormData({
-        planName: '',
-        duration: '',
-        offerPercentage: '',
-        actualPrice: '',
-        offerPrice: '',
-        offerName: '',
-        features: [],
-      });
       navigate('/admin/subscriptionPlans?refresh=true');
     } catch (err: unknown) {
-      const error = err as IApiError
-      if(error.status){
-        navigate('admin/login')
+      const error = err as IApiError;
+      if (error.status === 401) {
+        navigate('/admin/login');
       }
-      console.error('Failed to update plan:', error);
       if (error?.data?.errors && Array.isArray(error.data.errors)) {
         error.data.errors.forEach((errMsg: string) => {
           toast.error(errMsg, { autoClose: 4000 });
@@ -192,37 +266,9 @@ const EditPlan: React.FC = () => {
     }
   };
 
-  const openModal = () => {
-    // If there are no features yet, initialize with empty strings
-    if (formData.features.length === 0) {
-      setCurrentFeatures(['', '', '']);
-    } else {
-      // Use existing features, padded with empty strings if needed
-      const features = [...formData.features];
-      while (features.length < 3) {
-        features.push('');
-      }
-      setCurrentFeatures(features);
-    }
-    setModalOpen(true);
-  };
-
-  const closeModal = () => setModalOpen(false);
-
-  const saveFeatures = () => {
-    const nonEmptyFeatures = currentFeatures.filter(f => f.trim() !== '');
-    if (nonEmptyFeatures.length < 3) {
-      toast.error('Please add at least 3 features.');
-      return;
-    }
-    setFormData(prev => ({ ...prev, features: nonEmptyFeatures }));
-    closeModal();
-  };
-
   if (isLoading) {
     return <p>Loading...</p>;
   }
-
 
   return (
     <div className="flex flex-col lg:flex-row h-screen">
@@ -316,6 +362,7 @@ const EditPlan: React.FC = () => {
                     name="offerPrice"
                     value={formData.offerPrice}
                     onChange={handleChange}
+                    readOnly
                     className="w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none"
                   />
                   {errors.offerPrice && <p className="text-red-500 text-sm mt-1">{errors.offerPrice}</p>}
@@ -336,21 +383,59 @@ const EditPlan: React.FC = () => {
                 </div>
               </div>
 
-              <div className="sm:col-span-2 mt-4">
-                <label className="block text-white text-sm font-medium mb-2">Features</label>
+             {/* Features Section */}
+             <div className="sm:col-span-2 p-4 border rounded-lg">
+                <h2 className="text-xl text-white font-semibold mb-2">Add Features</h2>
+                
+                {selectedFeatures.map((feature, index) => (
+                  <div key={feature._id} className="flex items-center gap-2 mb-2">
+                    <span className="text-blue-700">{feature.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeFeature(index)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <FaTimes />
+                    </button>
+                  </div>
+                ))}
+
+                {showOptions.map((isVisible, index) => 
+                  isVisible && (
+                    <div key={index} className="relative mb-2">
+                      <select
+                        onChange={(e) => {
+                          const selected = planFeatures?.find(
+                            (feature) => feature.code === e.target.value
+                          );
+                          if (selected) selectFeature(selected, index);
+                        }}
+                        className="border p-2 w-full rounded-md bg-gray-800 text-white"
+                      >
+                        <option value="">Select a feature</option>
+                        {planFeatures?.filter(
+                          (f) => !selectedFeatures.some((s) => s._id === f._id)
+                        ).map((feature) => (
+                          <option key={feature._id} value={feature.code}>
+                            {feature.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )
+                )}
+
                 <button
                   type="button"
-                  onClick={openModal}
-                  className="w-full py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700"
+                  onClick={addFeature}
+                  className="flex items-center gap-1 text-blue-500 hover:text-blue-700 mt-2"
                 >
-                  Add Features
+                  <FaPlus />
+                  Add Feature
                 </button>
-                {errors.features && <p className="text-red-500 text-sm mt-1">{errors.features}</p>}
-                <ul className="list-disc pl-5 mt-2 text-white">
-                  {formData.features.map((feature, idx) => (
-                    <li key={idx}>{feature}</li>
-                  ))}
-                </ul>
+                {errors.features && (
+                  <p className="text-red-500 text-sm mt-1">{errors.features}</p>
+                )}
               </div>
 
               <div className="mt-6 text-right">
@@ -366,42 +451,7 @@ const EditPlan: React.FC = () => {
         </div>
       </div>
 
-      {modalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg w-96">
-            <h2 className="text-lg font-bold mb-4">Add Features</h2>
-            {currentFeatures.map((feature, idx) => (
-              <div key={idx} className="mb-2">
-                <input
-                  type="text"
-                  value={feature}
-                  onChange={(e) => {
-                    const updatedFeatures = [...currentFeatures];
-                    updatedFeatures[idx] = e.target.value;
-                    setCurrentFeatures(updatedFeatures);
-                  }}
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                  placeholder={`Feature ${idx + 1}`}
-                />
-              </div>
-            ))}
-            <button
-              type="button"
-              onClick={saveFeatures}
-              className="w-full py-2 mt-4 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              Save Features
-            </button>
-            <button
-              type="button"
-              onClick={closeModal}
-              className="w-full py-2 mt-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
+     
     </div>
   );
 };

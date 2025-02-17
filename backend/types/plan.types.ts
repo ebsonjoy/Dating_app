@@ -12,3 +12,16 @@ export interface IPlan{
   }
 
   export interface IPlanDocument extends IPlan, Document {}
+
+  export interface IPlanFeatures {
+    code: string;
+    name: string;
+    description?: string;
+  }
+
+  export interface IFetchPlanFeatures {
+    _id:string;
+    code: string;
+    name: string;
+    description?: string;
+  }

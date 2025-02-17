@@ -2,7 +2,7 @@ import { IUser,IBlockedUserResponse,IUnblockedUserResponse } from "../../types/u
 import { IUserInfo } from "../../types/userInfo.types";
 import { IUserProfile } from "../../types/user.types";
 import { ISubscriptionDetails } from "../../types/user.types";
-import { IPlan, IPlanDocument } from "../../types/plan.types";
+import { IFetchPlanFeatures, IPlan, IPlanDocument } from "../../types/plan.types";
 import { ILikeData,ILikeProfile } from "../../types/like.types";
 import { IAdviceCategory, IArticle } from "../../types/advice.types";
 import { INotification } from "../../types/notification.types";
@@ -43,5 +43,6 @@ export interface IUserService {
 
     userBlockedList(userId:string):Promise<IBlockedUserResponse | null>
     createReport(reportData: IReport): Promise<IReport>;
+    getUserPlanFeatures():Promise <IFetchPlanFeatures[] | null>
 
 }

@@ -3,6 +3,7 @@ import { IUser } from "../../types/user.types";
 import { IPayment } from "../../types/payment.types";
 import { IReport } from "../../types/report.types";
 import { IMessage } from "../../types/message.types";
+import { IPlanFeatures,IFetchPlanFeatures } from "../../types/plan.types";
 
 export interface IAdminRepository{
     authenticate(email: string): Promise<IAdmin | null>;
@@ -20,4 +21,6 @@ export interface IAdminRepository{
     getPaymentGrowthData(timeRange: 'day'|'month'|'year'): Promise<{ date: Date; amount: number }[]>;
     getAllReportsWithMessages():Promise<(IReport & { messages: IMessage[] })[]>
     updateReportStatus(reportId: string, status: 'Pending' | 'Reviewed' | 'Resolved'): Promise<IReport | null>;
+    createPlanFeature(features:IPlanFeatures):Promise<IPlanFeatures | null>
+    getPlanFeatures():Promise <IFetchPlanFeatures[] | null>
 }

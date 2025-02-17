@@ -185,4 +185,32 @@ export class AdminController{
              return
         }
     })
+
+    createPlanFeature = asyncHandler(async (req: Request, res: Response) => {
+      const { feature } = req.body;
+  
+      if (!feature || !feature.code || !feature.name) {
+           res.status(400).json({ message: "Feature code and name are required" });
+           return
+      }
+  
+      const newFeature = await this.adminService.createPlanFeature(feature);
+  
+      if (!newFeature) {
+          res.status(400).json({ message: "Invalid feature" });
+          return
+      }
+  
+      res.status(201).json({ message: "New Plan Feature is created", data: newFeature });
+  });
+
+  getPlanFeatures = asyncHandler(async(req:Request, res:Response)=>{
+    const PlanFeatures = await this.adminService.getPlanFeatures()
+    console.log('PlanFeatures',PlanFeatures)
+    if(!PlanFeatures){
+      res.status(400).json({ message: "No features" });
+    }
+    res.status(200).json(PlanFeatures)
+  })
+  
 }

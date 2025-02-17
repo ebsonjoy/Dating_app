@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose,{ Schema } from "mongoose";
 import { IPlanDocument } from '../types/plan.types'
 
 const PlanSchema = new mongoose.Schema<IPlanDocument>(
@@ -10,7 +10,7 @@ const PlanSchema = new mongoose.Schema<IPlanDocument>(
     offerPrice: { type: Number, required: true },
     offerName: { type: String, required: true },
     status: { type: Boolean, default: true },
-    features: { type: [String], required: true },
+    features: [{ type:Schema.Types.ObjectId, ref:'PlanFeatures', required: true }],
   },
   { timestamps: true }
 );

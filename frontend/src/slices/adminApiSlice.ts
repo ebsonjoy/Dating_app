@@ -1,4 +1,5 @@
 import { ApiResponse, IUpdateReportStatus } from "../types/report.types";
+import { IFetchPlanFeatures } from "../types/subscription.types";
 import { apiSlice } from "./apiSlice";
 const ADMIN_URL = "/api/admin";
 // const PLAN_URL = "/api/plans"
@@ -347,6 +348,13 @@ export const adminApiSlice = apiSlice.injectEndpoints({
         body: {status }, 
       }),
     }),
+
+    fetchPlanFeatures : builder.query<IFetchPlanFeatures[],void>({
+      query: ()=>({
+        url: `${ADMIN_URL}/fetchPlanFeatures`,
+        method : 'GET',
+      }),
+    }),
     
 
   }),
@@ -383,5 +391,7 @@ export const {
   useGetPaymentChartDataQuery,
   useGetUserReportsQuery,
   useUpdateReportStatusMutation,
+
+  useFetchPlanFeaturesQuery,
 
 } = adminApiSlice;

@@ -11,7 +11,7 @@ import {
 import { ICallHistory } from "../types/videoCall.types";
 import { ILoginData,IforgotPasswordData,IresetPasswordData,IOtp,IResendOtpData,IGoogleLogin,ILogin } from "../types/auth.types";
 import { IBlockedUser, IBlockedUserResponse, IRegisterData,IRegisterResponse,IUpdateUserData,IUserProfile,IUserProfileResponse } from "../types/user.types";
-import { IPlansData,IpaymentData,IUserPlanDetails} from "../types/subscription.types";
+import { IPlansData,IpaymentData,IUserPlanDetails, IFetchPlanFeatures} from "../types/subscription.types";
 import { ILike,ILikeProfiles,ILikesCount,ILikeResponse, IMatchProfile } from "../types/like.types";
 import { IAdviceCategory,IArticle,INotification } from "../types/article.types";
 import { IReport } from "../types/report.types";
@@ -283,7 +283,9 @@ export const usersApiSlice = apiSlice.injectEndpoints({
         body: data,
       }),
     }),
-    
+    getUserPlanFeatures: builder.query<IFetchPlanFeatures[], void>({
+      query: () =>  `${USERS_URL}/getUserPlanFeatures`,
+    }),
 
   }),
 });
@@ -330,5 +332,6 @@ export const {
   useUserBlockedListQuery,
   useUserCreateReportMutation,
   useGetPresignedUrlsMutation,
+  useGetUserPlanFeaturesQuery,
 
 } = usersApiSlice;

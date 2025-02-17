@@ -2,6 +2,7 @@ import { IAdmin } from "../../types/admin.types";
 import { IDashboardMasterData } from "../../types/dashboard.types";
 import { IMessage } from "../../types/message.types";
 import { IPayment } from "../../types/payment.types";
+import { IFetchPlanFeatures, IPlanFeatures } from "../../types/plan.types";
 import { IReport } from "../../types/report.types";
 import { IUser } from "../../types/user.types";
 export interface IAdminService {
@@ -18,4 +19,7 @@ export interface IAdminService {
     ):Promise<{totalPayments:number;paymentGrowthData:{ date: Date; amount: number }[]}>
     getReportsWithMessages():Promise<(IReport & { messages: IMessage[] })[]>
     updateReportStatus(reportId: string, status: 'Pending' | 'Reviewed' | 'Resolved'): Promise<IReport | null>;
+    createPlanFeature(feature:IPlanFeatures):Promise<IPlanFeatures | null>
+    getPlanFeatures():Promise <IFetchPlanFeatures[] | null>
+    
 }

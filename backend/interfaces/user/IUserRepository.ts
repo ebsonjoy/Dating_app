@@ -1,7 +1,7 @@
 import { IUser,IBlockedUserResponse,IUnblockedUserResponse } from "../../types/user.types";
 import { IUserInfo } from "../../types/userInfo.types";
 import { UserInfoUpdate } from "../../types/userInfo.types";
-import { IPlan, IPlanDocument } from "../../types/plan.types";
+import { IFetchPlanFeatures, IPlan, IPlanDocument } from "../../types/plan.types";
 import { ILike, ILikeData } from "../../types/like.types";
 import {IMatch} from '../../types/match.types'
 import { IPaymentCreate } from "../../types/payment.types";
@@ -48,5 +48,7 @@ export interface IUserRepository {
     userUnblocked(userId:string,blockedUserId:string):Promise<IUnblockedUserResponse | null>
     createReport(reportData: IReport): Promise<IReport>;
     findLastPayment():Promise<IPaymentCreate | null>
+    getUserPlanFeatures():Promise <IFetchPlanFeatures[] | null>
+    fetchUserPlanFeatureById(featureId:string):Promise<IFetchPlanFeatures | null>
 
 }

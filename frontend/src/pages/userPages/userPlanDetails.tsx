@@ -2,11 +2,12 @@ import React, { useState, useEffect } from "react";
 import { FaCheckCircle } from "react-icons/fa";
 import { useNavigate, useSearchParams } from "react-router-dom"
 import Navbar from "../../components/user/Navbar";
-import { useGetUserPlanDetailsQuery, useCancelSubscriptionMutation } from "../../slices/apiUserSlice";
+import { useGetUserPlanDetailsQuery, useCancelSubscriptionMutation, useGetUserPlanFeaturesQuery } from "../../slices/apiUserSlice";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
 import { toast } from 'react-toastify';
 import SkeletonLoader from '../../components/skeletonLoader';
+import { IFetchPlanFeatures } from '../../types/subscription.types';
 
 const SubscriptionPage: React.FC = () => {
   const { userInfo } = useSelector((state: RootState) => state.auth);
@@ -14,25 +15,30 @@ const SubscriptionPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // Modal and Cancellation State
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [cancellationReason, setCancellationReason] = useState('');
+  
+  const { data: planFeatures } = useGetUserPlanFeaturesQuery();
 
-  // Queries and Mutations
   const {
     data: userPlanDetals,
     isLoading,
     error,
     refetch,
-  } = useGetUserPlanDetailsQuery(userId!,{skip:!userId});
+  } = useGetUserPlanDetailsQuery(userId!, { skip: !userId });
+
   const [cancelPlan, { isLoading: isCanceling }] = useCancelSubscriptionMutation();
 
-  // Refresh on param change
   useEffect(() => {
     if (searchParams.get('refresh')) {
       refetch();
     }
   }, [searchParams, refetch]);
+
+  // Helper function to get feature details
+  const getFeatureDetails = (featureId: string): IFetchPlanFeatures | undefined => {
+    return planFeatures?.find((feature: IFetchPlanFeatures) => feature._id === featureId);
+  };
 
   // Handle Modal Operations
   const handleOpenCancelModal = () => {
@@ -86,7 +92,7 @@ const SubscriptionPage: React.FC = () => {
   const price = userPlanDetals?.subscription?.planId?.offerPrice
     ? `₹${userPlanDetals.subscription.planId.offerPrice}`
     : "N/A";
-  const features = userPlanDetals?.subscription?.planId?.features || [];
+  const featureIds = userPlanDetals?.subscription?.planId?.features || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-rose-50 to-pink-50 flex flex-col items-center">
@@ -161,16 +167,19 @@ const SubscriptionPage: React.FC = () => {
                   Included Features
                 </h3>
                 <ul className="space-y-3 md:space-y-4">
-                  {features.length > 0 ? (
-                    features.map((feature, index) => (
-                      <li
-                        key={index}
-                        className={`flex items-center ${isExpired ? 'text-gray-400 line-through' : 'text-gray-700 hover:text-indigo-500'} text-base sm:text-lg transition duration-200`}
-                      >
-                        <FaCheckCircle className={`mr-2 sm:mr-3 transition duration-200 ${isExpired ? 'text-red-300' : 'text-purple-500 hover:text-indigo-600'}`} />
-                        <span>{feature}</span>
-                      </li>
-                    ))
+                  {featureIds.length > 0 ? (
+                    featureIds.map((featureId, index) => {
+                      const feature = getFeatureDetails(featureId);
+                      return feature ? (
+                        <li
+                          key={index}
+                          className={`flex items-center ${isExpired ? 'text-gray-400 line-through' : 'text-gray-700 hover:text-indigo-500'} text-base sm:text-lg transition duration-200`}
+                        >
+                          <FaCheckCircle className={`mr-2 sm:mr-3 transition duration-200 ${isExpired ? 'text-red-300' : 'text-purple-500 hover:text-indigo-600'}`} />
+                          <span>{feature.description}</span>
+                        </li>
+                      ) : null;
+                    })
                   ) : (
                     <li className="text-gray-500">No features available</li>
                   )}
@@ -198,7 +207,7 @@ const SubscriptionPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Cancellation Confirmation Modal */}
+      {/* Cancellation Confirmation Modal - Unchanged */}
       {showCancelModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 space-y-6">

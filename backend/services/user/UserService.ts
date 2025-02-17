@@ -10,7 +10,7 @@ import bcrypt from 'bcryptjs';
 import { calculateAge } from "../../utils/calculateAge";
 import { ISubscriptionDetails } from "../../types/user.types";
 import mongoose from "mongoose";
-import { IPlan, IPlanDocument } from "../../types/plan.types";
+import { IFetchPlanFeatures, IPlan, IPlanDocument } from "../../types/plan.types";
 import { ILikeData, ILikeProfile } from "../../types/like.types";
 import { calculateExpiryDate } from "../../utils/calculateExpDate";
 import { IAdviceCategory, IArticle } from "../../types/advice.types";
@@ -47,6 +47,20 @@ export class UserService implements IUserService {
     
         try {
             const currentPlan = await this.userRepository.findPlanById(planId);
+            if (!currentPlan) {
+                throw new Error(`Plan not found for ID: ${planId}`);
+            }
+            if (!Array.isArray(currentPlan.features)) {
+                throw new Error("Plan features are invalid or missing");
+            }
+
+            const featureCode: string[] = [];
+            for (let i = 0; i < currentPlan.features.length; i++) {
+                const feature = await this.userRepository.fetchUserPlanFeatureById(currentPlan.features[i]);
+                if (feature && feature.code) {
+                    featureCode.push(feature.code);
+                }
+            }
     
             if (currentPlan) {
                 dataToUpdate = {
@@ -56,6 +70,7 @@ export class UserService implements IUserService {
                         planExpiryDate: calculateExpiryDate(currentPlan.duration),
                         // planExpiryDate:  new Date(Date.now() + 2 * 60 * 1000),
                         planStartingDate: new Date(),
+                        features:featureCode,
                     },
                 };
             }
@@ -297,6 +312,10 @@ export class UserService implements IUserService {
             throw new Error("User not found");
         }
 
+      const PlanFeatures =  await this.userRepository.getUserPlanFeatures()
+
+      console.log('PlanFeaturesPlanFeatures',PlanFeatures)
+
         if (!user.subscription.isPremium || !user.subscription.planId) {
             return await this.userRepository.getUserPlans();
         }
@@ -306,7 +325,9 @@ export class UserService implements IUserService {
             throw new Error("Current plan not found");
         }
 
-        return await this.userRepository.getPlansAbovePrice(currentPlan.offerPrice);
+        const plans =  await this.userRepository.getPlansAbovePrice(currentPlan.offerPrice);
+        console.log('plansplans',plans)
+        return plans
 
 
           
@@ -355,6 +376,27 @@ export class UserService implements IUserService {
 
     async updateUserSubscription(userId: string, subscriptionData: ISubscriptionDetails): Promise<IUser | null> {
         try {
+            if (!subscriptionData.planId) {
+                throw new Error("Plan ID is required");
+            }
+    
+            const currentPlan = await this.userRepository.findPlanById(subscriptionData.planId.toString());
+            if (!currentPlan) {
+                throw new Error(`Plan not found for ID: ${subscriptionData.planId}`);
+            }
+    
+            if (!Array.isArray(currentPlan.features)) {
+                throw new Error("Plan features are invalid or missing");
+            }
+
+            const featureCode: string[] = [];
+
+            for (let i = 0; i < currentPlan.features.length; i++) {
+                const feature = await this.userRepository.fetchUserPlanFeatureById(currentPlan.features[i]);
+                if (feature && feature.code) {
+                    featureCode.push(feature.code);
+                }
+            }
 
             const dataToUpdate: Partial<IUser> = {
                 subscription: {
@@ -362,6 +404,7 @@ export class UserService implements IUserService {
                     planId: subscriptionData.planId ? new mongoose.Types.ObjectId(subscriptionData.planId) : null,
                     planExpiryDate: subscriptionData.planExpiryDate,
                     planStartingDate: subscriptionData.planStartingDate,
+                    features:featureCode,
                 },
             };
             const user = await this.userRepository.findById(userId);
@@ -603,6 +646,20 @@ async handleHomeLikes(likesIds: ILikeData): Promise<{ match: boolean; message: s
   async createReport(reportData: IReport): Promise<IReport> {
     return await this.userRepository.createReport(reportData);
 }
+
+async getUserPlanFeatures(): Promise<IFetchPlanFeatures[] | null> {
+    try{
+      const PlanFeatures =  await this.userRepository.getUserPlanFeatures()
+      if(!PlanFeatures){
+        return null
+      }
+      return PlanFeatures
+    }catch(error){
+      console.error("Error fetching plan features:", error);
+        throw error;
+    }
+}
+
 }
 
 

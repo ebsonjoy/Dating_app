@@ -2,13 +2,14 @@
 import React, { useState } from 'react';
 import Navbar from '../../components/user/Navbar';
 import { useGetUserPlansQuery } from '../../slices/apiUserSlice';
-import { useUpdateUserSubscriptionMutation } from '../../slices/apiUserSlice';
+import { useUpdateUserSubscriptionMutation,useGetUserPlanFeaturesQuery } from '../../slices/apiUserSlice';
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
 import SkeletonLoader from '../../components/skeletonLoader';
-import { Sparkles, Crown, Clock, Check } from 'lucide-react';
+import { Sparkles, Crown, Check } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { useNavigate } from "react-router-dom"
+import { IFetchPlanFeatures } from '../../types/subscription.types';
 // import { useParams } from 'react-router-dom';
 
 
@@ -35,27 +36,21 @@ const SubscriptionPage: React.FC = () => {
     const { userInfo } = useSelector((state: RootState) => state.auth);
     const userId = userInfo?._id;
     const { data: plans, error, isLoading } = useGetUserPlansQuery(userId!,{skip:!userId});
+    console.log('planssssssssssss',plans)
+    const {data : planFeatures} = useGetUserPlanFeaturesQuery()
+    console.log('planFeaturesplanFeatures',planFeatures)
     const [selectedSubscription, setSelectedSubscription] = useState<Subscription | null>(null);
     const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
     const [updateUserSubscription, { isLoading: isUpdating }] = useUpdateUserSubscriptionMutation();
     const navigate = useNavigate();
 
-    // Existing functionality remains the same...
+    const getFeatureDetails = (featureId: string): IFetchPlanFeatures | undefined => {
+        return planFeatures?.find((feature: IFetchPlanFeatures) => feature._id === featureId);
+    };
+
     const handleSubscriptionSelect = (subscription: Subscription) => {
         setSelectedSubscription(subscription);
     };
-
-    // const getDurationInMonths = (duration: string): number => {
-    //     const matches = duration.match(/(\d+)\s*months?/i);
-    //     return matches ? parseInt(matches[1], 10) : 0;
-    // };
-
-    // const calculateExpiryDate = (duration: string) => {
-    //     const durationInMonths = getDurationInMonths(duration);
-    //     const expiryDate = new Date();
-    //     expiryDate.setMonth(expiryDate.getMonth() + durationInMonths);
-    //     return expiryDate.toISOString();
-    // };
 
     const getDurationInDays = (duration: string): number => {
         const dayMatches = duration.match(/(\d+)\s*days?/i);
@@ -82,7 +77,7 @@ const SubscriptionPage: React.FC = () => {
     const handlePayment = (subscription: Subscription) => {
         if (!subscription) return;
         if (typeof (window as any).Razorpay !== "function") {
-            console.error("Razorpay SDK not loaded");
+            // console.error("Razorpay SDK not loaded");
             setPaymentStatus("Payment gateway is not available. Please try again later.");
             return;
         }
@@ -106,7 +101,7 @@ const SubscriptionPage: React.FC = () => {
                     data: subscriptionData,
                     userId: userId || ''
                 });
-                console.log('subvvvvvvvvvvvvvvvv',subscriptionData)
+                // console.log('subvvvvvvvvvvvvvvvv',subscriptionData)
                 if (updateResult.error) {
                     console.error('Failed to update user subscription:', updateResult.error);
                     setPaymentStatus("Failed to update subscription after payment.");
@@ -220,24 +215,15 @@ const SubscriptionPage: React.FC = () => {
                                     </div>
 
                                     {/* Features */}
-                                    <div className="space-y-4 mb-8">
-                                        <div className="flex items-center gap-2">
-                                            <Check className="w-5 h-5 text-green-500" />
-                                            <span className="text-gray-600">{subscription.features[0]}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Check className="w-5 h-5 text-green-500" />
-                                            <span className="text-gray-600">{subscription.features[1]}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Check className="w-5 h-5 text-green-500" />
-                                            <span className="text-gray-600">{subscription.features[2]}</span>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <Clock className="w-5 h-5 text-green-500" />
-                                            <span className="text-gray-600">{subscription.duration} Access</span>
-                                        </div>
-                                    </div>
+                                    {subscription.features.map((featureId, index) => {
+    const feature = getFeatureDetails(featureId);
+    return feature ? (
+        <div key={index} className="flex items-center gap-2">
+            <Check className="w-5 h-5 text-green-500" />
+            <span className="text-gray-600">{feature.description}</span>
+        </div>
+    ) : null;
+})}
 
                                     {/* Button */}
                                     <button

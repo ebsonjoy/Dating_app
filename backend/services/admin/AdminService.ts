@@ -7,6 +7,8 @@ import { IPayment } from "../../types/payment.types";
 import { IDashboardMasterData } from "../../types/dashboard.types";
 import { IReport } from "../../types/report.types";
 import { IMessage } from "../../types/message.types";
+import { IFetchPlanFeatures, IPlanFeatures } from "../../types/plan.types";
+import mongoose from "mongoose";
 
 
 @injectable()
@@ -122,5 +124,31 @@ async getReportsWithMessages(): Promise<(IReport & { messages: IMessage[] })[]> 
 async updateReportStatus(reportId: string, status: 'Pending' | 'Reviewed' | 'Resolved'): Promise<IReport | null> {
   return await this.adminRepository.updateReportStatus(reportId, status);
 }
+
+async createPlanFeature(feature: IPlanFeatures): Promise<IPlanFeatures | null> {
+  try {
+      return await this.adminRepository.createPlanFeature(feature);
+  } catch (error) {
+      if (error instanceof mongoose.Error.ValidationError) {
+          console.error("Validation Error:", error);
+          return null;
+      }
+      throw error;
+  }
+}
+
+async getPlanFeatures(): Promise<IFetchPlanFeatures[] | null> {
+    try{
+      const PlanFeatures =  await this.adminRepository.getPlanFeatures()
+      if(!PlanFeatures){
+        return null
+      }
+      return PlanFeatures
+    }catch(error){
+      console.error("Error fetching plan features:", error);
+        throw error;
+    }
+}
+
 
 }

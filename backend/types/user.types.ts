@@ -20,6 +20,7 @@ export interface IUser extends Document {
         planId: mongoose.Types.ObjectId | null;
         planExpiryDate: Date | null;
         planStartingDate: Date | null;
+        features?: string[];
     };
     status: boolean;
     matches: number;

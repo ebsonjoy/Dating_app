@@ -7,11 +7,13 @@ import Payment from "../../models/PaymentModel";
 import Match from '../../models/MatchModel'
 import Message from '../../models/MessageModel'
 import Report from '../../models/reportModel'
+import PlanFeatures from '../../models/PlanFeatures'
 import { IUser } from "../../types/user.types";
 import { IPayment } from "../../types/payment.types";
 import { IMessage } from "../../types/message.types";
 import { IReport } from "../../types/report.types";
 import { BaseRepository } from "../base/BaseRepository";
+import { IPlanFeatures,IFetchPlanFeatures } from "../../types/plan.types";
 
 @injectable()
 export class AdminRepository  extends BaseRepository<IAdmin> implements IAdminRepository {
@@ -22,6 +24,7 @@ export class AdminRepository  extends BaseRepository<IAdmin> implements IAdminRe
     private readonly matchModel = Match;
     private readonly MessageModel = Message;
     private readonly reportModel = Report;
+    private readonly PlanFeaturesModel = PlanFeatures;
   constructor() {
     super(Admin);
   }
@@ -285,6 +288,24 @@ async updateReportStatus(reportId: string, status: 'Pending' | 'Reviewed' | 'Res
       { status, updatedAt: new Date() },
       { new: true }
   );
+}
+
+async createPlanFeature(feature: IPlanFeatures): Promise<IPlanFeatures | null> {
+  try {
+      const newFeature = new this.PlanFeaturesModel(feature);
+      return await newFeature.save();
+  } catch (error) {
+      console.error("Error creating feature:", error);
+      return null;
+  }
+}
+async getPlanFeatures(): Promise<IFetchPlanFeatures[] | null> {
+    try{
+      return await this.PlanFeaturesModel.find()
+    }catch(error){
+      console.error("Error fetch feature:", error)
+      return null
+    }
 }
 
 }
