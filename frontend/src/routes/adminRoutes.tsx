@@ -11,10 +11,11 @@ import PaymentDetails from '../pages/adminPages/paymentDetails';
 import AdviceManagement from '../pages/adminPages/adviceCategoryPage';
 import ArticleManagement from '../pages/adminPages/articlePage';
 import UserReportDetials from '../pages/adminPages/userReport'
-
+import AdminPrivateRoute from '../components/admin/adminPrivateRoutes';
 const adminRoutes = (
   <Route path="/" element={<App />}>
     <Route path="/admin/Login" element={<AdminLandingScreen />} />
+    <Route element={<AdminPrivateRoute />}>
     <Route path="/admin/Dashboard" element={<AdminDashboardScreen />} />
     <Route path="/admin/usersList" element={<UserList />} />
     <Route path="/admin/subscriptionPlans" element={<SubscriptionPlans />} />
@@ -26,6 +27,7 @@ const adminRoutes = (
     <Route path="/admin/article" element={<ArticleManagement />} />
     <Route path="/admin/editArticle/:articleId" element={<ArticleManagement />} />
     <Route path="/admin/userReportDetails/" element={<UserReportDetials />} />
+    </Route>
   </Route>
 );
 

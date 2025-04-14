@@ -10,8 +10,9 @@ const ErrorDisplay = ({ error }:ErrorDisplayProps) => {
   const navigate = useNavigate();
   const isFeatureRestricted = error?.status === 403 && error?.data?.code === 'FEATURE_NOT_INCLUDED';
   const isSubscriptionExpired = error?.status === 403 && error?.data?.code === 'SUBSCRIPTION_EXPIRED';
+  const isNotSubcripe = error.status ===403 && error?.data?.code === 'SUBSCRIPTION_REQUIRED'
 
-  if (isFeatureRestricted || isSubscriptionExpired) {
+  if (isFeatureRestricted || isSubscriptionExpired || isNotSubcripe) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
         <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
@@ -22,7 +23,7 @@ const ErrorDisplay = ({ error }:ErrorDisplayProps) => {
           </div>
           
           <h3 className="text-xl font-semibold text-gray-800 mb-3">
-            {isFeatureRestricted ? 'Feature Not Available' : 'Subscription Expired'}
+            {isFeatureRestricted ? 'Feature Not Available' : 'Feature Not Available'}
           </h3>
           
           <p className="text-gray-600 mb-6">
@@ -72,6 +73,13 @@ const ErrorDisplay = ({ error }:ErrorDisplayProps) => {
         >
           Try Again
         </button>
+        <button 
+            onClick={() => navigate('/')}
+            className="w-full mt-3 px-6 py-3 border border-gray-200 text-gray-700 rounded-full font-medium hover:bg-gray-50 transition-all duration-300 flex items-center justify-center gap-2"
+          >
+            <Home className="w-5 h-5" />
+            Back to Home
+          </button>
       </div>
     </div>
   );

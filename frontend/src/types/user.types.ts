@@ -14,6 +14,7 @@ export interface IRegisterData {
     mobileNumber: string;
     dateOfBirth: string;
     otp: string;
+    role:string
   }
   
  export interface IUpdateUserData {

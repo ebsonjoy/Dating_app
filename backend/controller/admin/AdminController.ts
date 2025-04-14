@@ -44,6 +44,35 @@ export class AdminController{
             res.status(HttpStatusCode.BAD_REQUEST).json({ message: error instanceof Error ? error.message : StatusMessage.BAD_REQUEST });
         }
     });
+
+    adminRefreshToken = asyncHandler(async (req: Request, res: Response) => {
+
+      const adminRefreshToken = req.cookies.adminRefreshToken;
+      console.log('adminRefreshToken',adminRefreshToken)
+      if (!adminRefreshToken) {
+        res.status(401).json({ message: 'No refresh token' });
+        return 
+      }
+  
+      const decoded = AdminTokenService.verifyAdminRefreshToken(adminRefreshToken);
+      
+      if (!decoded) {
+         res.status(401).json({ message: 'Invalid refresh token' });
+         return 
+      }
+
+      const admin = await this.adminService.getAdminById(decoded.adminId)    
+      if (!admin) {
+         res.status(401).json({ message: 'admin not found' });
+         return 
+      }
+  
+      const newAccessToken = AdminTokenService.generateAdminAccessToken(admin._id.toString(),admin.role);
+  
+      AdminTokenService.setAdminTokenCookies(res, newAccessToken, adminRefreshToken);
+  
+      res.status(200).json({ message: 'Token refreshed successfully' });
+    });
     
 
     logout = asyncHandler(async (req: Request, res: Response) => {

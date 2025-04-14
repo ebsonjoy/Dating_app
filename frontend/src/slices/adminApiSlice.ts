@@ -13,6 +13,7 @@ interface IAdmin {
   id: string;
   name: string;
   email: string;
+  role:string;
 }
 
 interface AdminRegisterData {
@@ -178,6 +179,13 @@ export const adminApiSlice = apiSlice.injectEndpoints({
     logoutAdmin: builder.mutation<void, void>({
       query: () => ({
         url: `${ADMIN_URL}/logoutAdmin`,
+        method: "POST",
+      }),
+    }),
+
+    adminRefreshToken: builder.mutation<void, void>({
+      query: () => ({
+        url: `${ADMIN_URL}/admin-refresh-token`,
         method: "POST",
       }),
     }),
@@ -393,5 +401,6 @@ export const {
   useUpdateReportStatusMutation,
 
   useFetchPlanFeaturesQuery,
+  useAdminRefreshTokenMutation,
 
 } = adminApiSlice;

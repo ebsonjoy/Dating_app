@@ -58,6 +58,15 @@ export class AdminRepository  extends BaseRepository<IAdmin> implements IAdminRe
     }
   }
 
+  async getAdminById(adminId: string): Promise<IAdmin | null> {
+      try{
+         return  await this.adminModel.findById(adminId)
+      }catch(error){
+        console.error("Error fetching admin:", error);
+        throw new Error("Error fetching admin");
+      }
+  }
+
   async updateUserStatus(
     userId: string,
     newStatus: boolean

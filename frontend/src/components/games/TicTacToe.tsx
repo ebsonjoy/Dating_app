@@ -2,15 +2,17 @@ import React, { useState, useEffect } from "react";
 import { useSocketContext } from "../../context/SocketContext";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
-import { useNavigate  } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 interface Player {
   p1: {
+    p1id: string;
     p1name: string;
     p1value: string;
     p1move: string[];
   };
   p2: {
+    p2id: string;
     p2name: string;
     p2value: string;
     p2move: string[];
@@ -24,7 +26,9 @@ const TicTacToe: React.FC = () => {
   const navigate = useNavigate();
   const { userInfo } = useSelector((state: RootState) => state.auth);
   const userId = userInfo?._id;
-  const [name, setName] = useState("");
+  const username = userInfo?.name || userInfo?.name || "Player";
+  
+  const [opponentId, setOpponentId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [opponent, setOpponent] = useState("");
@@ -38,12 +42,16 @@ const TicTacToe: React.FC = () => {
   } | null>(null);
 
   const findPlayer = () => {
-    if (!name) {
-      alert("Please enter your name");
+    if (!opponentId) {
+      alert("Please enter opponent's ID");
       return;
     }
     setIsLoading(true);
-    socket?.emit("find", { name, userId });
+    socket?.emit("findByIds", { 
+      playerId: userId, 
+      playerName: username,
+      opponentId: opponentId 
+    });
   };
 
   const handleCellClick = (index: number) => {
@@ -52,7 +60,7 @@ const TicTacToe: React.FC = () => {
     socket?.emit("playing", {
       value: playerValue,
       id: `btn${index + 1}`,
-      name,
+      playerId: userId,
     });
   };
 
@@ -62,7 +70,7 @@ const TicTacToe: React.FC = () => {
     setCurrentTurn("X");
     setShowModal(false);
     setGameResult(null);
-    socket?.emit("resetGame", { name });
+    socket?.emit("resetGame", { playerId: userId });
   };
 
   const quitGame = () => {
@@ -73,18 +81,18 @@ const TicTacToe: React.FC = () => {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on("find", (data: { allPlayers: Player[] }) => {
+    socket.on("gameMatched", (data: { allPlayers: Player[] }) => {
       const foundObject = data.allPlayers.find(
-        (obj) => obj.p1.p1name === name || obj.p2.p2name === name
+        (obj) => obj.p1.p1id === userId || obj.p2.p2id === userId
       );
 
       if (foundObject) {
         const oppName =
-          foundObject.p1.p1name === name
+          foundObject.p1.p1id === userId
             ? foundObject.p2.p2name
             : foundObject.p1.p1name;
         const value =
-          foundObject.p1.p1name === name
+          foundObject.p1.p1id === userId
             ? foundObject.p1.p1value
             : foundObject.p2.p2value;
 
@@ -97,7 +105,7 @@ const TicTacToe: React.FC = () => {
 
     socket.on("playing", (data: { allPlayers: Player[] }) => {
       const foundObject = data.allPlayers.find(
-        (obj) => obj.p1.p1name === name || obj.p2.p2name === name
+        (obj) => obj.p1.p1id === userId || obj.p2.p2id === userId
       );
 
       if (foundObject) {
@@ -111,12 +119,18 @@ const TicTacToe: React.FC = () => {
       setShowModal(true);
     });
 
+    socket.on("matchError", (data: { message: string }) => {
+      alert(data.message);
+      setIsLoading(false);
+    });
+
     return () => {
-      socket.off("find");
+      socket.off("gameMatched");
       socket.off("playing");
       socket.off("gameOver");
+      socket.off("matchError");
     };
-  }, [socket, name]);
+  }, [socket, userId]);
 
   return (
     <div className="p-4 text-center">
@@ -125,23 +139,23 @@ const TicTacToe: React.FC = () => {
         <div>
           <input
             type="text"
-            placeholder="Enter your name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="p-2 border rounded mb-4"
+            placeholder="Enter opponent's ID"
+            value={opponentId}
+            onChange={(e) => setOpponentId(e.target.value)}
+            className="p-2 border rounded mb-4 text-white"
           />
           <button
             onClick={findPlayer}
             className="bg-green-500 text-white p-2 rounded"
             disabled={isLoading}
           >
-            {isLoading ? "Searching..." : "Find Player"}
+            {isLoading ? "Matching..." : "Start Game"}
           </button>
         </div>
       ) : (
         <div>
           <div className="mb-4">
-            <p>You: {name} ({playerValue})</p>
+            <p>You: {username} ({playerValue})</p>
             <p>Opponent: {opponent}</p>
             <p>Current Turn: {currentTurn}</p>
           </div>

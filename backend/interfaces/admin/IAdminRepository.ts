@@ -8,6 +8,7 @@ import { IPlanFeatures,IFetchPlanFeatures } from "../../types/plan.types";
 export interface IAdminRepository{
     authenticate(email: string): Promise<IAdmin | null>;
     create(email: string, password: string): Promise<void>;
+    getAdminById(adminId:string):Promise<IAdmin | null>;
     findAllUsers(): Promise<IUser[]>;
     updateUserStatus(userId: string, newStatus: boolean): Promise<IUser | null>;
     getAllPayments():Promise<IPayment[]>

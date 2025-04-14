@@ -8,6 +8,7 @@ export  interface ILogin {
     name: string;
     email: string;
     token: string;
+    role:string
     isGoogleLogin?: boolean;
   }
   
@@ -30,5 +31,6 @@ export  interface IforgotPasswordData {
     _id: string;
     name: string;
     email: string;
+    role:string
     isGoogleLogin: boolean;
   }

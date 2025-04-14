@@ -2,19 +2,19 @@ import { Server, Socket } from "socket.io";
 import http from "http";
 import Notification from "../models/Notifications";
 
-
 interface PlayerOne {
+  p1id: string;
   p1name: string;
   p1value: string;
   p1move: string[];
 }
 
 interface PlayerTwo {
+  p2id: string;
   p2name: string;
   p2value: string;
   p2move: string[];
 }
-
 
 interface PlayerPair {
   p1: PlayerOne;
@@ -23,10 +23,39 @@ interface PlayerPair {
   board: string[];
 }
 
+interface TwoTruthsGame {
+  player1: {
+    id: string;
+    name: string;
+    statements: string[];
+    lieIndex: number | null;
+  };
+  player2: {
+    id: string;
+    name: string;
+    statements: string[];
+    lieIndex: number | null;
+  };
+  currentTurn: string;
+  gameState: 'waiting' | 'statements_submitted' | 'guessing' | 'completed';
+  round: number;
+  scores: {
+    [playerId: string]: number;
+  };
+}
 
 const userSocketMap: Record<string, string> = {}; 
-const arr: string[] = [];
+
+interface GameRequest {
+  playerId: string;
+  playerName: string;
+  opponentId: string;
+  gameType?: string;
+}
+
+const pendingGameRequests: Record<string, GameRequest> = {};
 let playingArray: PlayerPair[] = [];
+let twoTruthsGames: TwoTruthsGame[] = [];
 
 export let io: Server;
 
@@ -46,10 +75,9 @@ export const initializeSocket = (server: http.Server): void => {
       userSocketMap[userId] = socket.id;
     }
 
-    // Existing online users functionality
+
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
-    // Handle message read status
     socket.on("markMessageRead", ({ messageId, senderId, readerId }) => {
       const senderSocketId = userSocketMap[senderId];
       if (senderSocketId) {
@@ -60,7 +88,6 @@ export const initializeSocket = (server: http.Server): void => {
       }
     });
 
-    // Existing messaging functionality
     socket.on("sendMessage", ({ receiverId, message }) => {
       const receiverSocketId = userSocketMap[receiverId];
       if (receiverSocketId) {
@@ -89,10 +116,6 @@ export const initializeSocket = (server: http.Server): void => {
         io.to(unblockedUserSocketId).emit("userWasUnblocked", { unblockedByUserId });
       }
     });
-
-
-
-
     //Notification
 
     socket.on("notificationForLike",async ({ likedUserId,name }) => {
@@ -180,110 +203,234 @@ export const initializeSocket = (server: http.Server): void => {
       }
     });
 
-  
-
-    // Tic-Tac-Toe functionality
-socket.on("find", (e: { name: string,userId : string }) => {
-  console.log('uuuuuuuuuuu',e.userId)
-  if (e.name) {
-    arr.push(e.name);
-
-    if (arr.length >= 2) {
-      const p1obj: PlayerOne = {
-        p1name: arr[0],
-        p1value: "X",
-        p1move: [],
-      };
-      const p2obj: PlayerTwo = {
-        p2name: arr[1],
-        p2value: "O",
-        p2move: [],
-      };
-
-      const obj: PlayerPair = {
-        p1: p1obj,
-        p2: p2obj,
-        sum: 0,
-        board: Array(9).fill(""),
-      };
-      playingArray.push(obj);
-
-      arr.splice(0, 2);
-
-      io.emit("find", { allPlayers: playingArray });
+  // Tic-Tac-Toe
+  socket.on("findByIds", (request: GameRequest) => {
+    console.log("Game request received:", request);
+    
+    if (!userSocketMap[request.opponentId]) {
+      socket.emit("matchError", { message: "Opponent is not online" });
+      return;
     }
-  }
-});
- 
-
-socket.on("playing", (e: { value: string; id: string; name: string }) => {
-  const objToCheck = playingArray.find(
-    (obj) => obj.p1.p1name === e.name || obj.p2.p2name === e.name
-  );
-
-  if (objToCheck) {
-    const index = parseInt(e.id.replace("btn", "")) - 1;
-    if (objToCheck.board[index] === "") {
-      objToCheck.board[index] = e.value; 
-      objToCheck.sum++; 
-    }
-    const winConditions = [
-      [0, 1, 2],
-      [3, 4, 5],
-      [6, 7, 8],
-      [0, 3, 6],
-      [1, 4, 7],
-      [2, 5, 8],
-      [0, 4, 8],
-      [2, 4, 6],
-    ];
-
-    let winner = null;
-    for (const [a, b, c] of winConditions) {
-      if (
-        objToCheck.board[a] &&
-        objToCheck.board[a] === objToCheck.board[b] &&
-        objToCheck.board[a] === objToCheck.board[c]
-      ) {
-        winner = objToCheck.board[a];
-        break;
+    
+    const pendingRequest = pendingGameRequests[request.playerId];
+    
+    if (pendingRequest && pendingRequest.playerId === request.opponentId) {
+      console.log("Match found between", request.playerId, "and", request.opponentId);
+      
+      if (request.gameType === "twoTruths" || pendingRequest.gameType === "twoTruths") {
+        const newGame: TwoTruthsGame = {
+          player1: {
+            id: pendingRequest.playerId,
+            name: pendingRequest.playerName,
+            statements: [],
+            lieIndex: null
+          },
+          player2: {
+            id: request.playerId,
+            name: request.playerName,
+            statements: [],
+            lieIndex: null
+          },
+          currentTurn: pendingRequest.playerId,
+          gameState: 'waiting',
+          round: 1,
+          scores: {
+            [pendingRequest.playerId]: 0,
+            [request.playerId]: 0
+          }
+        };
+        
+        twoTruthsGames.push(newGame);
+        
+        delete pendingGameRequests[request.playerId];
+        
+        io.emit("twoTruthsGameMatched", { allGames: twoTruthsGames });
+      } else {
+        // Default to Tic-Tac-Toe
+        // Create player objects
+        const p1obj: PlayerOne = {
+          p1id: pendingRequest.playerId,
+          p1name: pendingRequest.playerName,
+          p1value: "X",
+          p1move: [],
+        };
+        
+        const p2obj: PlayerTwo = {
+          p2id: request.playerId,
+          p2name: request.playerName,
+          p2value: "O",
+          p2move: [],
+        };
+        
+        const gameObj: PlayerPair = {
+          p1: p1obj,
+          p2: p2obj,
+          sum: 0,
+          board: Array(9).fill(""),
+        };
+        
+        playingArray.push(gameObj);
+        
+        delete pendingGameRequests[request.playerId];
+        
+        io.emit("gameMatched", { allPlayers: playingArray });
+      }
+    } else {
+      pendingGameRequests[request.opponentId] = request;
+      console.log("Game request stored for", request.opponentId);
+      const opponentSocketId = userSocketMap[request.opponentId];
+      if (opponentSocketId) {
+        io.to(opponentSocketId).emit("gameRequest", {
+          requesterId: request.playerId,
+          requesterName: request.playerName,
+          gameType: request.gameType
+        });
       }
     }
+  });
 
-    if (winner) {
-      io.emit("gameOver", {
-        winner: winner === "X" ? objToCheck.p1.p1name : objToCheck.p2.p2name,
-        reason: "win",
-      });
-      playingArray = playingArray.filter((obj) => obj !== objToCheck);
-    } else if (objToCheck.sum === 9) {
-      io.emit("gameOver", {
-        winner: null,
-        reason: "draw",
-      });
-      playingArray = playingArray.filter((obj) => obj !== objToCheck);
-    } else {
-      io.emit("playing", { allPlayers: playingArray });
+  // Two Truths & A Lie game handlers
+  socket.on("submitStatements", ({ playerId, statements, lieIndex }) => {
+    const game = twoTruthsGames.find(
+      game => game.player1.id === playerId || game.player2.id === playerId
+    );
+
+    if (game) {
+      if (game.player1.id === playerId) {
+        game.player1.statements = statements;
+        game.player1.lieIndex = lieIndex;
+      } else {
+        game.player2.statements = statements;
+        game.player2.lieIndex = lieIndex;
+      }
+
+      if (game.player1.statements.length > 0 && game.player2.statements.length > 0) {
+        game.gameState = 'statements_submitted';
+        
+        game.currentTurn = game.player2.id;
+        game.gameState = 'guessing';
+      }
+
+      io.emit("twoTruthsGameUpdated", { allGames: twoTruthsGames });
     }
-  }
-});
+  });
 
-socket.on("resetGame", (e: { name: string }) => {
-  playingArray = playingArray.filter(
-    (obj) => obj.p1.p1name !== e.name && obj.p2.p2name !== e.name
-  );
-  io.emit("playing", { allPlayers: playingArray });
-});
+  socket.on("makeGuess", ({ playerId, guessIndex }) => {
+    const game = twoTruthsGames.find(
+      game => game.player1.id === playerId || game.player2.id === playerId
+    );
 
+    if (game && game.gameState === 'guessing') {
+      let isCorrect = false;
+      let lieIndex = -1;
+      
+      if (game.currentTurn === game.player1.id) {
+        isCorrect = guessIndex === game.player2.lieIndex;
+        lieIndex = game.player2.lieIndex as number;
+        
+        if (isCorrect) {
+          game.scores[game.player1.id]++;
+        }
+        
+        if (game.round === 1) {
+          game.round = 2;
+          game.gameState = 'waiting';
+          game.player1.statements = [];
+          game.player2.statements = [];
+          game.player1.lieIndex = null;
+          game.player2.lieIndex = null;
+        } else {
+          game.gameState = 'completed';
+        }
+      } else {
+        isCorrect = guessIndex === game.player1.lieIndex;
+        lieIndex = game.player1.lieIndex as number;
+        
+        if (isCorrect) {
+          game.scores[game.player2.id]++;
+        }
+        
+        game.currentTurn = game.player1.id;
+      }
+      
+      io.emit("guessResult", { 
+        gameId: twoTruthsGames.indexOf(game),
+        playerId,
+        isCorrect,
+        lieIndex
+      });
+      
+      io.emit("twoTruthsGameUpdated", { allGames: twoTruthsGames });
+    }
+  });
 
-socket.on("gameOver", (e: { name: string }) => {
-  playingArray = playingArray.filter((obj) => obj.p1.p1name !== e.name);
-});
+  socket.on("resetTwoTruthsGame", ({ playerId }) => {
+    twoTruthsGames = twoTruthsGames.filter(
+      game => game.player1.id !== playerId && game.player2.id !== playerId
+    );
+    io.emit("twoTruthsGameUpdated", { allGames: twoTruthsGames });
+  });
 
+  socket.on("playing", (e: { value: string; id: string; playerId: string }) => {
+    const objToCheck = playingArray.find(
+      (obj) => obj.p1.p1id === e.playerId || obj.p2.p2id === e.playerId
+    );
+
+    if (objToCheck) {
+      const index = parseInt(e.id.replace("btn", "")) - 1;
+      if (objToCheck.board[index] === "") {
+        objToCheck.board[index] = e.value; 
+        objToCheck.sum++; 
+      }
+      
+      const winConditions = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8],
+        [0, 3, 6], [1, 4, 7], [2, 5, 8],
+        [0, 4, 8], [2, 4, 6],
+      ];
+
+      let winner = null;
+      for (const [a, b, c] of winConditions) {
+        if (
+          objToCheck.board[a] &&
+          objToCheck.board[a] === objToCheck.board[b] &&
+          objToCheck.board[a] === objToCheck.board[c]
+        ) {
+          winner = objToCheck.board[a];
+          break;
+        }
+      }
+
+      if (winner) {
+        const winnerName = winner === "X" ? objToCheck.p1.p1name : objToCheck.p2.p2name;
+        io.emit("gameOver", {
+          winner: winnerName,
+          reason: "win",
+        });
+        playingArray = playingArray.filter((obj) => obj !== objToCheck);
+      } else if (objToCheck.sum === 9) {
+        io.emit("gameOver", {
+          winner: null,
+          reason: "draw",
+        });
+        playingArray = playingArray.filter((obj) => obj !== objToCheck);
+      } else {
+        io.emit("playing", { allPlayers: playingArray });
+      }
+    }
+  });
+
+  socket.on("resetGame", (e: { playerId: string }) => {
+    playingArray = playingArray.filter(
+      (obj) => obj.p1.p1id !== e.playerId && obj.p2.p2id !== e.playerId
+    );
+    io.emit("playing", { allPlayers: playingArray });
+  });
    
       socket.on("disconnect", () => {
         console.log("User disconnected", socket.id);
         if (userId) {
+          delete pendingGameRequests[userId];
           delete userSocketMap[userId];
         }
         io.emit("getOnlineUsers", Object.keys(userSocketMap));

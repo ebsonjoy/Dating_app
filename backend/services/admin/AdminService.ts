@@ -42,6 +42,15 @@ export class AdminService implements IAdminService {
     }
   }
 
+  async getAdminById(adminId: string): Promise<IAdmin | null> {
+      try{
+        return await this.adminRepository.getAdminById(adminId)
+      }catch(error){
+        console.log(error)
+      throw new Error("Failed to fetch admin");
+      }
+  }
+
   async getAllUsers(): Promise<IUser[]> {
     try {
       return await this.adminRepository.findAllUsers();

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import Navbar from '../../components/user/Navbar';
-import { Gamepad, Heart } from 'lucide-react';
+import { Gamepad, Heart, Copy, Check } from 'lucide-react';
 import TicTacToe from '../../components/games/TicTacToe';
+import TwoTruthsAndALie from '../../components/games/TwoTruthsAndALie';
 import { RootState } from "../../store";
 import { useSelector } from 'react-redux';
 
@@ -31,68 +32,88 @@ const GameCard: React.FC<GameCardProps> = ({ title, icon: Icon, description, onC
   </div>
 );
 
-// ✅ Main GameZonePage Component
 const GameZonePage: React.FC = () => {
-  const [isGameStarted, setIsGameStarted] = useState(false);
+  const [activeGame, setActiveGame] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const { userInfo } = useSelector((state: RootState) => state.auth);
   const userId = userInfo?._id;
-  const shortGameId = userId?.slice(-6);
+  
+  const gameId = userId || '';
 
-  const handleStartGame = () => {
-    setIsGameStarted(true);
+  const handleStartGame = (game: string) => {
+    setActiveGame(game);
+  };
+
+  const copyIdToClipboard = () => {
+    navigator.clipboard.writeText(gameId).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-rose-50 to-pink-50">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <div className="max-w-6xl mx-auto p-6">
-        <div className="space-y-8">
-          {/* Header Section */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-800 flex items-center gap-3">
-                <Gamepad className="text-pink-500" size={40} />
-                <span>Game Zone</span>
-              </h1>
-              <p className="mt-2 text-gray-600">Play games, make connections, find love!</p>
-            </div>
-            <div className="bg-white/50 backdrop-blur-sm rounded-xl p-4">
-              <p className="text-gray-700">
-                Game ID: <span className="font-mono font-bold text-pink-600">{shortGameId || '...'}</span>
-              </p>
-            </div>
-          </div>
-
-          {/* Game Section */}
-          <div className="grid md:grid-cols-2 gap-6">
-            {!isGameStarted ? (
-              <>
-                <GameCard
-                  title="Tic Tac Toe"
-                  icon={Gamepad}
-                  description="Challenge your match to a classic game of Tic Tac Toe!"
-                  onClick={handleStartGame}
-                />
-                <GameCard
+      <div className="container mx-auto p-4">
+        <h1 className="text-4xl font-bold text-center mb-8">Game Zone</h1>
+        
+        {!activeGame ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <GameCard
+              title="Tic-Tac-Toe"
+              icon={Gamepad}
+              description="Classic X and O game. Challenge a friend and see who wins!"
+              onClick={() => handleStartGame('ticTacToe')}
+            />
+            <GameCard
+              title="Two Truths & A Lie"
+              icon={Heart}
+              description="Share truths and a lie. Can your friend guess the lie?"
+              onClick={() => handleStartGame('twoTruths')}
+            />
+            <GameCard
                   title="Coming Soon"
                   icon={Heart}
                   description="More exciting games are on the way..."
                   isActive={false}
                 />
-              </>
-            ) : (
-              <div className="md:col-span-2 bg-white p-8 rounded-2xl shadow-sm">
-                <TicTacToe />
+          </div>
+        ) : (
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold">
+                {activeGame === 'ticTacToe' ? 'Tic-Tac-Toe' : 'Two Truths & A Lie'}
+              </h2>
+              <button
+                onClick={() => setActiveGame(null)}
+                className="bg-gray-500 text-white px-4 py-2 rounded"
+              >
+                Back to Games
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-gray-600 mb-2">Your Game ID:</p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={gameId}
+                  readOnly
+                  className="p-2 border rounded flex-grow text-white"
+                />
                 <button
-                  onClick={() => setIsGameStarted(false)}
-                  className="mt-6 px-6 py-2 text-pink-500 border border-pink-500 rounded-full hover:bg-pink-50 transition-colors"
+                  onClick={copyIdToClipboard}
+                  className="bg-pink-500 text-white p-2 rounded"
                 >
-                  Back to Games
+                  {copied ? <Check size={20} /> : <Copy size={20} />}
                 </button>
               </div>
-            )}
+            </div>
+
+            {activeGame === 'ticTacToe' && <TicTacToe />}
+            {activeGame === 'twoTruths' && <TwoTruthsAndALie />}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
